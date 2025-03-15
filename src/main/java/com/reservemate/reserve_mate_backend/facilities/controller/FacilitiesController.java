@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facilities.controller;
 
-import com.reservemate.reserve_mate_backend.facilities.dto.FacilitiesDto;
+import com.reservemate.reserve_mate_backend.facilities.domain.FacilitiesDto;
 import com.reservemate.reserve_mate_backend.facilities.service.FacilitiesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

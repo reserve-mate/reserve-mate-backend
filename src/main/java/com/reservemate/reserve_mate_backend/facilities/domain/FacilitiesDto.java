@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.facilities.dto;
+package com.reservemate.reserve_mate_backend.facilities.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
