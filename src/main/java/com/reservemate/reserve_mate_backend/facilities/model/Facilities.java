@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.facilities.entity;
+package com.reservemate.reserve_mate_backend.facilities.model;
 
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
