@@ -1,6 +1,6 @@
-package com.reservemate.reserve_mate_backend.domain.facilities.repository;
+package com.reservemate.reserve_mate_backend.facilities.repository;
 
-import com.reservemate.reserve_mate_backend.domain.facilities.entity.Facilities;
+import com.reservemate.reserve_mate_backend.facilities.entity.Facilities;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

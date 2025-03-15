@@ -1,6 +1,6 @@
-package com.reservemate.reserve_mate_backend.domain.facilities.service;
+package com.reservemate.reserve_mate_backend.facilities.service;
 
-import com.reservemate.reserve_mate_backend.domain.facilities.repository.FacilitiesRepository;
+import com.reservemate.reserve_mate_backend.facilities.repository.FacilitiesRepository;
 import org.springframework.stereotype.Service;
 
 @Service

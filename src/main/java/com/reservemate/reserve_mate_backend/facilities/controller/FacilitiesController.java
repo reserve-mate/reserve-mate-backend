@@ -1,8 +1,7 @@
-package com.reservemate.reserve_mate_backend.domain.facilities.controller;
+package com.reservemate.reserve_mate_backend.facilities.controller;
 
-import com.reservemate.reserve_mate_backend.domain.facilities.dto.FacilitiesDto;
-import com.reservemate.reserve_mate_backend.domain.facilities.service.FacilitiesService;
-import lombok.Getter;
+import com.reservemate.reserve_mate_backend.facilities.dto.FacilitiesDto;
+import com.reservemate.reserve_mate_backend.facilities.service.FacilitiesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
