@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.facilities.domain;
+package com.reservemate.reserve_mate_backend.facilities.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FacilitiesDto {
+public class CreateFacilitiesRequest {
     private Long id;
     private String name;
     private String description;

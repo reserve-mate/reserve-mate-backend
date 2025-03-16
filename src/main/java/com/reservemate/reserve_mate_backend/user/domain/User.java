@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.user.model;
+package com.reservemate.reserve_mate_backend.user.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
