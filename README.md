@@ -327,3 +327,11 @@
 - Docker 컨테이너화
 - CI/CD 파이프라인 구성 (GitHub Actions)
 - AWS EC2, S3
+
+## 5. 개발 환경 설정
+
+### 5.1 코드 포맷팅
+
+프로젝트는 Google Java Format을 사용하여 코드 스타일을 통일합니다.
+
+개발자는 코드 포맷팅에 신경 쓸 필요가 없습니다. PR을 생성하면 GitHub Actions가 자동으로 코드 포맷팅을 적용하고 커밋합니다.

@@ -5,11 +5,14 @@ on:
     branches: [ 'dev' ]
 
 jobs:
-  build:
+  format-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -23,8 +26,14 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Spotless Check
-        run: ./gradlew spotlessCheck
+      - name: Apply Spotless Format
+        run: ./gradlew spotlessApply
+
+      - name: Commit changes if any
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git diff --quiet && git diff --staged --quiet || (git add . && git commit -m "Apply code formatting [skip ci]" && git push)
 
       - name: Build
         run: ./gradlew build
