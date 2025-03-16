@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facilities.controller;
 
-import com.reservemate.reserve_mate_backend.facilities.domain.FacilitiesDto;
+import com.reservemate.reserve_mate_backend.facilities.dto.request.CreateFacilitiesRequest;
 import com.reservemate.reserve_mate_backend.facilities.service.FacilitiesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +16,17 @@ public class FacilitiesController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<FacilitiesDto> createFacility(@RequestBody FacilitiesDto facilitiesDto){
+    public ResponseEntity<CreateFacilitiesRequest> createFacility(@RequestBody CreateFacilitiesRequest request){
         return ResponseEntity.ok(null);
     }
 
     @GetMapping("/load")
-    public ResponseEntity<List<FacilitiesDto>> getFacilities(){
+    public ResponseEntity<List<CreateFacilitiesRequest>> getFacilities(){
         return ResponseEntity.ok(null);
     }
 
     @GetMapping("/load/{id}")
-    public ResponseEntity<FacilitiesDto> getById(@PathVariable Long id){
+    public ResponseEntity<CreateFacilitiesRequest> getById(@PathVariable Long id){
         return ResponseEntity.ok(null);
     }
 }
