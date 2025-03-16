@@ -1,5 +1,9 @@
 # 스포츠 예약 시스템 설계 문서
 
+## 개발 환경 접속 정보
+- H2 Console: http://localhost:8080/h2-console
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+
 ## 1. 요구사항 분석
 
 ### 1.1 기능 요구사항
@@ -332,6 +336,4 @@
 
 ### 5.1 코드 포맷팅
 
-프로젝트는 Google Java Format을 사용하여 코드 스타일을 통일합니다.
-
-개발자는 코드 포맷팅에 신경 쓸 필요가 없습니다. PR을 생성하면 GitHub Actions가 자동으로 코드 포맷팅을 적용하고 커밋합니다.
+Google Java Format을 사용하여 코드 스타일을 통일
