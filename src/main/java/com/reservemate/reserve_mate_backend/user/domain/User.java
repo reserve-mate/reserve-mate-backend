@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.user.domain;
 
+import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,34 +16,34 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "users")
-public class User {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", updatable = false)
-  private long id;
+public class User extends BaseEntity {
 
-  @Column(name = "name", nullable = false, length = 30, unique = true)
-  private String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", updatable = false)
+    private Long id;
 
-  @Column(name = "email", nullable = false, length = 50, unique = true)
-  private String email;
+    @Column(name = "name", nullable = false, length = 30, unique = true)
+    private String name;
 
-  @Column(name = "password", length = 100)
-  private String password;
+    @Column(name = "email", nullable = false, length = 50, unique = true)
+    private String email;
 
-  @Column(name = "phone", length = 50)
-  private String phone;
+    @Column(name = "password", length = 100)
+    private String password;
 
-  @Column(name = "role")
-  private String role;
+    @Column(name = "phone", length = 50)
+    private String phone;
 
-  @Builder(toBuilder = true)
-  public User(long id, String name, String email, String password, String phone, String role) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-    this.password = password;
-    this.phone = phone;
-    this.role = role;
-  }
+    @Column(name = "role")
+    private String role;
+
+    @Builder(toBuilder = true)
+    public User(String name, String email, String password, String phone, String role) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+        this.role = role;
+    }
 }

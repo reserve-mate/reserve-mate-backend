@@ -1,36 +1,33 @@
 package com.reservemate.reserve_mate_backend.facilities.domain;
 
+import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity
-public class Facilities {
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+public class Facilities extends BaseEntity {
 
-  @Column(length = 100)
-  private String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "facilities_id", updatable = false)
+    private Long id;
 
-  @Column(length = 300)
-  private String description;
+    @Column(length = 100)
+    private String name;
 
-  @Column(length = 100)
-  private String address;
+    @Column(length = 300)
+    private String description;
 
-  @Column(length = 100)
-  private String latitude;
+    @Column(length = 100)
+    private String address;
 
-  @Column(length = 100)
-  private String longitude;
+    @Column(length = 100)
+    private String latitude;
 
-  @Column(length = 11)
-  private String contactPhone;
+    @Column(length = 100)
+    private String longitude;
 
-  @CreatedDate
-  @Column(updatable = false)
-  private String createdAt;
-
-  @LastModifiedDate private String updatedAt;
+    @Column(length = 11)
+    private String contactPhone;
 }
