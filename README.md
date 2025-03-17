@@ -50,21 +50,7 @@
 ## 2. 데이터베이스 설계
 
 ### 2.1 엔티티 관계도 (ERD)
-
 ```
-[USERS] --< [RESERVATIONS] >-- [COURTS] >-- [FACILITIES]
-  ^            ^                  ^             ^
-  |            |                  |             |
-  |            v                  |             |
-  |---< [REVIEWS] ----------------             |
-  |                                            |
-  |---< [TEAMS] >-< [TEAM_MEMBERS] >------    |
-  |       ^                                |   |
-  |       |                                |   |
-  |       v                                |   |
-  |    [MATCHING_REQUESTS] ----------------    |
-  |                                            |
-  |---- [FACILITY_MANAGERS] >-----------------
 ```
 
 ### 2.2 주요 엔티티 및 속성
@@ -81,6 +67,7 @@
 - enabled
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.2 시설(FACILITIES)
 - id (PK)
@@ -92,6 +79,7 @@
 - contact_phone
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.3 코트(COURTS)
 - id (PK)
@@ -104,6 +92,7 @@
 - active
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.4 운영시간(OPERATING_HOURS)
 - id (PK)
@@ -112,6 +101,9 @@
 - open_time
 - close_time
 - is_holiday
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.5 가격정책(PRICE_POLICIES)
 - id (PK)
@@ -125,11 +117,15 @@
 - minimum_hours
 - effective_from
 - effective_to
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.6 예약(RESERVATIONS)
 - id (PK)
 - user_id (FK)
 - court_id (FK)
+- waiting_list_id (FK, nullable)
 - start_time
 - end_time
 - status (PENDING, CONFIRMED, CANCELED, COMPLETED)
@@ -138,6 +134,7 @@
 - total_price
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.7 결제(PAYMENTS)
 - id (PK)
@@ -152,11 +149,13 @@
 - cancel_reason
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.8 알림(NOTIFICATIONS)
 - id (PK)
 - user_id (FK)
-- reservation_id (FK)
+- reservation_id (FK, nullable)
+- payment_id (FK, nullable)
 - type
 - content
 - method (EMAIL, SMS, PUSH)
@@ -164,6 +163,8 @@
 - sent_at
 - read_at
 - created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.9 리뷰(REVIEWS)
 - id (PK)
@@ -173,6 +174,7 @@
 - content
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.10 시설 이미지(FACILITY_IMAGES)
 - id (PK)
@@ -182,6 +184,9 @@
 - is_main
 - display_order
 - uploaded_at
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.11 대기 목록(WAITING_LIST)
 - id (PK)
@@ -193,6 +198,7 @@
 - status (WAITING, NOTIFIED, RESERVED, CANCELED, EXPIRED)
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.12 팀(TEAMS)
 - id (PK)
@@ -200,6 +206,7 @@
 - description
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.13 팀원(TEAM_MEMBERS)
 - id (PK)
@@ -207,6 +214,9 @@
 - user_id (FK)
 - role (OWNER, ADMIN, MEMBER)
 - joined_at
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.14 매칭 요청(MATCHING_REQUESTS)
 - id (PK)
@@ -217,6 +227,7 @@
 - status
 - created_at
 - updated_at
+- deleted (소프트 삭제 플래그)
 
 #### 2.2.15 시설 관리자(FACILITY_MANAGERS)
 - id (PK)
@@ -224,6 +235,9 @@
 - user_id (FK)
 - role
 - assigned_at
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
 
 ## 3. N:M 관계 매핑 테이블
 
@@ -249,16 +263,22 @@
 - 예: User와 Team 간의 N:M 관계는 TeamMember 엔티티를 통해 관리
 
 ### 4.2 상속 관계 설계
-- `@Inheritance` 어노테이션을 사용하여 상속 관계 설정 (필요한 경우)
-- 예: 결제 방식이 다양한 경우 상속 구조 고려
+- `BaseEntity` 추상 클래스를 통한 공통 필드 관리
+- `@MappedSuperclass`, `@EntityListeners(AuditingEntityListener.class)` 활용
+- 소프트 삭제 구현 (`@SQLDelete`, `@Where`)
 
-### 4.3 Audit 정보
-- Spring Data JPA의 `@CreatedDate`, `@LastModifiedDate` 사용
-- `@EntityListeners(AuditingEntityListener.class)` 적용
+### 4.3 단방향 연관관계 우선
+- 양방향보다 단방향 연관관계 우선 적용
+- 필요한 경우에만 제한적으로 양방향 관계 설정
+- `@ManyToMany` 관계는 사용하지 않고 중간 테이블 엔티티로 명시적 관리
 
 ### 4.4 Fetch 전략
 - 기본적으로 @ManyToOne, @OneToOne은 LAZY 로딩 명시
 - 성능 최적화를 위해 필요한 경우 명시적으로 FetchType 지정
+
+### 4.5 인덱스 최적화
+- 자주 조회되는 컬럼과 FK에 인덱스 적용
+- 복합 인덱스 활용으로 조회 성능 향상
 
 ## 5. RESTful API 설계 (기본 CRUD 엔드포인트)
 
@@ -335,5 +355,92 @@
 ## 5. 개발 환경 설정
 
 ### 5.1 코드 포맷팅
-
 Google Java Format을 사용하여 코드 스타일을 통일
+
+# 6. 프로젝트 구조
+```
+└── src
+    ├── main
+    │   ├── java
+    │   │   └── com
+    │   │       └── reservemate
+    │   │           └── reserve_mate_backend
+    │   │               ├── ReserveMateBackendApplication.java
+    │   │               ├── common
+    │   │               │   ├── entity
+    │   │               │   │   └── BaseEntity.java
+    │   │               │   ├── exception
+    │   │               │   │   └── GlobalExceptionHandler.java
+    │   │               │   └── util
+    │   │               ├── config
+    │   │               │   ├── AuditingConfig.java
+    │   │               │   ├── SecurityConfig.java
+    │   │               │   └── SwaggerConfig.java
+    │   │               ├── user
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   └── User.java
+    │   │               │   ├── dto
+    │   │               │   │   ├── request
+    │   │               │   │   └── response
+    │   │               │   ├── repository
+    │   │               │   │   └── UserRepository.java
+    │   │               │   └── service
+    │   │               ├── facility
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   ├── Facility.java
+    │   │               │   │   ├── FacilityImage.java
+    │   │               │   │   ├── FacilityManager.java
+    │   │               │   │   └── OperatingHour.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               ├── court
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   ├── Court.java
+    │   │               │   │   └── PricePolicy.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               ├── reservation
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   ├── Reservation.java
+    │   │               │   │   └── WaitingList.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               ├── payment
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   └── Payment.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               ├── notification
+    │   │               │   ├── domain
+    │   │               │   │   └── Notification.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               ├── review
+    │   │               │   ├── controller
+    │   │               │   ├── domain
+    │   │               │   │   └── Review.java
+    │   │               │   ├── dto
+    │   │               │   ├── repository
+    │   │               │   └── service
+    │   │               └── team
+    │   │                   ├── controller
+    │   │                   ├── domain
+    │   │                   │   ├── Team.java
+    │   │                   │   ├── TeamMember.java
+    │   │                   │   └── MatchingRequest.java
+    │   │                   ├── dto
+    │   │                   ├── repository
+    │   │                   └── service
+    │   └── resources
+    │       └── application.yml
+```
