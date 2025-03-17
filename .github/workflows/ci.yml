@@ -5,8 +5,8 @@ on:
     branches: [ 'dev' ]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 jobs:
   format-and-build:
@@ -14,9 +14,6 @@ jobs:
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -30,14 +27,8 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Apply Spotless Format
-        run: ./gradlew spotlessApply
-
-      - name: Commit changes if any
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git diff --quiet && git diff --staged --quiet || (git add . && git commit -m "Apply code formatting [skip ci]" && git push)
+      - name: Check Spotless Format
+        run: ./gradlew spotlessCheck
 
       - name: Build
         run: ./gradlew build
