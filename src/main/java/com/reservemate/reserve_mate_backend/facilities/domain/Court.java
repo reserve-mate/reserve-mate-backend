@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.facilities.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,33 +21,32 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @Table(name = "COURTS")
-public class Court extends BaseEntity{
+public class Court extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "court_id", updatable = false)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "court_id", updatable = false)
+  private Long id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false)
-    private String sportType;
+  @Column(nullable = false)
+  private String sportType;
 
-    @Column(columnDefinition = "text")
-    private String description;
+  @Column(columnDefinition = "text")
+  private String description;
 
-    @Column(nullable = false)
-    private int capacity;
+  @Column(nullable = false)
+  private int capacity;
 
-    @Column(columnDefinition = "TINYINT(1) default 0")
-    private boolean indoor;
+  @Column(columnDefinition = "TINYINT(1) default 0")
+  private boolean indoor;
 
-    @Column(columnDefinition = "TINYINT(1) default 1")
-    private boolean active;
+  @Column(columnDefinition = "TINYINT(1) default 1")
+  private boolean active;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "facilities_id")
-    private Facilities facilities;
-
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "facilities_id")
+  private Facilities facilities;
 }
