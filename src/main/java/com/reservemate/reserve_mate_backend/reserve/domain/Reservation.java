@@ -25,30 +25,30 @@ import lombok.NoArgsConstructor;
 @Getter
 public class Reservation extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "reserve_id", updatable = false)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "reserve_id", updatable = false)
+    private Long id;
 
-  @Column(name = "start_time", nullable = false)
-  private LocalDateTime startTime;
+    @Column(name = "start_time", nullable = false)
+    private LocalDateTime startTime;
 
-  @Column(name = "end_time", nullable = false)
-  private LocalDateTime endTime;
+    @Column(name = "end_time", nullable = false)
+    private LocalDateTime endTime;
 
-  @Column(name = "status", nullable = false)
-  private String status;
+    @Column(name = "status", nullable = false)
+    private String status;
 
-  @Column(name = "cancel_reason")
-  private String cancelReason;
+    @Column(name = "cancel_reason")
+    private String cancelReason;
 
-  @Column(name = "canceled_at")
-  private LocalDateTime canceledAt;
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
-  @Column(name = "total_price", nullable = false)
-  private int totalPrice;
+    @Column(name = "total_price", nullable = false)
+    private int totalPrice;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

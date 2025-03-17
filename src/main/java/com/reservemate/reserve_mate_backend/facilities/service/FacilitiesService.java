@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FacilitiesService {
-  private final FacilitiesRepository facilitiesRepository;
+    private final FacilitiesRepository facilitiesRepository;
 
-  public FacilitiesService(FacilitiesRepository facilitiesRepository) {
-    this.facilitiesRepository = facilitiesRepository;
-  }
+    public FacilitiesService(FacilitiesRepository facilitiesRepository) {
+        this.facilitiesRepository = facilitiesRepository;
+    }
 }

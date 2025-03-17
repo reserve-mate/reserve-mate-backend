@@ -25,36 +25,36 @@ import lombok.NoArgsConstructor;
 @Table(name = "payments")
 public class Payment extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "payment_id", updatable = false)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id", updatable = false)
+    private Long id;
 
-  @Column(name = "imp_uid", nullable = false)
-  private String impUid;
+    @Column(name = "imp_uid", nullable = false)
+    private String impUid;
 
-  @Column(name = "merchant_uid", nullable = false)
-  private String merchantUid;
+    @Column(name = "merchant_uid", nullable = false)
+    private String merchantUid;
 
-  @Column(name = "amount", nullable = false)
-  private int amount;
+    @Column(name = "amount", nullable = false)
+    private int amount;
 
-  @Column(name = "status", nullable = false)
-  private String status;
+    @Column(name = "status", nullable = false)
+    private String status;
 
-  @Column(name = "pay_method", nullable = false)
-  private String payMethod;
+    @Column(name = "pay_method", nullable = false)
+    private String payMethod;
 
-  @Column(name = "paid_at", nullable = false)
-  private LocalDateTime paidAt;
+    @Column(name = "paid_at", nullable = false)
+    private LocalDateTime paidAt;
 
-  @Column(name = "canceled_at")
-  private LocalDateTime canceledAt;
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
-  @Column(name = "cancel_reason")
-  private String cancelReason;
+    @Column(name = "cancel_reason")
+    private String cancelReason;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "reserve_id")
-  private Reservation reservation;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reserve_id")
+    private Reservation reservation;
 }
