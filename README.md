@@ -160,10 +160,9 @@
 - type
 - content
 - method (EMAIL, SMS, PUSH)
-- is_read
+- read_yn
 - sent_at
 - read_at
-- created_at
 
 #### 2.2.9 리뷰(REVIEWS)
 - id (PK)
