@@ -49,6 +49,6 @@ tasks.named('test') {
 
 spotless {
     java {
-        googleJavaFormat()
+        googleJavaFormat().aosp()
     }
 }

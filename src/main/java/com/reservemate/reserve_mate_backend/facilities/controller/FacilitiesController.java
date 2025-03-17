@@ -9,25 +9,25 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/facilities")
 public class FacilitiesController {
-  private final FacilitiesService facilitiesService;
+    private final FacilitiesService facilitiesService;
 
-  public FacilitiesController(FacilitiesService facilitiesService) {
-    this.facilitiesService = facilitiesService;
-  }
+    public FacilitiesController(FacilitiesService facilitiesService) {
+        this.facilitiesService = facilitiesService;
+    }
 
-  @PostMapping("/create")
-  public ResponseEntity<CreateFacilitiesRequest> createFacility(
-      @RequestBody CreateFacilitiesRequest request) {
-    return ResponseEntity.ok(null);
-  }
+    @PostMapping("/create")
+    public ResponseEntity<CreateFacilitiesRequest> createFacility(
+            @RequestBody CreateFacilitiesRequest request) {
+        return ResponseEntity.ok(null);
+    }
 
-  @GetMapping("/load")
-  public ResponseEntity<List<CreateFacilitiesRequest>> getFacilities() {
-    return ResponseEntity.ok(null);
-  }
+    @GetMapping("/load")
+    public ResponseEntity<List<CreateFacilitiesRequest>> getFacilities() {
+        return ResponseEntity.ok(null);
+    }
 
-  @GetMapping("/load/{id}")
-  public ResponseEntity<CreateFacilitiesRequest> getById(@PathVariable Long id) {
-    return ResponseEntity.ok(null);
-  }
+    @GetMapping("/load/{id}")
+    public ResponseEntity<CreateFacilitiesRequest> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(null);
+    }
 }
