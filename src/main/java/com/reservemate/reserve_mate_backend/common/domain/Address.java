@@ -26,16 +26,21 @@ public class Address {
 
     @Column(name = "detail_address", length = 100)
     private String detailAddress;
-    
+
     @Builder
-    public Address(String zipcode, String city, String district, String streetAddress, String detailAddress) {
+    public Address(
+            String zipcode,
+            String city,
+            String district,
+            String streetAddress,
+            String detailAddress) {
         this.zipcode = zipcode;
         this.city = city;
         this.district = district;
         this.streetAddress = streetAddress;
         this.detailAddress = detailAddress;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -45,4 +50,4 @@ public class Address {
         if (detailAddress != null) sb.append(detailAddress);
         return sb.toString().trim();
     }
-} 
+}
