@@ -9,14 +9,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "price_policies")
 @SQLDelete(sql = "UPDATE price_policies SET deleted = true WHERE price_policy_id = ?")
-@Where(clause = "deleted = false")
 public class PricePolicy extends BaseEntity {
 
     @Id
