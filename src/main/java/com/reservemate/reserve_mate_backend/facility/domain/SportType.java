@@ -6,8 +6,6 @@ public enum SportType {
     TENNIS,
     BADMINTON,
     BASEBALL,
-    VOLLEYBALL,
-    SWIMMING,
     GOLF,
     TABLE_TENNIS,
     FUTSAL,
