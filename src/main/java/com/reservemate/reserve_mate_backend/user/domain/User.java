@@ -34,18 +34,12 @@ public class User extends BaseEntity {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    @Column(name = "address", length = 200)
-    private String address;
-
-    @Column(name = "profile_image", length = 255)
+    @Column(name = "profile_image")
     private String profileImage;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
-
-    @Column(name = "enabled", nullable = false)
-    private boolean enabled = true;
 
     @Builder(toBuilder = true)
     public User(
@@ -53,22 +47,19 @@ public class User extends BaseEntity {
             String email,
             String password,
             String phone,
-            String address,
             String profileImage,
             UserRole role) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phone = phone;
-        this.address = address;
         this.profileImage = profileImage;
         this.role = role != null ? role : UserRole.ROLE_USER;
     }
 
-    public void updateProfile(String name, String phone, String address, String profileImage) {
+    public void updateProfile(String name, String phone, String profileImage) {
         this.name = name != null ? name : this.name;
         this.phone = phone != null ? phone : this.phone;
-        this.address = address != null ? address : this.address;
         this.profileImage = profileImage != null ? profileImage : this.profileImage;
     }
 
