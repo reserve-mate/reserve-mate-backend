@@ -1,0 +1,13 @@
+package com.reservemate.reserve_mate_backend.notification.domain;
+
+public enum NotificationType {
+    RESERVATION_CREATED,
+    RESERVATION_CONFIRMED,
+    RESERVATION_CANCELED,
+    RESERVATION_REMINDER,
+    PAYMENT_COMPLETED,
+    PAYMENT_FAILED,
+    PAYMENT_REFUNDED,
+    WAITING_LIST_AVAILABLE,
+    SYSTEM_NOTICE
+}

@@ -1,28 +1,22 @@
 package com.reservemate.reserve_mate_backend.payment.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
-import com.reservemate.reserve_mate_backend.reserve.domain.Reservation;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "payments")
+@SQLDelete(sql = "UPDATE payments SET deleted = true WHERE payment_id = ?")
+@Where(clause = "deleted = false")
 public class Payment extends BaseEntity {
 
     @Id
@@ -37,15 +31,17 @@ public class Payment extends BaseEntity {
     private String merchantUid;
 
     @Column(name = "amount", nullable = false)
-    private int amount;
+    private Integer amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private PaymentStatus status;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "pay_method", nullable = false)
-    private String payMethod;
+    private PaymentMethod payMethod;
 
-    @Column(name = "paid_at", nullable = false)
+    @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
     @Column(name = "canceled_at")
@@ -55,6 +51,42 @@ public class Payment extends BaseEntity {
     private String cancelReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reserve_id")
+    @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
+
+    @Builder
+    public Payment(
+            String impUid,
+            String merchantUid,
+            Integer amount,
+            PaymentMethod payMethod,
+            Reservation reservation) {
+        this.impUid = impUid;
+        this.merchantUid = merchantUid;
+        this.amount = amount;
+        this.status = PaymentStatus.READY;
+        this.payMethod = payMethod;
+        this.reservation = reservation;
+    }
+
+    public void markAsPaid() {
+        this.status = PaymentStatus.PAID;
+        this.paidAt = LocalDateTime.now();
+    }
+
+    public void markAsFailed() {
+        this.status = PaymentStatus.FAILED;
+    }
+
+    public void cancel(String reason) {
+        this.status = PaymentStatus.CANCELED;
+        this.cancelReason = reason;
+        this.canceledAt = LocalDateTime.now();
+    }
+
+    public void refund(String reason) {
+        this.status = PaymentStatus.REFUNDED;
+        this.cancelReason = reason;
+        this.canceledAt = LocalDateTime.now();
+    }
 }
