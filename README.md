@@ -61,10 +61,8 @@
 - password (암호화)
 - name
 - phone
-- address
 - profile_image
 - role (ROLE_USER, ROLE_FACILITY_MANAGER, ROLE_ADMIN)
-- enabled
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
@@ -74,8 +72,6 @@
 - name
 - description
 - address
-- latitude
-- longitude
 - contact_phone
 - created_at
 - updated_at
