@@ -11,14 +11,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "waiting_lists")
 @SQLDelete(sql = "UPDATE waiting_lists SET deleted = true WHERE waiting_list_id = ?")
-@Where(clause = "deleted = false")
 public class WaitingList extends BaseEntity {
 
     @Id
