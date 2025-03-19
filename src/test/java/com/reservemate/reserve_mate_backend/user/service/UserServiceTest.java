@@ -145,7 +145,8 @@ class UserServiceTest {
         given(passwordEncoder.encode(anyString())).willReturn(encodedPassword);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-        RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432", "profile.jpg");
+        RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432",
+            "profile.jpg");
 
         // when
         userService.registerUser(userDto);
