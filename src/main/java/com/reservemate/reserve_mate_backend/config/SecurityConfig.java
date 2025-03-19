@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/login", "/", "/users/register")
+                                auth.requestMatchers("/login", "/", "/users/register", "/users/**")
                                         .permitAll()
                                         .requestMatchers("/h2-console/**")
                                         .permitAll()
