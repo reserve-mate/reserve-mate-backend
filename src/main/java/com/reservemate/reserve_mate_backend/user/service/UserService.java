@@ -41,24 +41,22 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        User user = userRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
         user.delete();
     }
 
     @Transactional
     public void updateUser(Long id, RequestUserDto requestUserDto) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        User user = userRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
         user.updateUser(
-                requestUserDto.getName(),
-                requestUserDto.getEmail(),
-                passwordEncoder.encode(requestUserDto.getPassword()),
-                requestUserDto.getPhone(),
-                requestUserDto.getProfileImage());
+            requestUserDto.getName(),
+            requestUserDto.getEmail(),
+            passwordEncoder.encode(requestUserDto.getPassword()),
+            requestUserDto.getPhone(),
+            requestUserDto.getProfileImage());
     }
 }
