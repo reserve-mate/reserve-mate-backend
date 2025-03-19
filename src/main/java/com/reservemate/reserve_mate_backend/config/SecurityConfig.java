@@ -18,25 +18,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(csrf -> csrf.disable())
-                .formLogin(login -> login.disable())
-                .httpBasic(basic -> basic.disable())
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers("/login", "/", "/users/register")
-                                        .permitAll()
-                                        .requestMatchers("/h2-console/**")
-                                        .permitAll()
-                                        .requestMatchers(
-                                                "/swagger-ui/**",
-                                                "/v3/api-docs/**",
-                                                "/swagger-resources/**",
-                                                "/webjars/**")
-                                        .permitAll()
-                                        .anyRequest()
-                                        .authenticated() // 그 외 로그인 한 사람만 접근 가능
-                        );
+            .csrf(csrf -> csrf.disable())
+            .formLogin(login -> login.disable())
+            .httpBasic(basic -> basic.disable())
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+            .authorizeHttpRequests(
+                auth -> auth.requestMatchers("/login", "/", "/users/register")
+                    .permitAll()
+                    .requestMatchers("/h2-console/**")
+                    .permitAll()
+                    .requestMatchers(
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated() // 그 외 로그인 한 사람만 접근 가능
+            );
 
         return httpSecurity.build();
     }

@@ -41,12 +41,12 @@ public class User extends BaseEntity {
 
     @Builder(toBuilder = true)
     public User(
-            String name,
-            String email,
-            String password,
-            String phone,
-            String profileImage,
-            UserRole role) {
+        String name,
+        String email,
+        String password,
+        String phone,
+        String profileImage,
+        UserRole role) {
         this.name = name;
         this.email = email;
         this.password = password;

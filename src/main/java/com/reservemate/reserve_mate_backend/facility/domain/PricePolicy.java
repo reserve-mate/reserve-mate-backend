@@ -57,16 +57,16 @@ public class PricePolicy extends BaseEntity {
 
     @Builder
     public PricePolicy(
-            String name,
-            DayType dayType,
-            LocalTime startTime,
-            LocalTime endTime,
-            Integer price,
-            Integer minimumHours,
-            LocalDate effectiveFrom,
-            LocalDate effectiveTo,
-            Facility facility,
-            Court court) {
+        String name,
+        DayType dayType,
+        LocalTime startTime,
+        LocalTime endTime,
+        Integer price,
+        Integer minimumHours,
+        LocalDate effectiveFrom,
+        LocalDate effectiveTo,
+        Facility facility,
+        Court court) {
         this.name = name;
         this.dayType = dayType;
         this.startTime = startTime;
@@ -80,14 +80,14 @@ public class PricePolicy extends BaseEntity {
     }
 
     public void update(
-            String name,
-            DayType dayType,
-            LocalTime startTime,
-            LocalTime endTime,
-            Integer price,
-            Integer minimumHours,
-            LocalDate effectiveFrom,
-            LocalDate effectiveTo) {
+        String name,
+        DayType dayType,
+        LocalTime startTime,
+        LocalTime endTime,
+        Integer price,
+        Integer minimumHours,
+        LocalDate effectiveFrom,
+        LocalDate effectiveTo) {
         this.name = name != null ? name : this.name;
         this.dayType = dayType != null ? dayType : this.dayType;
         this.startTime = startTime != null ? startTime : this.startTime;

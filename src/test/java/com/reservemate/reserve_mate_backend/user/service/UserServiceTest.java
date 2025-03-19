@@ -1,5 +1,12 @@
 package com.reservemate.reserve_mate_backend.user.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
@@ -13,13 +20,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -38,30 +38,22 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        validUserDto = new RequestUserDto(
-            "테스트유저",
-            "test@example.com",
-            "password123",
-            "010-1234-5678"
-        );
+        validUserDto = new RequestUserDto("테스트유저", "test@example.com", "password123", "010-1234-5678");
     }
 
     @Test
     @DisplayName("회원가입 성공 케이스 - 모든 필드가 올바르게 설정되어야 함")
     void registerUser_Success() {
         // given
-        given(userRepository.existsByEmail(anyString()))
-            .willReturn(false);
-        given(passwordEncoder.encode(anyString()))
-            .willReturn(encodedPassword);
+        given(userRepository.existsByEmail(anyString())).willReturn(false);
+        given(passwordEncoder.encode(anyString())).willReturn(encodedPassword);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
         // when
         userService.registerUser(validUserDto);
 
         // then
-        verify(userRepository, times(1))
-            .save(userCaptor.capture());
+        verify(userRepository, times(1)).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
 
         assertThat(savedUser.getName()).isEqualTo(validUserDto.getName());
@@ -153,12 +145,7 @@ class UserServiceTest {
         given(passwordEncoder.encode(anyString())).willReturn(encodedPassword);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-        RequestUserDto userDto = new RequestUserDto(
-            "홍길동",
-            "hong@example.com",
-            "securePassword",
-            "010-9876-5432"
-        );
+        RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432");
 
         // when
         userService.registerUser(userDto);
@@ -190,4 +177,4 @@ class UserServiceTest {
 
         assertThat(savedUser.getProfileImage()).isNull();
     }
-} 
+}

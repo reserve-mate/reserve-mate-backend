@@ -58,12 +58,12 @@ public class Notification extends BaseEntity {
 
     @Builder
     public Notification(
-            NotificationType type,
-            String content,
-            NotificationMethod method,
-            User user,
-            Reservation reservation,
-            Payment payment) {
+        NotificationType type,
+        String content,
+        NotificationMethod method,
+        User user,
+        Reservation reservation,
+        Payment payment) {
         this.type = type;
         this.content = content;
         this.method = method;

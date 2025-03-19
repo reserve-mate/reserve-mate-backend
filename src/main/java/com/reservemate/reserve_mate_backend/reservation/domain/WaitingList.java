@@ -47,7 +47,7 @@ public class WaitingList extends BaseEntity {
 
     @Builder
     public WaitingList(
-            LocalDate date, LocalTime startTime, LocalTime endTime, User user, Court court) {
+        LocalDate date, LocalTime startTime, LocalTime endTime, User user, Court court) {
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
