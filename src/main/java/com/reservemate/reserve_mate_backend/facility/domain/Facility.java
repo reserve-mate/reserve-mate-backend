@@ -27,7 +27,8 @@ public class Facility extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Embedded private Address address;
+    @Embedded
+    private Address address;
 
     @Column(name = "contact_phone", length = 20)
     private String contactPhone;

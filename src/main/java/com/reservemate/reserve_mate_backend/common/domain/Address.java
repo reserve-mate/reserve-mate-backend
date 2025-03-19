@@ -29,11 +29,11 @@ public class Address {
 
     @Builder
     public Address(
-            String zipcode,
-            String city,
-            String district,
-            String streetAddress,
-            String detailAddress) {
+        String zipcode,
+        String city,
+        String district,
+        String streetAddress,
+        String detailAddress) {
         this.zipcode = zipcode;
         this.city = city;
         this.district = district;
@@ -44,10 +44,14 @@ public class Address {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        if (city != null) sb.append(city).append(" ");
-        if (district != null) sb.append(district).append(" ");
-        if (streetAddress != null) sb.append(streetAddress).append(" ");
-        if (detailAddress != null) sb.append(detailAddress);
+        if (city != null)
+            sb.append(city).append(" ");
+        if (district != null)
+            sb.append(district).append(" ");
+        if (streetAddress != null)
+            sb.append(streetAddress).append(" ");
+        if (detailAddress != null)
+            sb.append(detailAddress);
         return sb.toString().trim();
     }
 }

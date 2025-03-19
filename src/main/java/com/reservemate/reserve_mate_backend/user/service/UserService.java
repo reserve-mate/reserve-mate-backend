@@ -27,14 +27,13 @@ public class UserService {
             throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
         }
 
-        User user =
-                User.builder()
-                        .name(requestUserDto.getName())
-                        .email(requestUserDto.getEmail())
-                        .password(passwordEncoder.encode(requestUserDto.getPassword())) // 암호화
-                        .phone(requestUserDto.getPhone())
-                        .role(UserRole.ROLE_USER) // 회원가입 하는 경우 유저로 셋팅
-                        .build();
+        User user = User.builder()
+            .name(requestUserDto.getName())
+            .email(requestUserDto.getEmail())
+            .password(passwordEncoder.encode(requestUserDto.getPassword())) // 암호화
+            .phone(requestUserDto.getPhone())
+            .role(UserRole.ROLE_USER) // 회원가입 하는 경우 유저로 셋팅
+            .build();
         // save
         userRepository.save(user);
     }
