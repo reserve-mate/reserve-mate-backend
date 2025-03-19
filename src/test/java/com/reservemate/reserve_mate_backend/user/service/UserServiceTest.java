@@ -38,7 +38,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        validUserDto = new RequestUserDto("테스트유저", "test@example.com", "password123", "010-1234-5678");
+        validUserDto = new RequestUserDto("테스트유저", "test@example.com", "password123", "010-1234-5678", null);
     }
 
     @Test
@@ -145,7 +145,7 @@ class UserServiceTest {
         given(passwordEncoder.encode(anyString())).willReturn(encodedPassword);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-        RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432");
+        RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432", "profile.jpg");
 
         // when
         userService.registerUser(userDto);
@@ -158,6 +158,7 @@ class UserServiceTest {
         assertThat(savedUser.getEmail()).isEqualTo("hong@example.com");
         assertThat(savedUser.getPassword()).isEqualTo(encodedPassword);
         assertThat(savedUser.getPhone()).isEqualTo("010-9876-5432");
+        assertThat(savedUser.getProfileImage()).isEqualTo("profile.jpg");
     }
 
     @Test
