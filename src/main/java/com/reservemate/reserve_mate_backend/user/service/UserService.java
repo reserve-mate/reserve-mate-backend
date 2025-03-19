@@ -4,7 +4,6 @@ import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,28 +37,5 @@ public class UserService {
                         .build();
         // save
         userRepository.save(user);
-    }
-
-    @Transactional
-    public void deleteUser(Long id) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
-        user.delete();
-    }
-
-    @Transactional
-    public void updateUser(Long id, RequestUserDto requestUserDto) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
-        user.updateUser(
-                requestUserDto.getName(),
-                requestUserDto.getEmail(),
-                passwordEncoder.encode(requestUserDto.getPassword()),
-                requestUserDto.getPhone(),
-                requestUserDto.getProfileImage());
     }
 }
