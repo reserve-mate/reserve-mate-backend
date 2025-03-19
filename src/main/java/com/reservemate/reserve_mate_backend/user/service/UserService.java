@@ -33,6 +33,7 @@ public class UserService {
             .email(requestUserDto.getEmail())
             .password(passwordEncoder.encode(requestUserDto.getPassword())) // 암호화
             .phone(requestUserDto.getPhone())
+            .profileImage(requestUserDto.getProfileImage())
             .role(UserRole.ROLE_USER) // 회원가입 하는 경우 유저로 셋팅
             .build();
         // save
