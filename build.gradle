@@ -55,6 +55,6 @@ tasks.named('test') {
 
 spotless {
     java {
-        googleJavaFormat().aosp()
+        eclipse().configFile("${project.rootDir}/GoogleStyle.xml")
     }
 }

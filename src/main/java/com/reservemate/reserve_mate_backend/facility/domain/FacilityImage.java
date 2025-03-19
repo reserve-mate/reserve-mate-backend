@@ -42,11 +42,11 @@ public class FacilityImage extends BaseEntity {
 
     @Builder
     public FacilityImage(
-            String imageUrl,
-            String description,
-            Boolean main,
-            Integer displayOrder,
-            Facility facility) {
+        String imageUrl,
+        String description,
+        Boolean main,
+        Integer displayOrder,
+        Facility facility) {
         this.imageUrl = imageUrl;
         this.description = description;
         this.main = main != null ? main : false;

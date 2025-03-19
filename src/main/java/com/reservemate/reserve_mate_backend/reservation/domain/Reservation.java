@@ -56,12 +56,12 @@ public class Reservation extends BaseEntity {
 
     @Builder
     public Reservation(
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            Integer totalPrice,
-            User user,
-            Court court,
-            WaitingList waitingList) {
+        LocalDateTime startTime,
+        LocalDateTime endTime,
+        Integer totalPrice,
+        User user,
+        Court court,
+        WaitingList waitingList) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = ReservationStatus.PENDING;

@@ -41,11 +41,11 @@ public class OperatingHour extends BaseEntity {
 
     @Builder
     public OperatingHour(
-            DayOfWeek dayOfWeek,
-            LocalTime openTime,
-            LocalTime closeTime,
-            Boolean holiday,
-            Facility facility) {
+        DayOfWeek dayOfWeek,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean holiday,
+        Facility facility) {
         this.dayOfWeek = dayOfWeek;
         this.openTime = openTime;
         this.closeTime = closeTime;

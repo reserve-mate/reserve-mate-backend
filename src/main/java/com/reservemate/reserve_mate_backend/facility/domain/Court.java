@@ -45,12 +45,12 @@ public class Court extends BaseEntity {
 
     @Builder
     public Court(
-            String name,
-            SportType sportType,
-            String description,
-            Integer capacity,
-            Boolean indoor,
-            Facility facility) {
+        String name,
+        SportType sportType,
+        String description,
+        Integer capacity,
+        Boolean indoor,
+        Facility facility) {
         this.name = name;
         this.sportType = sportType;
         this.description = description;
@@ -60,11 +60,11 @@ public class Court extends BaseEntity {
     }
 
     public void update(
-            String name,
-            SportType sportType,
-            String description,
-            Integer capacity,
-            Boolean indoor) {
+        String name,
+        SportType sportType,
+        String description,
+        Integer capacity,
+        Boolean indoor) {
         this.name = name != null ? name : this.name;
         this.sportType = sportType != null ? sportType : this.sportType;
         this.description = description != null ? description : this.description;

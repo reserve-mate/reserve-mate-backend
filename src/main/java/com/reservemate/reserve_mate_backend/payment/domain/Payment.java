@@ -54,11 +54,11 @@ public class Payment extends BaseEntity {
 
     @Builder
     public Payment(
-            String impUid,
-            String merchantUid,
-            Integer amount,
-            PaymentMethod payMethod,
-            Reservation reservation) {
+        String impUid,
+        String merchantUid,
+        Integer amount,
+        PaymentMethod payMethod,
+        Reservation reservation) {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
         this.amount = amount;
