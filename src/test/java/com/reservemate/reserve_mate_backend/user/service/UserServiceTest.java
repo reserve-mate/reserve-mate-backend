@@ -38,7 +38,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        validUserDto = new RequestUserDto("테스트유저", "test@example.com", "password123", "010-1234-5678", "profile.jpg");
+        validUserDto = new RequestUserDto("테스트유저", "test@example.com", "password123", "010-1234-5678", null);
     }
 
     @Test
