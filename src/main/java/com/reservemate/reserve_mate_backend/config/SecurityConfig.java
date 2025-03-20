@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,7 +36,8 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated() // 그 외 로그인 한 사람만 접근 가능
-            );
+            )
+            .sessionManagement(session -> session .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return httpSecurity.build();
     }
