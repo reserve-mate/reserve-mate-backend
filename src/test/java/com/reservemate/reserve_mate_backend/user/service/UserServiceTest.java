@@ -147,7 +147,6 @@ class UserServiceTest {
 
         RequestUserDto userDto = new RequestUserDto("홍길동", "hong@example.com", "securePassword", "010-9876-5432",
             "profile.jpg");
-
         // when
         userService.registerUser(userDto);
 
@@ -173,7 +172,7 @@ class UserServiceTest {
         // when
         userService.registerUser(validUserDto);
 
-        // then
+        // then햐
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
 

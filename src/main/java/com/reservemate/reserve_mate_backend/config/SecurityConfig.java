@@ -1,14 +1,31 @@
 package com.reservemate.reserve_mate_backend.config;
 
+import com.reservemate.reserve_mate_backend.common.auth.filter.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -35,7 +52,10 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated() // 그 외 로그인 한 사람만 접근 가능
-            );
+            )
+            .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration)),
+                UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return httpSecurity.build();
     }

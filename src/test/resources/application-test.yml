@@ -12,3 +12,5 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+  jwt:
+    secret: "zvMj1Y868pAWv36FrInMFs4Gq2rkj9XJ"
