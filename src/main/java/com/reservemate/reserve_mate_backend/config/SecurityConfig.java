@@ -1,6 +1,8 @@
 package com.reservemate.reserve_mate_backend.config;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.auth.filter.LoginFilter;
+import com.reservemate.reserve_mate_backend.common.auth.repository.RefreshRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,9 +18,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil,
+        RefreshRepository refreshRepository) {
         this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtUtil = jwtUtil;
+        this.refreshRepository = refreshRepository;
     }
 
     @Bean
@@ -53,7 +60,8 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated() // 그 외 로그인 한 사람만 접근 가능
             )
-            .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration)),
+            .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,
+                refreshRepository),
                 UsernamePasswordAuthenticationFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
