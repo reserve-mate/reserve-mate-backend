@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.domain;
 
 import java.time.LocalDate;
 
+import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 
 import jakarta.persistence.Column;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @Table(name = "matches")
-public class Match {
+public class Match extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
