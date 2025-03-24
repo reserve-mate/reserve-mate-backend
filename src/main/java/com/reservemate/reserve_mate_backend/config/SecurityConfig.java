@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.config;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
+import com.reservemate.reserve_mate_backend.common.auth.filter.CustomLogoutFilter;
 import com.reservemate.reserve_mate_backend.common.auth.filter.JwtFilter;
 import com.reservemate.reserve_mate_backend.common.auth.filter.LoginFilter;
 import com.reservemate.reserve_mate_backend.common.auth.repository.RefreshRepository;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -67,6 +69,7 @@ public class SecurityConfig {
             .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,
                 refreshRepository),
                 UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return httpSecurity.build();
