@@ -42,6 +42,12 @@
 - 매출 통계
 - 회원 관리
 
+#### 1.1.7 소셜 매치
+- 매치 등록
+- 매치 신청
+- 매치 목록 조회
+- 매치 상세 조회
+
 #### 1.1.7 추가 기능
 - 소셜 기능(팀 구성, 매칭)
 - 리뷰/평점 시스템
@@ -214,13 +220,16 @@
 - updated_at
 - deleted (소프트 삭제 플래그)
 
-#### 2.2.14 매칭 요청(MATCHING_REQUESTS)
-- id (PK)
-- team_id (FK)
+#### 2.2.14 소셜 매치(MATCHES)
+- match_id (PK)
 - court_id (FK)
-- preferred_time
+- match_status
 - description
-- status
+- manager
+- team_capacity
+- match_date
+- match_time
+- match_price
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
@@ -320,6 +329,14 @@
 - GET /api/facilities/{facilityId}/reviews - 시설 리뷰 목록 조회
 - PUT /api/reviews/{id} - 리뷰 수정
 - DELETE /api/reviews/{id} - 리뷰 삭제
+
+### 5.7 매치 API
+- POST /api/match/registMatch - 매치 등록
+- POST /api/match/requestMatch - 매치 신청
+- GET  /api/match/matches - 매치 목록 조회
+- GET  /api/match/{id} - 매치 정보 조회
+- PUT  /api/match/{id}/status - 매치 상태 변경
+- DELETE  /api/match/{id} - 매치 취소
 
 ## 6. 보안 설계
 
