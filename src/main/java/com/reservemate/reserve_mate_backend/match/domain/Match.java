@@ -2,6 +2,8 @@ package com.reservemate.reserve_mate_backend.match.domain;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.SQLDelete;
+
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 
@@ -25,6 +27,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @Table(name = "matches")
+@SQLDelete(sql = "UPDATE matches SET deleted = true WHERE match_id = ?")
 public class Match extends BaseEntity {
 
     @Id
