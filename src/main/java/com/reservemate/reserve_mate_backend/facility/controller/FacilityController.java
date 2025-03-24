@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/facility")
@@ -23,11 +24,16 @@ public class FacilityController {
 
     @GetMapping("/load")
     public ResponseEntity<List<FacilityDto>> getFacilities(){
-        return ResponseEntity.ok(null);
+        List<FacilityDto> facilityDtos = facilityService.loadAll();
+        return ResponseEntity.ok(facilityDtos);
     }
 
     @GetMapping("/load/{id}")
     public ResponseEntity<FacilityDto> getById(@PathVariable Long id){
-        return ResponseEntity.ok(null);
+        Optional<FacilityDto> facilityDto = facilityService.loadById(id);
+        if(facilityDto.isEmpty()){
+            return ResponseEntity.ok(null);
+        }
+        return ResponseEntity.ok(facilityDto.get());
     }
 }
