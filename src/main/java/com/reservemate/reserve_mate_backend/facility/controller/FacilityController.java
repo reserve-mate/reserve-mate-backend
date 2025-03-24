@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.controller;
 
+import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.dto.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.service.FacilityService;
 import lombok.AllArgsConstructor;
@@ -15,8 +16,9 @@ public class FacilityController {
     private final FacilityService facilityService;
 
     @PostMapping("/create")
-    public ResponseEntity<FacilityDto> createFacility(@RequestBody FacilityDto facilitiesDto){
-        return ResponseEntity.ok(null);
+    public ResponseEntity<?> create(@RequestBody FacilityDto facilitiesDto){
+        facilityService.create(facilitiesDto);
+        return ResponseEntity.ok(facilitiesDto);
     }
 
     @GetMapping("/load")
