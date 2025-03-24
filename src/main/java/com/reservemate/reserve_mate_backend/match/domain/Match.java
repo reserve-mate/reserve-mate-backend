@@ -35,7 +35,7 @@ public class Match {
     private String manager;
 
     @Column(nullable = false)
-    private MatchStatus matchStatus; 
+    private MatchStatus matchStatus;
 
     @Column(nullable = false)
     private int teamCapacity;
