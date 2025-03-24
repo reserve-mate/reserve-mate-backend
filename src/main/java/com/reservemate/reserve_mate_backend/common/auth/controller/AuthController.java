@@ -27,4 +27,9 @@ public class AuthController {
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         return authService.reissue(request, response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        return ResponseEntity.ok("로그아웃");
+    }
 }
