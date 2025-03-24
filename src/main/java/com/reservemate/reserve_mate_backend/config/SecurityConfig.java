@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.config;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
+import com.reservemate.reserve_mate_backend.common.auth.filter.JwtFilter;
 import com.reservemate.reserve_mate_backend.common.auth.filter.LoginFilter;
 import com.reservemate.reserve_mate_backend.common.auth.repository.RefreshRepository;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +50,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 auth -> auth.requestMatchers("/login", "/", "/users/register")
                     .permitAll()
+                    .requestMatchers("/reissue").permitAll()
                     .requestMatchers("/h2-console/**")
                     .permitAll()
                     .requestMatchers(
@@ -61,6 +63,7 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated() // 그 외 로그인 한 사람만 접근 가능
             )
+            .addFilterBefore(new JwtFilter(jwtUtil), LoginFilter.class)
             .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,
                 refreshRepository),
                 UsernamePasswordAuthenticationFilter.class)

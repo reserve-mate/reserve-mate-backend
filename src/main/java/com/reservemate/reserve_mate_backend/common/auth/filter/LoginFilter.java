@@ -41,7 +41,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //로그인 성공한 유저
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
         System.out.println("-------------------------------------------");
-        System.out.println(customUserDetails);
         String email = customUserDetails.getUsername();
         String role = authentication.getAuthorities().stream()
             .findFirst()
