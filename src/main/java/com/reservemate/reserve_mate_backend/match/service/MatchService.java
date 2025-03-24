@@ -2,8 +2,15 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.dto.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -11,5 +18,27 @@ import lombok.RequiredArgsConstructor;
 public class MatchService {
 
     private final MatchRepository matchRepository;
+    private final CourtRepository courtRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public void registMatch(CreateMatchDto createMatchDto) {
+        User user = userRepository.findById(createMatchDto.getUserId())
+            .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
+
+        Court court = courtRepository.findById(createMatchDto.getCourtId())
+            .orElseThrow(() -> new IllegalArgumentException("코트 정보가 존재하지 않습니다."));
+
+        boolean isDuple = matchRepository.existsByMatchDateAndMatchTimeAndCourt(createMatchDto.getMatchDate(),
+            createMatchDto.getMatchTime(), court);
+
+        if (!isDuple) {
+            Match match = createMatchDto.toEntity(createMatchDto, court, user.getName());
+            matchRepository.save(match);
+        } else {
+            throw new IllegalArgumentException("이미 등록된 매치가 있습니다.");
+        }
+
+    }
 
 }
