@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @Table(name = "matches")
-public class Match extends BaseEntity{
+public class Match extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
