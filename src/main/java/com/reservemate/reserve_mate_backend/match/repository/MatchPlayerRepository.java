@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +19,9 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     Optional<MatchPlayer> findByUserAndMatch(User user, Match match);
 
     boolean existsByUserAndMatchAndStatusNot(User user, Match match, PlayerStatus cancel);
+
+    int countByMatchAndStatus(Match match, PlayerStatus ready);
+
+    List<MatchPlayer> findByMatchAndStatus(Match match, PlayerStatus ready);
 
 }

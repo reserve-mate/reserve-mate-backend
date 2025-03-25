@@ -1,8 +1,10 @@
 package com.reservemate.reserve_mate_backend.match.dto.respone;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 import lombok.AllArgsConstructor;
@@ -29,8 +31,9 @@ public class MatchDetailDto {
     private int playerCnt;
     private String phone;
     private String userName;
+    private List<MatchPlayerDto> playerDtos;
 
-    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone, int playerCnt) {
+    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone, List<MatchPlayer> matchPlayers) {
         MatchDetailDto detailDto = MatchDetailDto.builder()
             .matchId(match.getMatchId())
             .manager(match.getManager())
@@ -42,9 +45,35 @@ public class MatchDetailDto {
             .matchPrice(match.getMatchPrice())
             .phone(phone)
             .userName(userName)
-            .playerCnt(playerCnt)
+            .playerCnt(matchPlayers.size())
+            .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
             .build();
         return detailDto;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Getter
+    @Setter
+    static class MatchPlayerDto{
+        private Long playerId;
+        private String userName;
+
+        public static List<MatchPlayerDto> toMatchPlayerDtos(List<MatchPlayer> matchPlayers){
+            
+            List<MatchPlayerDto> playerDtos = matchPlayers.stream()
+            .map(MatchPlayerDto::toMatchPlayerDto).toList();
+
+            return playerDtos;
+        }
+
+        private static MatchPlayerDto toMatchPlayerDto(MatchPlayer matchPlayer){
+            return MatchPlayerDto.builder()
+            .playerId(matchPlayer.getPlayerId())
+            .userName(matchPlayer.getUser().getName())
+            .build();
+        }
     }
 
 }

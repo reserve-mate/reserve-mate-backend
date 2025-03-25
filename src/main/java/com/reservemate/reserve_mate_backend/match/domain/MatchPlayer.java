@@ -27,12 +27,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @Table(name = "matchplayers")
-@SQLDelete(sql = "UPDATE matches SET deleted = true WHERE match_id = ?")
+@SQLDelete(sql = "UPDATE matchplayers SET deleted = true WHERE player_id = ?")
 public class MatchPlayer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "player_id", updatable = false)
+    @Column(name = "player_id", updatable = false, nullable = false)
     private Long playerId;
 
     @Enumerated(EnumType.STRING)

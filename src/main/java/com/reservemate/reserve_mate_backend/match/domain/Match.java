@@ -32,7 +32,7 @@ public class Match extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "match_id", nullable = false)
+    @Column(name = "match_id", nullable = false, updatable = false)
     private Long matchId;
 
     @Column(nullable = false)
@@ -59,5 +59,11 @@ public class Match extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY) // lazy 지연로딩, eager 즉시 로딩 toOne은 지연로딩 사용
     @JoinColumn(name = "court_id")
     private Court court;
+
+    // 매치 정보 수정
+    public void modifyMatch(int teamCapacity, String description){
+        this.teamCapacity = teamCapacity;
+        this.description = description;
+    }
 
 }
