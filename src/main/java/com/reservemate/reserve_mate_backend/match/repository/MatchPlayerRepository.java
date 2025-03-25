@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.reservemate.reserve_mate_backend.match.domain.Match;
@@ -13,7 +15,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
 
     boolean existsByUserAndMatch(User user, Match match);
 
-    MatchPlayer findByUserAndMatch(User user, Match match);
+    Optional<MatchPlayer> findByUserAndMatch(User user, Match match);
 
     boolean existsByUserAndMatchAndStatusNot(User user, Match match, PlayerStatus cancel);
 

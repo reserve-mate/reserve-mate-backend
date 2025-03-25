@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.ApplyMatchDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
@@ -22,6 +23,37 @@ public class MatchPlayerService {
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
 
+    /*
+     * 매치 취소
+     */
+    @Transactional
+    public void cancelMatchRequest(Long matchId, Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
+
+        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(user, match)
+            .orElseThrow(() -> new IllegalArgumentException("매치 신청 내역이 존재하지 않습니다."));
+        
+        if(match.getMatchStatus() != MatchStatus.FINISH){
+            if(matchPlayer.getStatus() == PlayerStatus.APPLY){
+                matchPlayer.chgStatusCancel();
+            }else if(matchPlayer.getStatus() == PlayerStatus.READY){
+                // 결제 기능 후
+            }else{
+                throw new IllegalArgumentException("이미 취소거나 종료된 매치입니다.");
+            }
+        }else{
+            throw new IllegalArgumentException("이미 종료된 매치입니다.");
+        }
+        
+    }
+
+    /*
+     * 매치 신청
+     */
     @Transactional
     public void applyForMatch(ApplyMatchDto applyMatchDto) {
         User user = userRepository.findById(applyMatchDto.getUserId())
