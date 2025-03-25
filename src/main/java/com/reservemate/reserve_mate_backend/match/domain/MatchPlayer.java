@@ -48,7 +48,7 @@ public class MatchPlayer extends BaseEntity {
     private Match match;
 
     // 매치 신청 상태 취소로 수정
-    public void chgStatusCancel(){
+    public void chgStatusCancel() {
         this.status = PlayerStatus.CANCEL;
     }
 

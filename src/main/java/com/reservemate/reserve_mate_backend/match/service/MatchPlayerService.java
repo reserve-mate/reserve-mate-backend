@@ -36,19 +36,19 @@ public class MatchPlayerService {
 
         MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(user, match)
             .orElseThrow(() -> new IllegalArgumentException("매치 신청 내역이 존재하지 않습니다."));
-        
-        if(match.getMatchStatus() != MatchStatus.FINISH){
-            if(matchPlayer.getStatus() == PlayerStatus.APPLY){
+
+        if (match.getMatchStatus() != MatchStatus.FINISH) {
+            if (matchPlayer.getStatus() == PlayerStatus.APPLY) {
                 matchPlayer.chgStatusCancel();
-            }else if(matchPlayer.getStatus() == PlayerStatus.READY){
+            } else if (matchPlayer.getStatus() == PlayerStatus.READY) {
                 // 결제 기능 후
-            }else{
+            } else {
                 throw new IllegalArgumentException("이미 취소거나 종료된 매치입니다.");
             }
-        }else{
+        } else {
             throw new IllegalArgumentException("이미 종료된 매치입니다.");
         }
-        
+
     }
 
     /*
