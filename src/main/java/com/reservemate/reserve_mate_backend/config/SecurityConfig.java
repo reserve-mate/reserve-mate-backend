@@ -71,7 +71,7 @@ public class SecurityConfig {
             )
             .addFilterBefore(new JwtFilter(jwtUtil), LoginFilter.class)
             .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,
-                    refreshRepository),
+                refreshRepository),
                 UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
