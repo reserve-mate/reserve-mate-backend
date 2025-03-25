@@ -44,6 +44,9 @@ public class Match extends BaseEntity {
     @Column(nullable = false)
     private int teamCapacity;
 
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @Column(nullable = false)
     private LocalDate matchDate;
 
