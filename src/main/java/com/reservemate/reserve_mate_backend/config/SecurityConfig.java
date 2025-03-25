@@ -52,6 +52,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 auth -> auth.requestMatchers("/login", "/", "/users/register")
                     .permitAll()
+                    .requestMatchers("/mail/send/authCode", "/mail/check/authCode").permitAll()
                     .requestMatchers("/reissue").permitAll()
                     .requestMatchers("/h2-console/**")
                     .permitAll()
