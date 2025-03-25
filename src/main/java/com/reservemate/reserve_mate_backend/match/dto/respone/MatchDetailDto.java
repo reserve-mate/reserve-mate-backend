@@ -33,7 +33,8 @@ public class MatchDetailDto {
     private String userName;
     private List<MatchPlayerDto> playerDtos;
 
-    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone, List<MatchPlayer> matchPlayers) {
+    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone,
+        List<MatchPlayer> matchPlayers) {
         MatchDetailDto detailDto = MatchDetailDto.builder()
             .matchId(match.getMatchId())
             .manager(match.getManager())
@@ -56,23 +57,24 @@ public class MatchDetailDto {
     @Builder
     @Getter
     @Setter
-    static class MatchPlayerDto{
+    static class MatchPlayerDto {
+
         private Long playerId;
         private String userName;
 
-        public static List<MatchPlayerDto> toMatchPlayerDtos(List<MatchPlayer> matchPlayers){
-            
+        public static List<MatchPlayerDto> toMatchPlayerDtos(List<MatchPlayer> matchPlayers) {
+
             List<MatchPlayerDto> playerDtos = matchPlayers.stream()
-            .map(MatchPlayerDto::toMatchPlayerDto).toList();
+                .map(MatchPlayerDto::toMatchPlayerDto).toList();
 
             return playerDtos;
         }
 
-        private static MatchPlayerDto toMatchPlayerDto(MatchPlayer matchPlayer){
+        private static MatchPlayerDto toMatchPlayerDto(MatchPlayer matchPlayer) {
             return MatchPlayerDto.builder()
-            .playerId(matchPlayer.getPlayerId())
-            .userName(matchPlayer.getUser().getName())
-            .build();
+                .playerId(matchPlayer.getPlayerId())
+                .userName(matchPlayer.getUser().getName())
+                .build();
         }
     }
 

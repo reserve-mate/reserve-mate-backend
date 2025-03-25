@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @RestController
 @RequestMapping("/match")
 @RequiredArgsConstructor
@@ -27,16 +26,14 @@ public class MatchController {
     private final MatchService matchService;
 
     @GetMapping("/{matchId}")
-    public ResponseEntity<MatchDetailDto> getMatch(@PathVariable(name = "matchId") Long matchId
-        , @RequestParam(name = "userId") Long userId) {
+    public ResponseEntity<MatchDetailDto> getMatch(@PathVariable(name = "matchId") Long matchId,
+        @RequestParam(name = "userId") Long userId) {
         MatchDetailDto detailDto = matchService.getMatch(matchId, userId);
         return ResponseEntity.ok(detailDto);
     }
-    
 
     @PutMapping("/modifyMatch/{matchId}")
-    public void modifyMatch(@PathVariable(name = "matchId") Long matchId
-        , @RequestBody ModifyMatchDto modifyMatchDto) {
+    public void modifyMatch(@PathVariable(name = "matchId") Long matchId, @RequestBody ModifyMatchDto modifyMatchDto) {
         matchService.modifyMatch(matchId, modifyMatchDto);
     }
 

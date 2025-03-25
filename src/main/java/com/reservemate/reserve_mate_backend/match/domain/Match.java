@@ -61,7 +61,7 @@ public class Match extends BaseEntity {
     private Court court;
 
     // 매치 정보 수정
-    public void modifyMatch(int teamCapacity, String description){
+    public void modifyMatch(int teamCapacity, String description) {
         this.teamCapacity = teamCapacity;
         this.description = description;
     }

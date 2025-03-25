@@ -38,13 +38,13 @@ public class MatchService {
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new IllegalArgumentException("매치가 정보가 존재하지 않습니다."));
 
-        if(match.getMatchStatus() == MatchStatus.FINISH){
+        if (match.getMatchStatus() == MatchStatus.FINISH) {
             throw new IllegalArgumentException("이미 종료된 매치입니다.");
         }
 
         int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
 
-        if(playerCnt > modifyMatchDto.getTeamCapacity()) {
+        if (playerCnt > modifyMatchDto.getTeamCapacity()) {
             throw new IllegalArgumentException("준비된 인원 수를 초과하는 값을 입력해 주세요.");
         }
 
