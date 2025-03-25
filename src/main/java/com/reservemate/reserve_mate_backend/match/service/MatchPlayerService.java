@@ -23,19 +23,19 @@ public class MatchPlayerService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void applyForMatch(ApplyMatchDto applyMatchDto){
+    public void applyForMatch(ApplyMatchDto applyMatchDto) {
         User user = userRepository.findById(applyMatchDto.getUserId())
             .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
-        
+
         Match match = matchRepository.findById(applyMatchDto.getMatchId())
             .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
 
         boolean isExist = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
 
-        if(!isExist){
+        if (!isExist) {
             MatchPlayer matchPlayer = applyMatchDto.toMatchPlayer(user, match);
             matchPlayerRepository.save(matchPlayer);
-        }else{
+        } else {
             throw new IllegalArgumentException("이미 매치 신청 내역이 존재합니다.");
         }
     }

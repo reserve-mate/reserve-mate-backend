@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @RestController
 @RequestMapping("/player")
 @RequiredArgsConstructor
@@ -22,6 +21,5 @@ public class MatchPlayerController {
     public void applyForMatch(@RequestBody ApplyMatchDto applyMatchDto) {
         matchPlayerService.applyForMatch(applyMatchDto);
     }
-    
 
 }

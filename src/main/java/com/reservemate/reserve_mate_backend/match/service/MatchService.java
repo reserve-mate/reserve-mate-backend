@@ -28,7 +28,7 @@ public class MatchService {
     /*
      * 매치 상세
      */
-    public MatchDetailDto getMatch(Long matchId, Long userId){
+    public MatchDetailDto getMatch(Long matchId, Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
 

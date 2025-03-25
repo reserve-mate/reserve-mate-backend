@@ -7,7 +7,7 @@ import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
-public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long>{
+public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> {
 
     int countByMatch(Match match);
 

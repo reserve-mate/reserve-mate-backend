@@ -21,12 +21,12 @@ public class ApplyMatchDto {
     private Long matchId;
     private Long userId;
 
-    public MatchPlayer toMatchPlayer(User user, Match match){
+    public MatchPlayer toMatchPlayer(User user, Match match) {
         MatchPlayer matchPlayer = MatchPlayer.builder()
-        .user(user)
-        .match(match)
-        .status(PlayerStatus.APPLY)
-        .build();
+            .user(user)
+            .match(match)
+            .status(PlayerStatus.APPLY)
+            .build();
         return matchPlayer;
     }
 

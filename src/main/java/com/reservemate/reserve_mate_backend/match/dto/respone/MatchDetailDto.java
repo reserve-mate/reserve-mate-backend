@@ -30,20 +30,20 @@ public class MatchDetailDto {
     private String phone;
     private String userName;
 
-    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone, int playerCnt){
+    public static MatchDetailDto toMatchDetailDto(Match match, String userName, String phone, int playerCnt) {
         MatchDetailDto detailDto = MatchDetailDto.builder()
-        .matchId(match.getMatchId())
-        .manager(match.getManager())
-        .matchStatus(match.getMatchStatus())
-        .teamCapacity(match.getTeamCapacity())
-        .description(match.getDescription())
-        .matchDate(match.getMatchDate())
-        .matchTime(match.getMatchTime())
-        .matchPrice(match.getMatchPrice())
-        .phone(phone)
-        .userName(userName)
-        .playerCnt(playerCnt)
-        .build();
+            .matchId(match.getMatchId())
+            .manager(match.getManager())
+            .matchStatus(match.getMatchStatus())
+            .teamCapacity(match.getTeamCapacity())
+            .description(match.getDescription())
+            .matchDate(match.getMatchDate())
+            .matchTime(match.getMatchTime())
+            .matchPrice(match.getMatchPrice())
+            .phone(phone)
+            .userName(userName)
+            .playerCnt(playerCnt)
+            .build();
         return detailDto;
     }
 

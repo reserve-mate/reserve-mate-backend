@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "matchplayers")
 @SQLDelete(sql = "UPDATE matches SET deleted = true WHERE match_id = ?")
-public class MatchPlayer extends BaseEntity{
+public class MatchPlayer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
