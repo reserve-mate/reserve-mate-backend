@@ -5,7 +5,10 @@ import org.springframework.stereotype.Service;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
-import com.reservemate.reserve_mate_backend.match.dto.CreateMatchDto;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -20,7 +23,27 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final CourtRepository courtRepository;
     private final UserRepository userRepository;
+    private final MatchPlayerRepository matchPlayerRepository;
 
+    /*
+     * 매치 상세
+     */
+    public MatchDetailDto getMatch(Long matchId, Long userId){
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
+
+        int playerCnt = matchPlayerRepository.countByMatch(match);
+        //MatchPlayer matchPlayer = matchPlayerRepository.findByUserAnd
+
+        return null;
+    }
+
+    /*
+     * 매치 등록
+     */
     @Transactional
     public void registMatch(CreateMatchDto createMatchDto) {
         User user = userRepository.findById(createMatchDto.getUserId())

@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.match.dto;
+package com.reservemate.reserve_mate_backend.match.dto.request;
 
 import java.time.LocalDate;
 
