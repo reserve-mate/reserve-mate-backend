@@ -41,6 +41,13 @@ public class Address {
         this.detailAddress = detailAddress;
     }
 
+    public String getFullAddress() {
+        return this.city
+            + " " + this.district
+            + " " + this.streetAddress
+            + " " + this.detailAddress;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
