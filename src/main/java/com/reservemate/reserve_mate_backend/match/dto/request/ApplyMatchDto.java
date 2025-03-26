@@ -25,7 +25,7 @@ public class ApplyMatchDto {
         MatchPlayer matchPlayer = MatchPlayer.builder()
             .user(user)
             .match(match)
-            .status(PlayerStatus.APPLY)
+            .status(PlayerStatus.READY)
             .build();
         return matchPlayer;
     }
