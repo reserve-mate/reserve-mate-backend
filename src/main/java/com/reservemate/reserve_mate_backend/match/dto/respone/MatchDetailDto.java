@@ -1,12 +1,9 @@
 package com.reservemate.reserve_mate_backend.match.dto.respone;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
-import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;

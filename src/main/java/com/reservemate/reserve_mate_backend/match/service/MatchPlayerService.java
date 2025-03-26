@@ -37,18 +37,14 @@ public class MatchPlayerService {
         MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(user, match)
             .orElseThrow(() -> new IllegalArgumentException("매치 신청 내역이 존재하지 않습니다."));
 
-        if (match.getMatchStatus() != MatchStatus.FINISH) {
-            if (matchPlayer.getStatus() == PlayerStatus.APPLY) {
-                matchPlayer.chgStatusCancel();
-            } else if (matchPlayer.getStatus() == PlayerStatus.READY) {
-                // 결제 기능 후
-            } else {
-                throw new IllegalArgumentException("이미 취소거나 종료된 매치입니다.");
-            }
-        } else {
-            throw new IllegalArgumentException("이미 종료된 매치입니다.");
-        }
+        match.isFinish();
+        matchPlayer.isCanCancel();
 
+        // TODO : 결제 취소 기능 필요
+        matchPlayer.chgStatusCancel();
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+        match.chgMatchStatus(playerCnt);
     }
 
     /*
@@ -62,14 +58,22 @@ public class MatchPlayerService {
         Match match = matchRepository.findById(applyMatchDto.getMatchId())
             .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
 
+        match.isOverMatch();
+        match.isFinish();
         boolean isExist = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
 
-        if (!isExist) {
-            MatchPlayer matchPlayer = applyMatchDto.toMatchPlayer(user, match);
-            matchPlayerRepository.save(matchPlayer);
-        } else {
+        if (isExist) {
             throw new IllegalArgumentException("이미 매치 신청 내역이 존재합니다.");
         }
+
+        MatchPlayer matchPlayer = applyMatchDto.toMatchPlayer(user, match);
+
+        // TODO : 결제 기능 필요
+
+        matchPlayerRepository.save(matchPlayer);
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+        match.chgMatchStatus(playerCnt);
     }
 
 }

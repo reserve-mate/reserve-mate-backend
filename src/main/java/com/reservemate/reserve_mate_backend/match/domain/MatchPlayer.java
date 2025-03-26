@@ -47,6 +47,14 @@ public class MatchPlayer extends BaseEntity {
     @JoinColumn(name = "match_id")
     private Match match;
 
+    public void isCanCancel() {  // 취소 가능 여부 검사
+        if (this.status == PlayerStatus.CANCEL) {
+            throw new IllegalArgumentException("이미 취소된 매치입니다.");
+        } else if (this.status == PlayerStatus.COMPLETED) {
+            throw new IllegalArgumentException("이미 참여했던 이력이 있는 매치입니다.");
+        }
+    }
+
     // 매치 신청 상태 취소로 수정
     public void chgStatusCancel() {
         this.status = PlayerStatus.CANCEL;

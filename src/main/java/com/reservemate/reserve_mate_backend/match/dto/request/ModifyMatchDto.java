@@ -16,4 +16,10 @@ public class ModifyMatchDto {
     private Integer teamCapacity;
     private String description;
 
+    public void isOverTeamCapacity(int playerCnt) { // 준비된 인원 수 초과 검사
+        if (playerCnt > this.teamCapacity) {
+            throw new IllegalArgumentException("준비된 인원 수를 초과하는 값을 입력해 주세요.");
+        }
+    }
+
 }
