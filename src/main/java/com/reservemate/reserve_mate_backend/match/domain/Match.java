@@ -1,11 +1,16 @@
 package com.reservemate.reserve_mate_backend.match.domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 import org.hibernate.annotations.SQLDelete;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,6 +64,16 @@ public class Match extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY) // lazy 지연로딩, eager 즉시 로딩 toOne은 지연로딩 사용
     @JoinColumn(name = "court_id")
     private Court court;
+
+    public Facility getFacility() {
+        return this.getCourt().getFacility();
+    }
+
+    public LocalDateTime getFullMatchDateTime() {
+        LocalTime matchTime = LocalTime.parse(this.matchTime + ":00:00", DateTimeFormatter.ofPattern("HH:mm:ss"));
+        LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, matchTime);
+        return Utils.localDateTimeFormat(matchDateTime);
+    }
 
     // 매치 정보 수정
     public void modifyMatch(int teamCapacity, String description) {

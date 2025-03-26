@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -29,6 +31,7 @@ public class MatchService {
     private final CourtRepository courtRepository;
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final FacilityImageRepository facilityImageRepository;
 
     /*
      * 매치 정보 수정
@@ -64,7 +67,9 @@ public class MatchService {
 
         List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
-        return MatchDetailDto.toMatchDetailDto(match, user.getName(), user.getPhone(), matchPlayers);
+        List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
+
+        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images);
     }
 
     /*
