@@ -40,11 +40,29 @@ public class RedisEmailAuthentication {
         hashOperations.put(email, "auth", "Y");
     }
 
-    //삭제
+    //인증코드 삭제
     public void deleteEmailAuthentication(String key) {
         HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
         hashOperations.delete(key, "code");
         hashOperations.delete(key, "auth");
     }
 
+    //UUID, 이메일, 유효기간 저장
+    public void setResetPasswordToken(String uuid, String email, Long expire) {
+        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
+        hashOperations.put(uuid, "email", email);
+        hashOperations.put(uuid, "token", uuid);
+        redisTemplate.expire(uuid, Duration.ofMinutes(expire));
+    }
+
+    //UUID로 이메일 가져오기
+    public String getEmailByResetPasswordToken(String uuid) {
+        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
+        return hashOperations.get(uuid, "email");
+    }
+
+    //UUID 삭제
+    public void deleteResetPasswordToken(String uuid) {
+        redisTemplate.delete(uuid);
+    }
 }
