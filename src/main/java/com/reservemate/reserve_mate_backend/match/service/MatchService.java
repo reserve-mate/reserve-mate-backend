@@ -1,12 +1,19 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
@@ -24,6 +31,25 @@ public class MatchService {
     private final CourtRepository courtRepository;
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final FacilityImageRepository facilityImageRepository;
+
+    /*
+     * 매치 정보 수정
+     */
+    @Transactional
+    public void modifyMatch(Long matchId, ModifyMatchDto modifyMatchDto) {
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new IllegalArgumentException("매치가 정보가 존재하지 않습니다."));
+
+        match.isFinish(); // 종료된 매치인지 검사
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+
+        modifyMatchDto.isOverTeamCapacity(playerCnt);   // 준비된 인원 수 초과 검사
+
+        match.modifyMatch(modifyMatchDto.getTeamCapacity(), modifyMatchDto.getDescription());
+
+    }
 
     /*
      * 매치 상세
@@ -35,10 +61,11 @@ public class MatchService {
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
 
-        int playerCnt = matchPlayerRepository.countByMatch(match);
-        //MatchPlayer matchPlayer = matchPlayerRepository.findByUserAnd
+        List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
-        return null;
+        List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
+
+        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images);
     }
 
     /*
