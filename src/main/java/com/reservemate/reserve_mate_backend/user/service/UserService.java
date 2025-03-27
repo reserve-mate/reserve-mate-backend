@@ -1,10 +1,14 @@
 package com.reservemate.reserve_mate_backend.user.service;
 
+import com.reservemate.reserve_mate_backend.common.mail.service.MailService;
+import com.reservemate.reserve_mate_backend.common.mail.util.RedisEmailAuthentication;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
+import java.io.UnsupportedEncodingException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,12 +16,16 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+    private final RedisEmailAuthentication redisEmailAuthentication;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+        MailService mailService, RedisEmailAuthentication redisEmailAuthentication) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
+        this.redisEmailAuthentication = redisEmailAuthentication;
     }
 
     public void registerUser(RequestUserDto requestUserDto) {
@@ -59,5 +67,27 @@ public class UserService {
             passwordEncoder.encode(requestUserDto.getPassword()),
             requestUserDto.getPhone(),
             requestUserDto.getProfileImage());
+    }
+
+    public void sendResetPasswordEmail(String email) throws MessagingException, UnsupportedEncodingException {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 없습니다."));
+
+        mailService.sendResetPasswordEmail(user.getEmail());
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        //redis에 uuid 있는지 확인
+        String email = redisEmailAuthentication.getEmailByResetPasswordToken(token);
+        if (email == null) {
+            throw new IllegalArgumentException();
+        }
+
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 존재하지 않습니다."));
+
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        redisEmailAuthentication.deleteResetPasswordToken(token);
     }
 }
