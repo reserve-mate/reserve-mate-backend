@@ -177,7 +177,7 @@ public class MatchPlayerServiceTest {
             .manager(userName)
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
-            .matchDate(LocalDate.now())
+            .matchDate(LocalDate.now().plusDays(1))
             .matchTime(18)
             .matchPrice(11000)
             .court(court)

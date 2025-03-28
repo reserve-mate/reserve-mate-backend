@@ -16,17 +16,17 @@ spring:
     secret: "zvMj1Y868pAWv36FrInMFs4Gq2rkj9XJ"
     redis:
       host: localhost
-      port: 6379
+      port: 0000
   springdoc:
     show-login-endpoint: true
   mail:
     smtp:
       host: smtp.gmail.com
-      port: 587
-      address: reserveMateTest@gmail.com
-      personal: ReserveMate
-      username: reserveMateTest@gmail.com
-      password: tymg qcur uljl buof
+      port: 000
+      address: emailAddress@address.com
+      personal: personal
+      username: emailAddress@address.com
+      password: pasword
       properties:
         mail:
           smtp:
