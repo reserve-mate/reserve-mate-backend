@@ -46,7 +46,7 @@ public class MatchTest {
             .manager(userName)
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
-            .matchDate(LocalDate.now())
+            .matchDate(LocalDate.now().minusDays(1))
             .matchTime(12)
             .matchPrice(11000)
             .court(court)

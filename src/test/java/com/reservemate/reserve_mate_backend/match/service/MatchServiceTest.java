@@ -26,6 +26,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -50,8 +52,12 @@ import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
+import com.reservemate.reserve_mate_backend.TestConfig;
+
 @ExtendWith(MockitoExtension.class)
 @Transactional
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 public class MatchServiceTest {
 
     @Mock

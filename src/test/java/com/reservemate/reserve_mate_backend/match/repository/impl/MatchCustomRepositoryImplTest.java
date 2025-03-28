@@ -1,19 +1,23 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
-import java.time.LocalDate;
-
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
+import com.reservemate.reserve_mate_backend.TestConfig;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import java.time.LocalDate;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Transactional
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 public class MatchCustomRepositoryImplTest {
 
     private Court court;

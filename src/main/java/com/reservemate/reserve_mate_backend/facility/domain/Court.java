@@ -68,6 +68,7 @@ public class Court extends BaseEntity {
         Integer capacity,
         Boolean indoor,
         Facility facility) {
+        this.id = id;
         this.name = name;
         this.sportType = sportType;
         this.description = description;
