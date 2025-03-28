@@ -62,6 +62,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
+    systemProperty 'spring.config.location', 'classpath:/application-test.yml'
 }
 
 // QueryDsl

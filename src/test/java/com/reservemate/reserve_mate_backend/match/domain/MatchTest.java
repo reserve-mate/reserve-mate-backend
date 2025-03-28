@@ -33,9 +33,19 @@ public class MatchTest {
     @DisplayName("날짜가 지난 매치인지 검증")
     void testIsOverMatch() {
         /* given */
+        Match pastMatch = Match.builder()
+            .matchId(2L)
+            .manager(user.getName())
+            .matchStatus(MatchStatus.APPLICABLE)
+            .teamCapacity(18)
+            .matchDate(LocalDate.now().minusDays(1)) // 과거 날짜로 설정
+            .matchTime(12)
+            .matchPrice(11000)
+            .court(court)
+            .build();
 
         /* then */
-        assertThatThrownBy(() -> match.isOverMatch())
+        assertThatThrownBy(() -> pastMatch.isOverMatch())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("이미 시작되거나 종료된 매치입니다.");
     }
