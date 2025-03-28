@@ -58,6 +58,24 @@ public class User extends BaseEntity {
         this.role = role != null ? role : UserRole.ROLE_USER;
     }
 
+    @Builder(toBuilder = true)
+    public User(
+        Long id,
+        String name,
+        String email,
+        String password,
+        String phone,
+        String profileImage,
+        UserRole role) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+        this.profileImage = profileImage;
+        this.role = role != null ? role : UserRole.ROLE_USER;
+    }
+
     private void validateEmail(String email) {
         String emailReg = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         Pattern pattern = Pattern.compile(emailReg);
