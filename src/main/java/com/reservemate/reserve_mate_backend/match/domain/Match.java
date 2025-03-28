@@ -101,6 +101,10 @@ public class Match extends BaseEntity {
         }
     }
 
+    public void chgFinish() {
+        this.matchStatus = MatchStatus.FINISH;
+    }
+
     public void isFinish() { // 종료된 매치인지 검사
         if (this.matchStatus == MatchStatus.FINISH) {
             throw new IllegalArgumentException("이미 종료된 매치입니다.");

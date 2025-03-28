@@ -3,8 +3,10 @@ package com.reservemate.reserve_mate_backend.match.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
 
 import jakarta.validation.Valid;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -24,6 +29,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MatchController {
 
     private final MatchService matchService;
+
+    @GetMapping("/matches")
+    public ResponseEntity<List<MatchesDto>> getMatches(@RequestBody MatchSearchDto matchSearchDto) {
+        List<MatchesDto> matchesDtos = matchService.getMatches(matchSearchDto);
+        return ResponseEntity.ok(matchesDtos);
+    }
 
     @GetMapping("/{matchId}")
     public ResponseEntity<MatchDetailDto> getMatch(@PathVariable(name = "matchId") Long matchId,

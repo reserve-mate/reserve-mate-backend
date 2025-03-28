@@ -59,6 +59,23 @@ public class Court extends BaseEntity {
         this.facility = facility;
     }
 
+    @Builder
+    public Court(
+        Long id,
+        String name,
+        SportType sportType,
+        String description,
+        Integer capacity,
+        Boolean indoor,
+        Facility facility) {
+        this.name = name;
+        this.sportType = sportType;
+        this.description = description;
+        this.capacity = capacity;
+        this.indoor = indoor != null ? indoor : false;
+        this.facility = facility;
+    }
+
     public void update(
         String name,
         SportType sportType,
