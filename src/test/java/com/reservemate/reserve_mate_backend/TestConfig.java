@@ -8,7 +8,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 
 @TestConfiguration
 public class TestConfig {
-    
+
     /**
      * Redis connection factory for tests
      * This avoids the need for a real Redis server in tests
@@ -19,6 +19,6 @@ public class TestConfig {
         // For tests, we use an in-memory Redis
         return new LettuceConnectionFactory();
     }
-    
+
     // Add other test-specific beans if needed
-} 
+}
