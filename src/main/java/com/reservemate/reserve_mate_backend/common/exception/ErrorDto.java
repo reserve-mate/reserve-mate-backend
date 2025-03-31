@@ -19,7 +19,7 @@ public class ErrorDto {
 
     public static ResponseEntity<ErrorDto> toResponseEntity(ApiException ex) {
         ErrorDto errorDTO = ErrorDto.builder()
-            .errorCode(ex.getErrorCode())
+            .errorCode(ex.getErrorCode().getHttpStatus())
             .message(ex.getMessage())
             .build();
 
