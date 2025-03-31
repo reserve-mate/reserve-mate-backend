@@ -32,3 +32,6 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_CONFIG_LOCATION: "classpath:/application-test.yml"

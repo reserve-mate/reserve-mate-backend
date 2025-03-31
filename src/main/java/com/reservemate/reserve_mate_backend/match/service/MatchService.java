@@ -10,11 +10,12 @@ import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
-import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -32,6 +33,16 @@ public class MatchService {
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
     private final FacilityImageRepository facilityImageRepository;
+
+    /*
+     * 매치 조회
+     */
+    @Transactional
+    public List<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
+        // TODO Auto-generated method stub
+
+        return null;
+    }
 
     /*
      * 매치 정보 수정
