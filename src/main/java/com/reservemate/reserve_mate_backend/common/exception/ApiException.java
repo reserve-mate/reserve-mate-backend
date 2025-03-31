@@ -1,13 +1,15 @@
 package com.reservemate.reserve_mate_backend.common.exception;
 
+import org.springframework.http.HttpStatus;
+
 import lombok.Getter;
 
 @Getter
 public class ApiException extends RuntimeException {
 
-    private String errorCode;
+    private HttpStatus errorCode;
 
-    public ApiException(String errorCode, String message) {
+    public ApiException(HttpStatus errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }
