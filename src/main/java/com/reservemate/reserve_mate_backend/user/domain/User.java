@@ -58,6 +58,14 @@ public class User extends BaseEntity {
         this.role = role != null ? role : UserRole.ROLE_USER;
     }
 
+    private void validatePhone(String phone) {
+        String phoneReg = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$";
+        Pattern pattern = Pattern.compile(phoneReg);
+        if (!pattern.matcher(phone).matches()) {
+            throw new IllegalArgumentException("유효하지 않은 휴대폰 번호 형식입니다.");
+        }
+    }
+
     private void validateEmail(String email) {
         String emailReg = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         Pattern pattern = Pattern.compile(emailReg);
@@ -76,8 +84,10 @@ public class User extends BaseEntity {
         }
         if (password != null)
             updatePassword(password);
-        if (phone != null)
+        if (phone != null) {
+            validatePhone(phone);   //휴대폰 형식체크
             this.phone = phone;
+        }
         if (profileImage != null)
             this.profileImage = profileImage;
     }

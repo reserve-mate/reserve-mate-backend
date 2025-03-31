@@ -61,7 +61,9 @@ public class SecurityConfig {
                         "/mail/check/authCode",
                         "/users/find/password",
                         "/users/find/password/reset",
-                        "/users/reset/password").permitAll()
+                        "/users/reset/password",
+                        "/users/find/email",
+                        "/users/find/email/verify").permitAll()
 
                     .requestMatchers("/reissue").permitAll()
                     .requestMatchers("/h2-console/**")

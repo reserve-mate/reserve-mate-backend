@@ -1,7 +1,8 @@
 package com.reservemate.reserve_mate_backend.user.controller;
 
-import com.reservemate.reserve_mate_backend.common.mail.dto.MailRequestDto;
-import com.reservemate.reserve_mate_backend.common.mail.dto.ResetPasswordRequestDto;
+import com.reservemate.reserve_mate_backend.common.mail.dto.RequestMailDto;
+import com.reservemate.reserve_mate_backend.common.mail.dto.RequestResetPasswordDto;
+import com.reservemate.reserve_mate_backend.common.sms.dto.RequestFindEmailDto;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.service.UserService;
 import jakarta.mail.MessagingException;
@@ -50,7 +51,7 @@ public class UserController {
 
     //비밀번호 찾기
     @PostMapping("/find/password")
-    public ResponseEntity<String> findPassword(@RequestBody MailRequestDto requestDto) {
+    public ResponseEntity<String> findPassword(@RequestBody RequestMailDto requestDto) {
         try {
             userService.sendResetPasswordEmail(requestDto.getEmail());
             return ResponseEntity.ok("비밀번호 재설정 이메일이 전송되었습니다.");
@@ -61,7 +62,7 @@ public class UserController {
 
     //비밀번호 재설정
     @PostMapping("/reset/password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequestDto requestDto) {
+    public ResponseEntity<String> resetPassword(@RequestBody RequestResetPasswordDto requestDto) {
         userService.resetPassword(requestDto.getToken(), requestDto.getNewPassword());
         return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
@@ -69,5 +70,18 @@ public class UserController {
     @GetMapping("/find/password/reset")
     public ResponseEntity<String> resetPasswordPage(@RequestParam("token") String token) {
         return ResponseEntity.ok("비밀번호 재설정페이지로 이동했습니다. token :" + token);
+    }
+
+    //이메일 찾기
+    @PostMapping("/find/email")
+    public ResponseEntity<String> findEmail(@RequestBody RequestFindEmailDto findEmailRequestDto) {
+        userService.sendAuthCodeForFindEmail(findEmailRequestDto);
+        return ResponseEntity.ok("인증번호가 등록하신 휴대번호로 전송되었습니다.");
+    }
+
+    @PostMapping("/find/email/verify")
+    public ResponseEntity<String> verifyEmailAuthCode(@RequestBody RequestFindEmailDto findEmailDto) {
+        String email = userService.verifyAuthCodeAndReturnEmail(findEmailDto.getAuthCode(), findEmailDto.getPhone());
+        return ResponseEntity.ok("가입하신 이메일은" + email + "입니다.");
     }
 }
