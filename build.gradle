@@ -34,6 +34,9 @@ dependencies {
     //mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+    //sms
+    implementation 'net.nurigo:sdk:4.3.2'
+
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 

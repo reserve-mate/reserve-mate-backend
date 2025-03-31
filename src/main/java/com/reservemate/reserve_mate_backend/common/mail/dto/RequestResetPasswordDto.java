@@ -3,10 +3,10 @@ package com.reservemate.reserve_mate_backend.common.mail.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 @Getter
-public class MailRequestDto {
+@NoArgsConstructor
+public class RequestResetPasswordDto {
 
-    private String email;
-
+    private String token;
+    private String newPassword;
 }

@@ -1,7 +1,7 @@
 package com.reservemate.reserve_mate_backend.common.mail.controller;
 
 import com.reservemate.reserve_mate_backend.common.mail.dto.MailCheckDto;
-import com.reservemate.reserve_mate_backend.common.mail.dto.MailRequestDto;
+import com.reservemate.reserve_mate_backend.common.mail.dto.RequestMailDto;
 import com.reservemate.reserve_mate_backend.common.mail.service.MailService;
 import jakarta.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
@@ -24,8 +24,7 @@ public class MailController {
     //인증코드 메일 전송 요청
     @PostMapping("/send/authCode")
     public ResponseEntity<String> sendAuthCode(
-        @RequestBody MailRequestDto requestDto) throws MessagingException, UnsupportedEncodingException {
-        System.out.println("이메일 인증 메일주소:" + requestDto.getEmail());
+        @RequestBody RequestMailDto requestDto) throws MessagingException, UnsupportedEncodingException {
         mailService.sendAuthCode(requestDto.getEmail());
         return ResponseEntity.ok("인증코드가 이메일로 전송되었습니다.");
     }
