@@ -34,5 +34,11 @@ spring:
             starttls:
               enable: true
               required: true
+  coolsms:
+    api:
+      key: NCS0XC8KXTB6NLVS
+      secret: HFK9EJRFS1RMXB2XVDJDQ1SFQLORMJ29
+    phone:
+      number: 01075119908
   app:
     base-url: http://localhost:8080

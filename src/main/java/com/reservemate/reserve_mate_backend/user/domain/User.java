@@ -44,22 +44,6 @@ public class User extends BaseEntity {
 
     @Builder(toBuilder = true)
     public User(
-        String name,
-        String email,
-        String password,
-        String phone,
-        String profileImage,
-        UserRole role) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.phone = phone;
-        this.profileImage = profileImage;
-        this.role = role != null ? role : UserRole.ROLE_USER;
-    }
-
-    @Builder(toBuilder = true)
-    public User(
         Long id,
         String name,
         String email,
@@ -74,6 +58,14 @@ public class User extends BaseEntity {
         this.phone = phone;
         this.profileImage = profileImage;
         this.role = role != null ? role : UserRole.ROLE_USER;
+    }
+
+    private void validatePhone(String phone) {
+        String phoneReg = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$";
+        Pattern pattern = Pattern.compile(phoneReg);
+        if (!pattern.matcher(phone).matches()) {
+            throw new IllegalArgumentException("유효하지 않은 휴대폰 번호 형식입니다.");
+        }
     }
 
     private void validateEmail(String email) {
@@ -94,8 +86,10 @@ public class User extends BaseEntity {
         }
         if (password != null)
             updatePassword(password);
-        if (phone != null)
+        if (phone != null) {
+            validatePhone(phone);   //휴대폰 형식체크
             this.phone = phone;
+        }
         if (profileImage != null)
             this.profileImage = profileImage;
     }
