@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
-import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -127,7 +126,7 @@ public class MatchPlayerServiceTest {
 
         MatchPlayer matchPlayer = argumentCaptor.getValue();
 
-        assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
+        //assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
         assertThat(matchPlayer.getMatch().getCourt().getName()).isEqualTo(court.getName());
     }
 
@@ -174,7 +173,7 @@ public class MatchPlayerServiceTest {
     private Match getMatch(Court court, String userName) {
         Match match = Match.builder()
             .matchId(1L)
-            .manager(userName)
+            //.manager(userName)
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
             .matchDate(LocalDate.now().plusDays(1))
@@ -202,8 +201,8 @@ public class MatchPlayerServiceTest {
         Court court = Court.builder()
             .id(1L)
             .name("운동 코트")
-            .sportType(SportType.FUTSAL)
-            .capacity(12)
+            //.sportType(SportType.FUTSAL)
+            //.capacity(12)
             .indoor(false)
             .facility(facility)
             .build();

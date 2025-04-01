@@ -19,7 +19,8 @@ public enum ErrorCode {
         UNAUTHORIZED, "유저 정보를 찾을 수 없습니다"), UNAUTHORIZED_CODE(UNAUTHORIZED, "인증 정보가 올바르지 않습니다.")
 
     // 매치 관련 에러 처리
-    , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT, "겹치는 시간대에 매치가 존재합니다.");
+    , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
+        "겹치는 시간대에 매치가 존재합니다."), END_MATCH_ERROR(BAD_REQUEST, "이미 진행중 또는는 종료된 매치입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

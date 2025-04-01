@@ -22,8 +22,8 @@ public class MatchCustomRepositoryImplTest {
     void setup() {
         court = Court.builder()
             .name("운동 코트")
-            .sportType(SportType.FUTSAL)
-            .capacity(12)
+            //.sportType(SportType.FUTSAL)
+            //.capacity(12)
             .indoor(false)
             .build();
 
@@ -38,7 +38,7 @@ public class MatchCustomRepositoryImplTest {
 
     private Match getMatch() {
         Match match = Match.builder()
-            .manager("manager")
+            //.manager("manager")
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
             .matchDate(LocalDate.now())

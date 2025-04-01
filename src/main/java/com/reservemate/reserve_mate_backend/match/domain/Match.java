@@ -4,13 +4,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,40 +44,69 @@ public class Match extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "match_id", nullable = false, updatable = false)
-    private Long matchId;
+    private Long matchId;   // 매치 일련번호
 
     @Column(nullable = false)
-    private String manager;
+    private String matchName;   // 매치명
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MatchStatus matchStatus;
+    private MatchStatus matchStatus; // 매치 상태
 
     @Column(nullable = false)
-    private int teamCapacity;
+    private int teamCapacity; // 최대 참가자 수
 
     @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    private String description; // 매치 설명
 
     @Column(nullable = false)
-    private LocalDate matchDate;
+    private LocalDate matchDate; // 매치 날짜
 
     @Column(nullable = false)
-    private int matchTime;
+    private int matchTime; // 매치 시간
 
     @Column(nullable = false)
-    private int matchPrice;
+    private int endTime; // 매치 종료 시간
+
+    @Column(nullable = false)
+    private int matchPrice; // 참가비
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_manager_id")
+    private FacilityManager facilityManager;
 
     @ManyToOne(fetch = FetchType.LAZY) // lazy 지연로딩, eager 즉시 로딩 toOne은 지연로딩 사용
     @JoinColumn(name = "court_id")
     private Court court;
+
+    public Match(int start, int end) {
+        this.matchTime = start;
+        this.endTime = end;
+    }
+
+    // 매치 시간 겹치는지 검증
+    public static void isTimeConfilict(List<Match> matches, int startTime, int endTime) {
+        if (!matches.isEmpty()) {
+            LocalTime newStartTime = LocalTime.of(startTime, 00);
+            LocalTime newEndTime = LocalTime.of(endTime, 0);
+
+            for (Match match : matches) {
+                LocalTime existStarTime = LocalTime.of(match.getMatchTime(), 0);
+                LocalTime existEndTime = LocalTime.of(match.getEndTime(), 0);
+
+                if (Utils.isTimeConflict(existStarTime, existEndTime, newStartTime, newEndTime)) {
+                    throw new ApiException(ErrorCode.EXIST_MATCH_TIME_ERROR);
+                }
+            }
+        }
+    }
 
     public void isOverMatch() { // 날짜가 지난 매치인지 검증
         LocalDateTime nowDateTime = LocalDateTime.now();
         LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, LocalTime.of(this.matchTime, 0));
 
         if (nowDateTime.isAfter(matchDateTime)) {
-            throw new IllegalArgumentException("이미 시작되거나 종료된 매치입니다.");
+            throw new ApiException(ErrorCode.END_MATCH_ERROR);
         }
     }
 

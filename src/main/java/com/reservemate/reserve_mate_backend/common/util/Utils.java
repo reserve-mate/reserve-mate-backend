@@ -13,7 +13,13 @@ public class Utils {
     // 시간 겹치는지 확인
     public static boolean isTimeConflict(LocalTime existStarTime, LocalTime existEndTime, LocalTime newStarTime,
         LocalTime newEndTime) {
-        return !(newEndTime.isBefore(existStarTime) || newStarTime.isAfter(existEndTime));
+        if (existEndTime == newStarTime)
+            return false;
+        else if (existStarTime == newEndTime)
+            return false;
+        else {
+            return !(newEndTime.isBefore(existStarTime) || newStarTime.isAfter(existEndTime));
+        }
     }
 
     public static LocalDateTime localDateTimeFormat(LocalDateTime localDateTime) {

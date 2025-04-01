@@ -4,6 +4,9 @@ import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,10 +25,6 @@ public class FacilityManager extends BaseEntity {
     @Column(name = "facility_manager_id", updatable = false)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private ManagerRole role;
-
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
 
@@ -38,14 +37,29 @@ public class FacilityManager extends BaseEntity {
     private User user;
 
     @Builder
-    public FacilityManager(ManagerRole role, Facility facility, User user) {
-        this.role = role;
+    public FacilityManager(Facility facility, User user) {
         this.assignedAt = LocalDateTime.now();
         this.facility = facility;
         this.user = user;
     }
 
+    @Builder
+    public FacilityManager(Long id, Facility facility, User user) {
+        this.id = id;
+        this.assignedAt = LocalDateTime.now();
+        this.facility = facility;
+        this.user = user;
+    }
+
+    // 시설 id 목록 가져오기
+    public static List<Long> getFacilityIds(List<FacilityManager> facilityManagers) {
+        List<Long> ids = new ArrayList<>();
+        facilityManagers.forEach(facilityManager -> {
+            ids.add(facilityManager.getId());
+        });
+        return ids;
+    }
+
     public void updateRole(ManagerRole role) {
-        this.role = role;
     }
 }
