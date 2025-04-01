@@ -61,11 +61,13 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        //accessToken 에서 email, role 값 가져오기
+        //accessToken 에서 email, id, role 값 가져오기
         String email = jwtUtil.getUsername(accessToken);
+        Long id = jwtUtil.getId(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
         User user = User.builder()
+            .id(id)
             .email(email)
             .role(UserRole.valueOf(role))
             .build();

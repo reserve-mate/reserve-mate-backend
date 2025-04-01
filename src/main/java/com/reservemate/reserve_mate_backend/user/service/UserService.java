@@ -8,12 +8,15 @@ import com.reservemate.reserve_mate_backend.common.sms.util.SmsUtil;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
+import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import net.nurigo.sdk.message.response.SingleMessageSentResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +41,7 @@ public class UserService {
         this.redisSmsAuthentication = redisSmsAuthentication;
     }
 
-    public void registerUser(RequestUserDto requestUserDto) {
+    public ResponseEntity<ResponseUserDto> registerUser(RequestUserDto requestUserDto) {
         // 이메일 중복체크
         boolean emailExists = userRepository.existsByEmail(requestUserDto.getEmail());
 
@@ -54,8 +57,14 @@ public class UserService {
             .profileImage(requestUserDto.getProfileImage())
             .role(UserRole.ROLE_USER) // 회원가입 하는 경우 유저로 셋팅
             .build();
-        // save
-        userRepository.save(user);
+
+        try {
+            //save
+            User savedUser = userRepository.save(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseUserDto(savedUser));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @Transactional

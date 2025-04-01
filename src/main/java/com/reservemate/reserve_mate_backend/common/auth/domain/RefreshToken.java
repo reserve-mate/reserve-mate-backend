@@ -13,13 +13,13 @@ public class RefreshToken {
 
     @Id
     private String refresh;
-    private String email;
+    private Long id;
     private String expiration;
 
     @Builder(toBuilder = true)
-    public RefreshToken(String refresh, String email, String expiration) {
+    public RefreshToken(String refresh, Long id, String expiration) {
         this.refresh = refresh;
-        this.email = email;
+        this.id = id;
         this.expiration = expiration;
     }
 }

@@ -5,7 +5,6 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +24,11 @@ public class JwtUtil {
             String.class);
     }
 
+    public Long getId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("id",
+            Long.class);
+    }
+
     public String getRole(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role",
             String.class);
@@ -42,9 +46,10 @@ public class JwtUtil {
     }
 
     //JWT 토큰 생성
-    public String createJwt(String category, String email, String role, Long expiredMs) {
+    public String createJwt(String category, Long id, String email, String role, Long expiredMs) {
         return Jwts.builder()
             .claim("category", category)
+            .claim("id", id)
             .claim("email", email)
             .claim("role", role)
             .issuedAt(new Date(System.currentTimeMillis()))

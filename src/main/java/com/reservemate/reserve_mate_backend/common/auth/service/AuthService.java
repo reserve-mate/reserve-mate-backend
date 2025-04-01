@@ -55,16 +55,17 @@ public class AuthService {
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
+        Long id = jwtUtil.getId(refresh);
         String email = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
 
         //새로운 JWT 발급
-        String newAccess = jwtUtil.createJwt("access", email, role, 600000L);
-        String newRefresh = jwtUtil.createJwt("refresh", email, role, 86400000L);
+        String newAccess = jwtUtil.createJwt("access", id, email, role, 600000L);
+        String newRefresh = jwtUtil.createJwt("refresh", id, email, role, 86400000L);
 
         //기존 refreshToken 삭제, 새로운 refreshToken 저장
         refreshRepository.deleteById(refresh);
-        addRefreshToken(email, newRefresh, 86400000L);
+        addRefreshToken(id, newRefresh, 86400000L);
 
         //응답
         response.setHeader("access", newAccess);
@@ -80,10 +81,10 @@ public class AuthService {
         return cookie;
     }
 
-    private void addRefreshToken(String email, String newRefresh, Long expiredMs) {
+    private void addRefreshToken(Long id, String newRefresh, Long expiredMs) {
         Date date = new Date(System.currentTimeMillis() + expiredMs);
         RefreshToken refresh = RefreshToken.builder()
-            .email(email)
+            .id(id)
             .refresh(newRefresh)
             .expiration(date.toString())
             .build();

@@ -4,6 +4,7 @@ import com.reservemate.reserve_mate_backend.common.mail.dto.RequestMailDto;
 import com.reservemate.reserve_mate_backend.common.mail.dto.RequestResetPasswordDto;
 import com.reservemate.reserve_mate_backend.common.sms.dto.RequestFindEmailDto;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
+import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.service.UserService;
 import jakarta.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
@@ -31,8 +32,8 @@ public class UserController {
 
     // 회원등록
     @PostMapping("/register")
-    public void registerUser(@RequestBody RequestUserDto requestUserDto) {
-        userService.registerUser(requestUserDto);
+    public ResponseEntity<ResponseUserDto> registerUser(@RequestBody RequestUserDto requestUserDto) {
+        return userService.registerUser(requestUserDto);
     }
 
     // 유저 삭제
@@ -44,7 +45,7 @@ public class UserController {
 
     // 유저 수정
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateUser(@PathVariable Long id, RequestUserDto requestUserDto) {
+    public ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody RequestUserDto requestUserDto) {
         userService.updateUser(id, requestUserDto);
         return ResponseEntity.ok().build();
     }
