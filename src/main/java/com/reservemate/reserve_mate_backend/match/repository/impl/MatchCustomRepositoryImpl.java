@@ -74,7 +74,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         List<MatchesDto> matches = query.select(
             Projections.fields(MatchesDto.class,
                 match.matchId.as("matchId"), match.matchName.as("matchName"), match.matchStatus.as("matchStatus"),
-                facility.address.city
+                facility.name.as("facilityName"), facility.address.city
                     .concat(" ")
                     .concat(facility.address.district.stringValue())
                     .concat(" ")

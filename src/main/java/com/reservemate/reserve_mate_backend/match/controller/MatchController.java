@@ -32,17 +32,25 @@ public class MatchController {
 
     private final MatchService matchService;
 
+    @PutMapping("/chgFinish/{matchId}")
+    public void putMethodName(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+        matchService.chgEndMatch(matchId, userId);
+    }
+
+    /* 매치 목록 조회 */
     @GetMapping("/matches")
     public ResponseEntity<Slice<MatchesDto>> getMethodName(@RequestBody MatchSearchDto matchSearchDto) {
         return ResponseEntity.ok(matchService.getMatches(matchSearchDto));
     }
 
+    /* 날짜별 매치 조회 */
     @GetMapping("/matcheDates")
     public ResponseEntity<List<MatchDateDto>> getMatchDates(@RequestBody MatchSearchDto matchSearchDto) {
         List<MatchDateDto> matchesDtos = matchService.getMatchDates(matchSearchDto);
         return ResponseEntity.ok(matchesDtos);
     }
 
+    /*매치 단일 조회 */
     @GetMapping("/{matchId}")
     public ResponseEntity<MatchDetailDto> getMatch(@PathVariable(name = "matchId") Long matchId,
         @RequestParam(name = "userId") Long userId) {
@@ -50,11 +58,13 @@ public class MatchController {
         return ResponseEntity.ok(detailDto);
     }
 
+    /* 매치 정보 수정 */
     @PutMapping("/modifyMatch/{matchId}")
     public void modifyMatch(@PathVariable(name = "matchId") Long matchId, @RequestBody ModifyMatchDto modifyMatchDto) {
         matchService.modifyMatch(matchId, modifyMatchDto);
     }
 
+    /* 매치 등록 */
     @PostMapping("/registMatch")
     public void registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
         matchService.registMatch(createMatchDto);

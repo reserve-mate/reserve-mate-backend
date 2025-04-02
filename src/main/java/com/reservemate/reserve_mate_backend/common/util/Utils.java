@@ -43,7 +43,7 @@ public class Utils {
     }
 
     public static String localDateFormatWeek(LocalDate localDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년MM월dd일");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
         String datePattern = localDate.format(formatter)
             + " " + localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
         return datePattern;

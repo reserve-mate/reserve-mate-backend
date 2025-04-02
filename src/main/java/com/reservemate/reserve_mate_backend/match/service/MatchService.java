@@ -46,6 +46,20 @@ public class MatchService {
     private final FacilityManagerRepository facilityManagerRepository;
 
     @Transactional
+    public void chgEndMatch(Long matchId, Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        user.isAdmin();
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isFinish();
+
+        match.chgFinish();
+    }
+
+    /* 매치 조회(일반 사용자) */
+    @Transactional
     public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
         matchSearchDto.setMatchDate();
 
@@ -56,7 +70,7 @@ public class MatchService {
     }
 
     /*
-     * 매치 조회
+     * 날짜별 매치 조회
      */
     @Transactional
     public List<MatchDateDto> getMatchDates(MatchSearchDto matchSearchDto) {
