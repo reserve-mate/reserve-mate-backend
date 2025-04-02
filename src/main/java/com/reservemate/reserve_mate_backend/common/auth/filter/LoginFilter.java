@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -37,11 +39,15 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
         Authentication authentication) {
-        System.out.println("login success");
+
         //로그인 성공한 유저
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        System.out.println("-------------------------------------------");
+        log.info("====================================================");
+        log.info("================Login success for user: {} ========", customUserDetails.getUsername());
+        log.info("====================================================");
+
         String email = customUserDetails.getUsername();
+        Long id = customUserDetails.getId();
         String role = authentication.getAuthorities().stream()
             .findFirst()
             .map(GrantedAuthority::getAuthority)
@@ -52,11 +58,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         * access : 10분
         * refresh : 24시간
         * */
-        String access = jwtUtil.createJwt("access", email, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", email, role, 86400000L);
+        String access = jwtUtil.createJwt("access", id, email, role, 600000L);
+        String refresh = jwtUtil.createJwt("refresh", id, email, role, 86400000L);
 
         //save refreshToken
-        addRefreshToken(email, refresh, 86400000L);
+        addRefreshToken(id, refresh, 86400000L);
 
         //응답
         response.setHeader("access", access);
@@ -65,11 +71,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     }
 
-    private void addRefreshToken(String email, String refresh, Long expiredMs) {
+    private void addRefreshToken(Long id, String refresh, Long expiredMs) {
         Date date = new Date(System.currentTimeMillis() + expiredMs);
 
         RefreshToken refreshToken = RefreshToken.builder()
-            .email(email)
+            .id(id)
             .refresh(refresh)
             .expiration(date.toString())
             .build();
@@ -88,8 +94,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException failed) {
-        System.out.println("login failed");
-        System.out.println("Authentication Failed :" + failed.getMessage());
+        log.info("====================================================");
+        log.info("================Login falied: {} ========", failed.getMessage());
+        log.info("====================================================");
+
         response.setStatus(401);
     }
 

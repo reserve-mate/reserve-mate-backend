@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.common.auth.service;
 
 import com.reservemate.reserve_mate_backend.user.domain.User;
-import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,13 +18,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collection = new ArrayList<>();
-        collection.add(new GrantedAuthority() {
-
-            @Override
-            public String getAuthority() {
-                return user.getRole().name();
-            }
-        });
+        collection.add((GrantedAuthority) () -> user.getRole().name());
 
         return collection;
     }
@@ -64,5 +57,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    //유저아이디
+    public Long getId() {
+        return user.getId();
     }
 }
