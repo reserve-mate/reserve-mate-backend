@@ -2,6 +2,9 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -19,7 +22,6 @@ import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
-import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDatesDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
@@ -42,6 +44,16 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+
+    @Transactional
+    public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
+        matchSearchDto.setMatchDate();
+
+        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
+        Slice<MatchesDto> matches = matchCustomRepository.getMatches(pageable, matchSearchDto);
+
+        return matches;
+    }
 
     /*
      * 매치 조회
