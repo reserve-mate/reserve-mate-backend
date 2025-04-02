@@ -3,11 +3,13 @@ package com.reservemate.reserve_mate_backend.match.dto.request;
 import java.time.LocalDate;
 
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,37 +24,45 @@ import lombok.Setter;
 @Setter
 public class CreateMatchDto {
 
-    @NotNull(message = "user_id가 비어있습니다. 유효한 값을 입력해주세요.")
-    private Long userId;
-
-    private MatchStatus matchStatus;
-
-    @Min(10)
-    @Max(18)
-    private int teamCapacity;
-
-    @NotNull(message = "매치 날짜는 필수 입력 항목입니다.")
-    private LocalDate matchDate;
-
-    @Min(6)
-    @Max(22)
-    private int matchTime;
-
-    @NotNull(message = "매치 가격은 필수 입력 항목입니다.")
-    private Integer matchPrice;
+    @NotEmpty(message = "매치명은 필수 입력 항목입니다.")
+    private String matchName;
 
     @NotNull(message = "코트 번호는 필수 입력 항목입니다.")
     private Long courtId;
 
-    public Match toEntity(CreateMatchDto createMatchDto, Court court, String userName) {
+    @NotNull(message = "회원 정보는 필수 입력 항목입니다.")
+    private Long managerId;
+
+    @Min(10)
+    @Max(18)
+    private Integer teamCapacity;
+
+    @NotNull(message = "매치 날짜는 필수 입력 항목입니다.")
+    private LocalDate matchDate;
+
+    @NotNull(message = "매치 시간은 필수 입력 항목입니다.")
+    private Integer matchTime;
+
+    @NotNull(message = "매치 종료 시간은 필수 입력 항목입니다.")
+    private Integer matchEndTime;
+
+    @NotNull(message = "매치 가격은 필수 입력 항목입니다.")
+    private Integer matchPrice;
+
+    private String description;
+
+    public Match toEntity(CreateMatchDto createMatchDto, Court court, FacilityManager facilityManager) {
         return Match.builder()
-            .manager(userName)
+            .matchName(createMatchDto.getMatchName())
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(createMatchDto.getTeamCapacity())
             .matchDate(createMatchDto.getMatchDate())
             .matchTime(createMatchDto.getMatchTime())
+            .endTime(createMatchDto.getMatchEndTime())
             .matchPrice(createMatchDto.getMatchPrice())
+            .description(createMatchDto.getDescription())
             .court(court)
+            .facilityManager(facilityManager)
             .build();
     }
 

@@ -2,9 +2,12 @@ package com.reservemate.reserve_mate_backend.match.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -30,9 +34,18 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    @GetMapping("/matches")
-    public ResponseEntity<List<MatchesDto>> getMatches(@RequestBody MatchSearchDto matchSearchDto) {
-        List<MatchesDto> matchesDtos = matchService.getMatches(matchSearchDto);
+    @GetMapping("/bad-request")
+    public ResponseEntity<Object> badRequest() {
+        try {
+            throw new ApiException(ErrorCode.INVALID_INPUT_VALUE);
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode.SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/matcheDates")
+    public ResponseEntity<List<MatchDateDto>> getMatchDates(@RequestBody MatchSearchDto matchSearchDto) {
+        List<MatchDateDto> matchesDtos = matchService.getMatchDates(matchSearchDto);
         return ResponseEntity.ok(matchesDtos);
     }
 

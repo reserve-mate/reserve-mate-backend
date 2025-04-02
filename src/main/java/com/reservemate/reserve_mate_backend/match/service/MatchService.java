@@ -4,18 +4,25 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDatesDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
+import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -33,15 +40,18 @@ public class MatchService {
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
     private final FacilityImageRepository facilityImageRepository;
+    private final MatchCustomRepository matchCustomRepository;
+    private final FacilityManagerRepository facilityManagerRepository;
 
     /*
      * 매치 조회
      */
     @Transactional
-    public List<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
-        // TODO Auto-generated method stub
+    public List<MatchDateDto> getMatchDates(MatchSearchDto matchSearchDto) {
 
-        return null;
+        List<MatchDateDto> dateDtos = matchCustomRepository.getMatchesForDate(matchSearchDto);
+
+        return MatchDateDto.getMatchMonthDates(matchSearchDto.getMatchDate(), dateDtos);
     }
 
     /*
@@ -50,15 +60,16 @@ public class MatchService {
     @Transactional
     public void modifyMatch(Long matchId, ModifyMatchDto modifyMatchDto) {
         Match match = matchRepository.findById(matchId)
-            .orElseThrow(() -> new IllegalArgumentException("매치가 정보가 존재하지 않습니다."));
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
 
-        match.isFinish(); // 종료된 매치인지 검사
+        match.isEndMatch(); // 종료된 매치인지 검사
 
         int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
 
         modifyMatchDto.isOverTeamCapacity(playerCnt);   // 준비된 인원 수 초과 검사
 
-        match.modifyMatch(modifyMatchDto.getTeamCapacity(), modifyMatchDto.getDescription());
+        match.modifyMatch(modifyMatchDto.getTeamCapacity(), modifyMatchDto.getDescription(), modifyMatchDto
+            .getMatchName());
 
     }
 
@@ -67,10 +78,10 @@ public class MatchService {
      */
     public MatchDetailDto getMatch(Long matchId, Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         Match match = matchRepository.findById(matchId)
-            .orElseThrow(() -> new IllegalArgumentException("매치 정보가 존재하지 않습니다."));
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
 
         List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
@@ -84,22 +95,24 @@ public class MatchService {
      */
     @Transactional
     public void registMatch(CreateMatchDto createMatchDto) {
-        User user = userRepository.findById(createMatchDto.getUserId())
-            .orElseThrow(() -> new IllegalArgumentException("회원 정보가 존재하지 않습니다."));
 
         Court court = courtRepository.findById(createMatchDto.getCourtId())
-            .orElseThrow(() -> new IllegalArgumentException("코트 정보가 존재하지 않습니다."));
+            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        boolean isDuple = matchRepository.existsByMatchDateAndMatchTimeAndCourt(createMatchDto.getMatchDate(),
-            createMatchDto.getMatchTime(), court);
+        List<Match> matches = matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court);
+        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
 
-        if (!isDuple) {
-            Match match = createMatchDto.toEntity(createMatchDto, court, user.getName());
-            matchRepository.save(match);
-        } else {
-            throw new IllegalArgumentException("이미 등록된 매치가 있습니다.");
-        }
+        FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
+            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
+        boolean isExistMatch = matchRepository
+            .existsByMatchDateAndMatchTimeAndCourt(createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court);
+
+        if (isExistMatch)
+            throw new ApiException(ErrorCode.EXIST_MATCH_ERROR);
+
+        Match match = createMatchDto.toEntity(createMatchDto, court, facilityManager);
+        matchRepository.save(match);
     }
 
 }

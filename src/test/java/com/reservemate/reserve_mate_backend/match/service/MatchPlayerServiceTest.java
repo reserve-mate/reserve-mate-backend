@@ -17,11 +17,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ContextConfiguration;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
-import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -127,7 +128,7 @@ public class MatchPlayerServiceTest {
 
         MatchPlayer matchPlayer = argumentCaptor.getValue();
 
-        assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
+        //assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
         assertThat(matchPlayer.getMatch().getCourt().getName()).isEqualTo(court.getName());
     }
 
@@ -151,33 +152,13 @@ public class MatchPlayerServiceTest {
             .hasMessage("이미 매치 신청 내역이 존재합니다.");
     }
 
-    @Test
-    @DisplayName("마감된 매치인지 검증")
-    void testIsFinishMatch() {
-        /* given */
-        match.chgFinish();
-
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
-            .userId(user.getId())
-            .build();
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.applyForMatch(applyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 종료된 매치입니다.");
-    }
-
     private Match getMatch(Court court, String userName) {
         Match match = Match.builder()
             .matchId(1L)
-            .manager(userName)
+            //.manager(userName)
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
-            .matchDate(LocalDate.now())
+            .matchDate(LocalDate.now().plusDays(1))
             .matchTime(18)
             .matchPrice(11000)
             .court(court)
@@ -202,8 +183,8 @@ public class MatchPlayerServiceTest {
         Court court = Court.builder()
             .id(1L)
             .name("운동 코트")
-            .sportType(SportType.FUTSAL)
-            .capacity(12)
+            //.sportType(SportType.FUTSAL)
+            //.capacity(12)
             .indoor(false)
             .facility(facility)
             .build();

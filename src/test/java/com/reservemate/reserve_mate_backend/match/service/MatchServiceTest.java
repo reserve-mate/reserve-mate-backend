@@ -2,14 +2,9 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,17 +19,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
-import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
@@ -72,6 +67,9 @@ public class MatchServiceTest {
     @Mock
     private FacilityImageRepository facilityImageRepository;
 
+    @Mock
+    private FacilityManagerRepository facilityManagerRepository;
+
     @InjectMocks
     private MatchService matchService;
 
@@ -79,20 +77,22 @@ public class MatchServiceTest {
     private Facility facility;
     private Court court;
     private Match match;
+    private FacilityManager facilityManager;
 
     @BeforeEach
     void setUp() {
         user = getUser();
         facility = getFacility();
         court = getCourt(facility);
-        match = getMatch(court, user.getName());
+        facilityManager = getFacilityManager(user, facility);
+        match = getMatch(court, facilityManager);
     }
 
     @Test
     void testGetMatch() {
         /* given */
-        List<MatchPlayer> matchPlayers = new ArrayList();
-        List<FacilityImage> facilityImages = new ArrayList();
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+        List<FacilityImage> facilityImages = new ArrayList<>();
 
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
@@ -136,7 +136,7 @@ public class MatchServiceTest {
     @DisplayName("종료된 매치인지 검사 - 이미 종료된 매치입니다.")
     void testIsFinishMatch() {
         /* given */
-        match.chgFinish();
+        match.chgEndMatch();
 
         given(matchRepository.findById(match.getMatchId()))
             .willReturn(Optional.of(match));
@@ -145,34 +145,40 @@ public class MatchServiceTest {
 
         /* then */
         assertThatThrownBy(() -> matchService.modifyMatch(match.getMatchId(), modifyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 종료된 매치입니다.");
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 진행중 또는는 종료된 매치입니다.");
     }
 
     @Test
     @DisplayName("매치 중복 테스트 - 예외처리가 되어야함")
     void dupleMatchTest() {
         /* given */
-        CreateMatchDto createMatchDto = getCreateMatchDto(user, court);
+        CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
+        List<Match> matches = getMatches(court, facilityManager);
 
         given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
+            .willReturn(matches);
+        given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsByMatchDateAndMatchTimeAndCourt(
             createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court)).willReturn(true);
 
         assertThatThrownBy(() -> matchService.registMatch(createMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 등록된 매치가 있습니다.");
+            .isInstanceOf(ApiException.class)
+            .hasMessage("중복된 매치가 존재합니다.");
     }
 
     @Test
     @DisplayName("매치 등록 테스트 - User와 Court 정보가 있어야함")
     void testRegistMatch() {
         /* given */
-        CreateMatchDto createMatchDto = getCreateMatchDto(user, court);
+        CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
+        List<Match> matches = getMatches(court, facilityManager);
 
         given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
+            .willReturn(matches);
+        given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsByMatchDateAndMatchTimeAndCourt(
             createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court)).willReturn(false);
         ArgumentCaptor<Match> arguMatch = ArgumentCaptor.forClass(Match.class);
@@ -190,33 +196,68 @@ public class MatchServiceTest {
         assertThat(saveMatch.getMatchTime()).isEqualTo(createMatchDto.getMatchTime());
     }
 
-    private Match getMatch(Court court, String userName) {
+    private List<Match> getMatches(Court court, FacilityManager manager) {
+        List<Match> matches = new ArrayList<>();
+
+        for (int i = 1; i <= 2; i++) {
+            Match match = Match.builder()
+                .matchId(Long.valueOf(i))
+                .matchStatus(MatchStatus.APPLICABLE)
+                .teamCapacity(18)
+                .matchDate(LocalDate.now())
+                .matchTime(18)
+                .endTime(20)
+                .matchPrice(11000)
+                .court(court)
+                .facilityManager(manager)
+                .build();
+
+            matches.add(match);
+        }
+
+        return matches;
+    }
+
+    private Match getMatch(Court court, FacilityManager manager) {
         Match match = Match.builder()
             .matchId(1L)
-            .manager(userName)
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
             .matchDate(LocalDate.now())
             .matchTime(18)
+            .endTime(20)
             .matchPrice(11000)
             .court(court)
+            .facilityManager(manager)
             .build();
         return match;
     }
 
     /* 매치 등로 데이터 세팅 */
-    private CreateMatchDto getCreateMatchDto(User user, Court court) {
+    private CreateMatchDto getCreateMatchDto(FacilityManager facilityManager, Court court) {
 
         CreateMatchDto createMatchDto = CreateMatchDto.builder()
-            .userId(user.getId())
+            .matchName("매치")
+            .managerId(facilityManager.getId())
             .teamCapacity(15)
             .matchDate(LocalDate.now())
             .matchTime(10)
+            .matchEndTime(12)
             .courtId(court.getId())
             .matchPrice(11000)
             .build();
 
         return createMatchDto;
+    }
+
+    // 매니저 데이터 저장
+    private FacilityManager getFacilityManager(User user, Facility facility) {
+        FacilityManager manager = FacilityManager.builder()
+            .id(1L)
+            .facility(facility)
+            .user(user)
+            .build();
+        return manager;
     }
 
     private Facility getFacility() {
@@ -236,8 +277,8 @@ public class MatchServiceTest {
         Court court = Court.builder()
             .id(1L)
             .name("운동 코트")
-            .sportType(SportType.FUTSAL)
-            .capacity(12)
+            //.sportType(SportType.FUTSAL)
+            //.capacity(12)
             .indoor(false)
             .facility(facility)
             .build();

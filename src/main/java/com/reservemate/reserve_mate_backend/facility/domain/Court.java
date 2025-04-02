@@ -24,14 +24,14 @@ public class Court extends BaseEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sport_type", nullable = false)
-    private SportType sportType;
+    @Column(nullable = false)
+    private CourtType courtType;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(nullable = false)
+    private int width;
 
-    @Column(name = "capacity", nullable = false)
-    private Integer capacity;
+    @Column(nullable = false)
+    private int height;
 
     @Column(name = "indoor", nullable = false)
     private boolean indoor;
@@ -46,15 +46,15 @@ public class Court extends BaseEntity {
     @Builder
     public Court(
         String name,
-        SportType sportType,
-        String description,
-        Integer capacity,
+        CourtType courtType,
+        int width,
+        int height,
         Boolean indoor,
         Facility facility) {
         this.name = name;
-        this.sportType = sportType;
-        this.description = description;
-        this.capacity = capacity;
+        this.courtType = courtType;
+        this.width = width;
+        this.height = height;
         this.indoor = indoor != null ? indoor : false;
         this.facility = facility;
     }
@@ -63,30 +63,28 @@ public class Court extends BaseEntity {
     public Court(
         Long id,
         String name,
-        SportType sportType,
-        String description,
-        Integer capacity,
+        CourtType courtType,
+        int width,
+        int height,
         Boolean indoor,
         Facility facility) {
         this.name = name;
-        this.sportType = sportType;
-        this.description = description;
-        this.capacity = capacity;
+        this.courtType = courtType;
+        this.width = width;
+        this.height = height;
         this.indoor = indoor != null ? indoor : false;
         this.facility = facility;
     }
 
     public void update(
         String name,
-        SportType sportType,
-        String description,
-        Integer capacity,
+        int width,
+        int height,
         Boolean indoor) {
         this.name = name != null ? name : this.name;
-        this.sportType = sportType != null ? sportType : this.sportType;
-        this.description = description != null ? description : this.description;
-        this.capacity = capacity != null ? capacity : this.capacity;
         this.indoor = indoor != null ? indoor : this.indoor;
+        this.width = width;
+        this.height = height;
     }
 
     public void activate() {
