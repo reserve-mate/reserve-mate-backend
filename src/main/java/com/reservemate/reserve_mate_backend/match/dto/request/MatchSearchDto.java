@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 public class MatchSearchDto {
 
-    private String search;
+    private String searchValue;
     private SportType sportType;
     private LocalDate matchDate;
 

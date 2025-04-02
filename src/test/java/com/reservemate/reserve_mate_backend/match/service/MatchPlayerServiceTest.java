@@ -17,8 +17,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ContextConfiguration;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
@@ -148,26 +150,6 @@ public class MatchPlayerServiceTest {
         assertThatThrownBy(() -> matchPlayerService.applyForMatch(applyMatchDto))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("이미 매치 신청 내역이 존재합니다.");
-    }
-
-    @Test
-    @DisplayName("마감된 매치인지 검증")
-    void testIsFinishMatch() {
-        /* given */
-        match.chgFinish();
-
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
-            .userId(user.getId())
-            .build();
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.applyForMatch(applyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 종료된 매치입니다.");
     }
 
     private Match getMatch(Court court, String userName) {

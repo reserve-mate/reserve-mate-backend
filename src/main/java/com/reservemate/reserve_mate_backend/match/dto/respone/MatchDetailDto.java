@@ -24,26 +24,27 @@ import lombok.Setter;
 @Setter
 public class MatchDetailDto {
 
-    private Long matchId;
+    private Long matchId;                   // 매치 일련번호
 
-    private String facilityName;
-    private String address;
-    private String courtName;
-    private SportType sportType;
+    private String facilityName;            // 시설명
+    private String address;                 // 주소
+    private String courtName;               // 코트명
+    private SportType sportType;            // 종목
 
-    private String manager;
-    private MatchStatus matchStatus;
-    private int teamCapacity;
-    private String description;
-    private String matchDate;
-    private int matchTime;
-    private int matchPrice;
-    private int playerCnt;
-    private String phone;
-    private String userName;
-    private String profileImage;
-    private List<MatchPlayerDto> playerDtos;
-    private List<String> imageDtos;
+    private String manager;                 // 매치 매니저
+    private MatchStatus matchStatus;        // 매치 상태
+    private int teamCapacity;               // 최대 인원 수
+    private String description;             // 매치 설명
+    private String matchDate;               // 매치 날짜
+    private int matchTime;                  // 매치 시작시간
+    private int matchEndTime;               // 매치 종료시간
+    private int matchPrice;                 // 매치 가격
+    private int playerCnt;                  // 준비된 참가인원 수
+
+    private String phone;                   // 본인 전화번호
+    private String userName;                // 본인 이름
+    private List<MatchPlayerDto> playerDtos;// 참가자 목록록
+    private List<String> imageDtos;         // 시설 이미지 목록
 
     public static MatchDetailDto toMatchDetailDto(Match match, User user,
         List<MatchPlayer> matchPlayers, List<FacilityImage> images) {
@@ -62,10 +63,10 @@ public class MatchDetailDto {
             .description(match.getDescription())
             .matchDate(Utils.localDateFormatWeek(match.getMatchDate()))
             .matchTime(match.getMatchTime())
+            .matchEndTime(match.getEndTime())
             .matchPrice(match.getMatchPrice())
             .phone(user.getPhone())
             .userName(user.getName())
-            .profileImage(user.getProfileImage())
             .playerCnt(matchPlayers.size())
             .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
             .imageDtos(getFacilityImages(images))

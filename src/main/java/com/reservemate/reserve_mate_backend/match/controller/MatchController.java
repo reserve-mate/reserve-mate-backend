@@ -7,6 +7,7 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
@@ -42,9 +43,9 @@ public class MatchController {
         }
     }
 
-    @GetMapping("/matches")
-    public ResponseEntity<List<MatchesDto>> getMatches(@RequestBody MatchSearchDto matchSearchDto) {
-        List<MatchesDto> matchesDtos = matchService.getMatches(matchSearchDto);
+    @GetMapping("/matcheDates")
+    public ResponseEntity<List<MatchDateDto>> getMatchDates(@RequestBody MatchSearchDto matchSearchDto) {
+        List<MatchDateDto> matchesDtos = matchService.getMatchDates(matchSearchDto);
         return ResponseEntity.ok(matchesDtos);
     }
 

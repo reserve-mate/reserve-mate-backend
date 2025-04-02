@@ -138,9 +138,19 @@ public class Match extends BaseEntity {
         this.matchStatus = MatchStatus.FINISH;
     }
 
-    public void isFinish() { // 종료된 매치인지 검사
+    public void isFinish() { // 인원이 마감된 매치인지 검사
         if (this.matchStatus == MatchStatus.FINISH) {
-            throw new IllegalArgumentException("이미 종료된 매치입니다.");
+            throw new ApiException(ErrorCode.FINISH_MATCH_ERROR);
+        }
+    }
+
+    public void chgEndMatch() {  // 매치 시작 시간이 지난 경우 매치상태 END로 수정
+        this.matchStatus = MatchStatus.END;
+    }
+
+    public void isEndMatch() { // 인원 모집이 종료 또는 종료된 매치인지 검사
+        if (this.matchStatus == MatchStatus.END) {
+            throw new ApiException(ErrorCode.END_MATCH_ERROR);
         }
     }
 
@@ -155,7 +165,8 @@ public class Match extends BaseEntity {
     }
 
     // 매치 정보 수정
-    public void modifyMatch(int teamCapacity, String description) {
+    public void modifyMatch(int teamCapacity, String description, String matchName) {
+        this.matchName = matchName;
         this.teamCapacity = teamCapacity;
         this.description = description;
     }

@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 public class ModifyMatchDto {
 
+    private String matchName;
     private Integer teamCapacity;
     private String description;
 

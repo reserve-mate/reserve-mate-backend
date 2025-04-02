@@ -136,7 +136,7 @@ public class MatchServiceTest {
     @DisplayName("종료된 매치인지 검사 - 이미 종료된 매치입니다.")
     void testIsFinishMatch() {
         /* given */
-        match.chgFinish();
+        match.chgEndMatch();
 
         given(matchRepository.findById(match.getMatchId()))
             .willReturn(Optional.of(match));
@@ -145,8 +145,8 @@ public class MatchServiceTest {
 
         /* then */
         assertThatThrownBy(() -> matchService.modifyMatch(match.getMatchId(), modifyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 종료된 매치입니다.");
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 진행중 또는는 종료된 매치입니다.");
     }
 
     @Test
