@@ -46,6 +46,20 @@ public class MatchService {
     private final FacilityManagerRepository facilityManagerRepository;
 
     @Transactional
+    public void reReCruit(Long matchId, Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        user.isAdmin(); // 관리자 권한인지 검사
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isNotFinish(); // 마감된 매치인지 검사
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+        match.reCruit(playerCnt);
+    }
+
+    @Transactional
     public void chgEndMatch(Long matchId, Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));

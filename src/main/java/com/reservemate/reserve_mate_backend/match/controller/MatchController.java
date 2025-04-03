@@ -32,8 +32,13 @@ public class MatchController {
 
     private final MatchService matchService;
 
+    @PutMapping("/reReCruit/{matchId}")
+    public void reReCruit(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+        matchService.reReCruit(matchId, userId);
+    }
+
     @PutMapping("/chgFinish/{matchId}")
-    public void putMethodName(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+    public void chgEndMatch(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
         matchService.chgEndMatch(matchId, userId);
     }
 
