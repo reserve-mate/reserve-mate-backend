@@ -1,6 +1,9 @@
 package com.reservemate.reserve_mate_backend.match.domain;
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -28,6 +31,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "matchplayers")
 @SQLDelete(sql = "UPDATE matchplayers SET deleted = true WHERE player_id = ?")
+@SQLRestriction("deleted = false")
 public class MatchPlayer extends BaseEntity {
 
     @Id
@@ -53,6 +57,11 @@ public class MatchPlayer extends BaseEntity {
         } else if (this.status == PlayerStatus.COMPLETED) {
             throw new IllegalArgumentException("이미 참여했던 이력이 있는 매치입니다.");
         }
+    }
+
+    // 매치 삭제로 인한 플레이서 상태 변경
+    public void chgMatchRemoved() {
+        this.status = PlayerStatus.MATCH_REMOVED;
     }
 
     // 매치 신청 상태 취소로 수정

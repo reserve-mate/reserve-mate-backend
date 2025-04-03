@@ -6,7 +6,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -36,9 +38,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@DynamicUpdate
 @Getter
 @Table(name = "matches")
 @SQLDelete(sql = "UPDATE matches SET deleted = true WHERE match_id = ?")
+@SQLRestriction("deleted = false")
 public class Match extends BaseEntity {
 
     @Id
@@ -82,6 +86,17 @@ public class Match extends BaseEntity {
     public Match(int start, int end) {
         this.matchTime = start;
         this.endTime = end;
+    }
+
+    // 매치 상태 재모집 상태 변경
+    public void reCruit(int playerCnt) {
+        int teamCapacityHalf = (int) this.teamCapacity / 2;
+
+        if (teamCapacityHalf > playerCnt) {
+            this.matchStatus = MatchStatus.APPLICABLE;
+        } else if (teamCapacityHalf <= playerCnt) {
+            this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+        }
     }
 
     // 매치 시간 겹치는지 검증
@@ -139,7 +154,15 @@ public class Match extends BaseEntity {
     }
 
     public void isFinish() { // 인원이 마감된 매치인지 검사
+        isEndMatch();
         if (this.matchStatus == MatchStatus.FINISH) {
+            throw new ApiException(ErrorCode.FINISH_MATCH_ERROR);
+        }
+    }
+
+    public void isNotFinish() {
+        isEndMatch();
+        if (this.matchStatus != MatchStatus.FINISH) {
             throw new ApiException(ErrorCode.FINISH_MATCH_ERROR);
         }
     }

@@ -17,8 +17,16 @@ import lombok.Setter;
 @Setter
 public class MatchSearchDto {
 
+    private int pageNumber;
+
     private String searchValue;
     private SportType sportType;
     private LocalDate matchDate;
+
+    public void setMatchDate() {
+        if (this.matchDate == null) {
+            this.matchDate = LocalDate.now();
+        }
+    }
 
 }

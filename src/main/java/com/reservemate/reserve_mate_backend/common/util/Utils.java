@@ -12,6 +12,11 @@ import java.util.stream.Stream;
 
 public class Utils {
 
+    // 현재 시간 int형으로 가져오기
+    public static int getNowTime() {
+        return LocalTime.now().getHour();
+    }
+
     // 한달 날짜 가져오기
     public static List<LocalDate> getDateOfMonth(LocalDate date) {
         date = (date != null) ? date : LocalDate.now();
@@ -43,7 +48,7 @@ public class Utils {
     }
 
     public static String localDateFormatWeek(LocalDate localDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년MM월dd일");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
         String datePattern = localDate.format(formatter)
             + " " + localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
         return datePattern;

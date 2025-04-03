@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,6 +43,7 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -79,6 +82,9 @@ public class MatchServiceTest {
     private Match match;
     private FacilityManager facilityManager;
 
+    @Captor
+    private ArgumentCaptor<List<MatchPlayer>> argumentCaptors;
+
     @BeforeEach
     void setUp() {
         user = getUser();
@@ -86,6 +92,62 @@ public class MatchServiceTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("매치 삭제")
+    void testDeleteMatch() {
+        /* given */
+        User adminUser = User.builder()
+            .id(2L)
+            .name("이름")
+            .email("email@email.com")
+            .password("password")
+            .phone("01000000000")
+            .role(UserRole.ROLE_ADMIN)
+            .build();
+
+        given(userRepository.findById(adminUser.getId())).willReturn(Optional.of(adminUser));
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+
+        List<MatchPlayer> matchPlayers = getMatchPlayers();
+        given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY))
+            .willReturn(matchPlayers);
+
+        /* when */
+        matchService.deleteMatch(match.getMatchId(), adminUser.getId());
+
+        /* then */
+        verify(matchPlayerRepository, times(1))
+            .updatePlayersMatchRemoved(match.getMatchId(), PlayerStatus.MATCH_REMOVED);
+
+        verify(matchRepository, times(1)).delete(match);
+    }
+
+    private List<MatchPlayer> getMatchPlayers() {
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+
+        for (int i = 1; i <= 2; i++) {
+
+            User loopUser = User.builder()
+                .id(Long.valueOf(i))
+                .name("이름")
+                .email("email@email.com")
+                .password("password")
+                .phone("01000000000")
+                .build();
+
+            MatchPlayer matchPlayer = MatchPlayer.builder()
+                .playerId(Long.valueOf(i))
+                .status(PlayerStatus.READY)
+                .user(loopUser)
+                .match(match)
+                .build();
+
+            matchPlayers.add(matchPlayer);
+        }
+
+        return matchPlayers;
     }
 
     @Test

@@ -1,6 +1,9 @@
 package com.reservemate.reserve_mate_backend.user.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+
 import jakarta.persistence.*;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
@@ -58,6 +61,13 @@ public class User extends BaseEntity {
         this.phone = phone;
         this.profileImage = profileImage;
         this.role = role != null ? role : UserRole.ROLE_USER;
+    }
+
+    // 관리자 인지 검증
+    public void isAdmin() {
+        if (this.role != UserRole.ROLE_ADMIN) {
+            throw new ApiException(ErrorCode.ADMIN_FORBIDDEN);
+        }
     }
 
     private void validatePhone(String phone) {
