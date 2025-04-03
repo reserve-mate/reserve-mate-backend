@@ -4,14 +4,25 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
     boolean existsByMatchDateAndMatchTimeAndCourt(LocalDate matchDate, int matchTime, Court court);
 
     List<Match> findByMatchDateAndCourt(LocalDate matchDate, Court court);
+
+    List<Match> findByMatchDateAndMatchTimeAndMatchStatusNot(LocalDate matchDate, int nowTime, MatchStatus end);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Match m set m.matchStatus = :end, m.updatedAt = now() where m.matchDate = :matchDate and m.matchTime = :nowTime and m.matchStatus <> :end")
+    void updateEndBeforeMatch(@Param("matchDate") LocalDate matchDate, @Param("nowTime") int nowTime,
+        @Param("end") MatchStatus end);
 
 }

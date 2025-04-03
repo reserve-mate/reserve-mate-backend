@@ -1,14 +1,18 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
@@ -17,6 +21,7 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRep
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
@@ -32,9 +37,11 @@ import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class MatchService {
 
     private final MatchRepository matchRepository;
@@ -44,6 +51,14 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+
+    /* 시간이 지난 날짜 종료 처리 */
+    @Scheduled(cron = "0 0 6-23 * * *") // 5초마다 실행
+    @Transactional
+    public void endBeforeMatch() {
+        log.info("---------" + LocalTime.now().getHour() + "시 ---------");
+        matchRepository.updateEndBeforeMatch(LocalDate.now(), (Utils.getNowTime()), MatchStatus.END);
+    }
 
     @Transactional
     public void deleteMatch(Long matchId, Long userId) {

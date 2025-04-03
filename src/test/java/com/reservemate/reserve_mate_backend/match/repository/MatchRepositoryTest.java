@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.match.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -62,6 +64,45 @@ public class MatchRepositoryTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("현재 시간 종료 매치 상태값 수정")
+    void testUpdateEndBeforeMatch() {
+        /* given */
+        List<Match> matches = saveMatches();
+        int matchTime = Utils.getNowTime();
+
+        /* when */
+        matchRepository.updateEndBeforeMatch(LocalDate.now(), matchTime, MatchStatus.END);
+
+        /* then */
+        for (int i = 0; i < matches.size(); i++) {
+            if (matches.get(i).getMatchStatus() == MatchStatus.END) {
+                assertThat(matches.get(i).getMatchStatus()).isEqualTo(MatchStatus.END);
+            }
+        }
+    }
+
+    private List<Match> saveMatches() {
+        List<Match> matches = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Match saveMatch = Match.builder()
+                .matchName("매치" + i)
+                .matchStatus(MatchStatus.APPLICABLE)
+                .teamCapacity(18)
+                .matchDate(LocalDate.now())
+                .matchTime(20 + i)
+                .endTime(21 + i)
+                .matchPrice(11000)
+                .court(court)
+                .facilityManager(facilityManager)
+                .build();
+
+            Match realMatch = matchRepository.save(saveMatch);
+            matches.add(realMatch);
+        }
+        return matches;
     }
 
     @Test
@@ -157,4 +198,5 @@ public class MatchRepositoryTest {
         User savUser = userRepository.save(user);
         return savUser;
     }
+
 }

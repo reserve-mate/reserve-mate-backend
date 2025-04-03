@@ -60,6 +60,7 @@ public class MatchPlayerService {
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
 
         match.isOverMatch();
+        match.isEndMatch();
         match.isFinish();
         boolean isExist = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
 

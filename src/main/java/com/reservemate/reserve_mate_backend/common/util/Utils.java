@@ -12,6 +12,11 @@ import java.util.stream.Stream;
 
 public class Utils {
 
+    // 현재 시간 int형으로 가져오기
+    public static int getNowTime() {
+        return LocalTime.now().getHour();
+    }
+
     // 한달 날짜 가져오기
     public static List<LocalDate> getDateOfMonth(LocalDate date) {
         date = (date != null) ? date : LocalDate.now();
