@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
 import java.time.LocalTime;

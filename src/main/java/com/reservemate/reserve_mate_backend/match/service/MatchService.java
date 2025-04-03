@@ -46,6 +46,26 @@ public class MatchService {
     private final FacilityManagerRepository facilityManagerRepository;
 
     @Transactional
+    public void deleteMatch(Long matchId, Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        user.isAdmin(); // 관리자 권한인지 검사
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+
+        List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
+
+        if (!matchPlayers.isEmpty()) {
+            matchPlayerRepository.updatePlayersMatchRemoved(matchId, PlayerStatus.MATCH_REMOVED);
+        }
+
+        // 환불 로직
+
+        matchRepository.delete(match);
+    }
+
+    @Transactional
     public void reReCruit(Long matchId, Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));

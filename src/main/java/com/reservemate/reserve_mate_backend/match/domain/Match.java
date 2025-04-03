@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -41,6 +42,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "matches")
 @SQLDelete(sql = "UPDATE matches SET deleted = true WHERE match_id = ?")
+@SQLRestriction("deleted = false")
 public class Match extends BaseEntity {
 
     @Id
@@ -90,9 +92,9 @@ public class Match extends BaseEntity {
     public void reCruit(int playerCnt) {
         int teamCapacityHalf = (int) this.teamCapacity / 2;
 
-        if (teamCapacityHalf >= playerCnt) {
+        if (teamCapacityHalf > playerCnt) {
             this.matchStatus = MatchStatus.APPLICABLE;
-        } else if (teamCapacityHalf < playerCnt) {
+        } else if (teamCapacityHalf <= playerCnt) {
             this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
         }
     }

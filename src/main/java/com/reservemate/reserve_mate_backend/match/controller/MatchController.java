@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
@@ -31,6 +32,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MatchController {
 
     private final MatchService matchService;
+
+    @DeleteMapping("/deleteMatch/{matchId}")
+    public void deleteMatch(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+        matchService.deleteMatch(matchId, userId);
+    }
 
     @PutMapping("/reReCruit/{matchId}")
     public void reReCruit(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {

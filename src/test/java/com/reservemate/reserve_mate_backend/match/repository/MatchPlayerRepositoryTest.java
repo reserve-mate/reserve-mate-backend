@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -64,6 +66,27 @@ public class MatchPlayerRepositoryTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("매치 플레이어 MATCH_REMOVED 상태 변경")
+    void testUpdatePlayersMatchRemoved() {
+        /* given */
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .status(PlayerStatus.READY)
+            .user(user)
+            .match(match)
+            .build();
+
+        MatchPlayer savePlayer = matchPlayerRepository.save(matchPlayer);
+
+        /* when */
+        matchPlayerRepository.updatePlayersMatchRemoved(savePlayer.getMatch().getMatchId(), PlayerStatus.MATCH_REMOVED);
+
+        /* then */
+        MatchPlayer selectPlayer = matchPlayerRepository.findById(savePlayer.getPlayerId())
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        assertThat(selectPlayer.getStatus()).isEqualTo(PlayerStatus.MATCH_REMOVED);
     }
 
     @Test
