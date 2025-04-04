@@ -1,20 +1,28 @@
 package com.reservemate.reserve_mate_backend.payment.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.user.domain.User;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "payments")
+@DynamicUpdate
 @SQLDelete(sql = "UPDATE payments SET deleted = true WHERE payment_id = ?")
+@SQLRestriction("deleted = false")
 public class Payment extends BaseEntity {
 
     @Id
@@ -48,9 +56,13 @@ public class Payment extends BaseEntity {
     @Column(name = "cancel_reason")
     private String cancelReason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_id")
+    private MatchPlayer matchPlayer;
 
     @Builder
     public Payment(
@@ -87,4 +99,5 @@ public class Payment extends BaseEntity {
         this.cancelReason = reason;
         this.canceledAt = LocalDateTime.now();
     }
+
 }
