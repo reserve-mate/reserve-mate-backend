@@ -1,5 +1,10 @@
 package com.reservemate.reserve_mate_backend.payment.util;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Base64;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,7 +15,25 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountReques
 
 public class PaymentUtil {
 
-    public static String getPayAuth(String tossSecret) { // base64
+    // 결제 취소(토스)
+    public static HttpResponse requestCancelPay(String tossSecret, String tossApiUrl,
+        String apiName, String cancelReason) throws IOException, InterruptedException {
+        String jsonBody = String.format("{\"cancelReason\":\"%s\"}", cancelReason);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(tossApiUrl + apiName))
+            .header("Authorization", "Basic " + PaymentUtil.getPayAuth(tossSecret))
+            .header("Content-Type", "application/json")
+            .method("POST", HttpRequest.BodyPublishers.ofString(jsonBody))
+            .build();
+
+        HttpResponse httpResponse = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        return httpResponse;
+    }
+
+    // base64 암호화
+    public static String getPayAuth(String tossSecret) {
         return Base64.getEncoder().encodeToString(tossSecret.getBytes());
     }
 

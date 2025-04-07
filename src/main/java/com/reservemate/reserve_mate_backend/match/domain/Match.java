@@ -88,6 +88,11 @@ public class Match extends BaseEntity {
         this.endTime = end;
     }
 
+    public void validatePrice(Integer amount) {
+        if (this.matchPrice != amount)
+            throw new ApiException(ErrorCode.INVALID_PRICE);
+    }
+
     // 매치 상태 재모집 상태 변경
     public void reCruit(int playerCnt) {
         int teamCapacityHalf = (int) this.teamCapacity / 2;

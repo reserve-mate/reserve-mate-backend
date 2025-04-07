@@ -10,7 +10,30 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+
 public class Utils {
+
+    public static JSONObject stringToJson(String responseBody) {
+        //String failMsg = "처리 중 에러가 발생하였습니다. 다시 시도해주세요.";
+
+        JSONParser jsonParser = new JSONParser();
+        JSONObject object = null;
+        try {
+            object = (JSONObject) jsonParser.parse(responseBody);
+            //failMsg = object.get("message").toString();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            throw new ApiException(ErrorCode.SERVER_ERROR);
+        }
+
+        return object;
+    }
 
     // 현재 시간 int형으로 가져오기
     public static int getNowTime() {
