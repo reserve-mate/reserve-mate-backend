@@ -59,7 +59,6 @@ public class Court extends BaseEntity {
         this.facility = facility;
     }
 
-    @Builder
     public Court(
         Long id,
         String name,
@@ -68,6 +67,7 @@ public class Court extends BaseEntity {
         int height,
         Boolean indoor,
         Facility facility) {
+        this.id = id;
         this.name = name;
         this.courtType = courtType;
         this.width = width;

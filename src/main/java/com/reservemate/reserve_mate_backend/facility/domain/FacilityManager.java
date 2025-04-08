@@ -43,7 +43,6 @@ public class FacilityManager extends BaseEntity {
         this.user = user;
     }
 
-    @Builder
     public FacilityManager(Long id, Facility facility, User user) {
         this.id = id;
         this.assignedAt = LocalDateTime.now();
