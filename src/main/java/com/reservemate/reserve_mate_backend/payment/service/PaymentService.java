@@ -58,10 +58,12 @@ public class PaymentService {
         payment.isPaid();
 
         try {
+            int refundAmount = payment.refundAmount();
+
             HttpResponse response = PaymentUtil.requestCancelPay(tossSecret, tossApiUrl + cancelPayRequestDto
-                .getPaymentKey(), "cancel", cancelPayRequestDto.getCancelReason());
+                .getPaymentKey(), "/cancel", cancelPayRequestDto.getCancelReason(), refundAmount);
             if (response.statusCode() == 200) {
-                payment.cancel(cancelPayRequestDto.getCancelReason());
+                payment.cancel(cancelPayRequestDto.getCancelReason(), refundAmount);
             } else {
                 JSONObject errorResponse = Utils.stringToJson(response.body().toString());
                 return PaymentResponse.toErrorResponse(errorResponse);
@@ -112,9 +114,9 @@ public class PaymentService {
 
             if (httpResponse.statusCode() != 200) {
                 PaymentUtil.requestCancelPay(tossSecret, tossApiUrl, amountRequest.getPaymentKey() + "/cancel",
-                    failUrl);
+                    failUrl, payment.getAmount());
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
-                payment.cancel(failMsg);
+                payment.cancel(failMsg, payment.getAmount());
             } else {
                 payment.verifyPayment(amountRequest.getAmount());
                 payment.markAsPaid(amountRequest.getPaymentKey());

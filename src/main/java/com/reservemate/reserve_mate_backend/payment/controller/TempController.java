@@ -14,8 +14,8 @@ public class TempController {
     }
 
     @RequestMapping(value = "/toss/success", method = RequestMethod.GET)
-    public String requestMethodName() {
-        return new String();
+    public String successRequest() {
+        return "success";
     }
 
 }
