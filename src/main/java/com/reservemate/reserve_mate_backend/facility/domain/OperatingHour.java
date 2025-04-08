@@ -53,6 +53,22 @@ public class OperatingHour extends BaseEntity {
         this.facility = facility;
     }
 
+    @Builder
+    public OperatingHour(
+        Long id,
+        DayOfWeek dayOfWeek,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean holiday,
+        Facility facility) {
+        this.id = id;
+        this.dayOfWeek = dayOfWeek;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.holiday = holiday != null ? holiday : false;
+        this.facility = facility;
+    }
+
     public void update(LocalTime openTime, LocalTime closeTime, Boolean holiday) {
         this.openTime = openTime != null ? openTime : this.openTime;
         this.closeTime = closeTime != null ? closeTime : this.closeTime;

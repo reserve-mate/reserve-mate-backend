@@ -1,6 +1,10 @@
 package com.reservemate.reserve_mate_backend.match.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,13 +13,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -32,51 +45,158 @@ public class MatchRepositoryTest {
     @Autowired
     private FacilityRepository facilityRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private FacilityManagerRepository facilityManagerRepository;
+
+    private User user;
+    private Facility facility;
     private Court court;
+    private Match match;
+    private FacilityManager facilityManager;
 
     @BeforeEach
-    void setup() {
-        Facility facility = Facility.builder()
-            .name("시설")
-            .build();
+    void setUp() {
+        user = getUser();
+        facility = getFacility();
+        court = getCourt(facility);
+        facilityManager = getFacilityManager(user, facility);
+        match = getMatch(court, facilityManager);
+    }
 
-        Facility saveFacility = facilityRepository.save(facility);
+    @Test
+    @DisplayName("현재 시간 종료 매치 상태값 수정")
+    void testUpdateEndBeforeMatch() {
+        /* given */
+        List<Match> matches = saveMatches();
+        int matchTime = Utils.getNowTime();
 
-        court = Court.builder()
-            .name("운동 코트")
-            .sportType(SportType.FUTSAL)
-            .capacity(12)
-            .indoor(false)
-            .facility(saveFacility)
-            .build();
+        /* when */
+        matchRepository.updateEndBeforeMatch(LocalDate.now(), matchTime, MatchStatus.END);
+
+        /* then */
+        for (int i = 0; i < matches.size(); i++) {
+            if (matches.get(i).getMatchStatus() == MatchStatus.END) {
+                assertThat(matches.get(i).getMatchStatus()).isEqualTo(MatchStatus.END);
+            }
+        }
+    }
+
+    private List<Match> saveMatches() {
+        List<Match> matches = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Match saveMatch = Match.builder()
+                .matchName("매치" + i)
+                .matchStatus(MatchStatus.APPLICABLE)
+                .teamCapacity(18)
+                .matchDate(LocalDate.now())
+                .matchTime(20 + i)
+                .endTime(21 + i)
+                .matchPrice(11000)
+                .court(court)
+                .facilityManager(facilityManager)
+                .build();
+
+            Match realMatch = matchRepository.save(saveMatch);
+            matches.add(realMatch);
+        }
+        return matches;
+    }
+
+    @Test
+    @DisplayName("해당 날짜 매치 목록 조회")
+    void testFindByMatchDateAndCourt() {
+
+        /* when */
+        List<Match> matches = matchRepository.findByMatchDateAndCourt(LocalDate.now(), court);
+
+        /* then */
+        assertThat(matches.isEmpty()).isFalse();
     }
 
     @Test
     @DisplayName("매치 중복 검사")
     void dupleMatchTest() {
         /* given */
-        Court saveCourt = courtRepository.save(court);
         LocalDate date = LocalDate.of(2025, 3, 26);
         int matchTime = 16;
 
         /* when */
-        boolean isDuple = matchRepository.existsByMatchDateAndMatchTimeAndCourt(date, matchTime, saveCourt);
+        boolean isDuple = matchRepository.existsByMatchDateAndMatchTimeAndCourt(date, matchTime, court);
 
         Assertions.assertThat(isDuple).isFalse();
     }
 
-    /* 매치 기본 설정 */
-    private Match getMatch(Court court) {
-        //Court court = courtRepository.findById(1)
+    private Match getMatch(Court court, FacilityManager manager) {
         Match match = Match.builder()
-            .manager("manager")
+            .matchName("매치")
             .matchStatus(MatchStatus.APPLICABLE)
             .teamCapacity(18)
             .matchDate(LocalDate.now())
-            .matchTime(10)
+            .matchTime(18)
+            .endTime(20)
             .matchPrice(11000)
             .court(court)
+            .facilityManager(manager)
             .build();
-        return match;
+
+        Match saveMatch = matchRepository.save(match);
+        return saveMatch;
     }
+
+    // 매니저 데이터 저장
+    private FacilityManager getFacilityManager(User user, Facility facility) {
+        FacilityManager manager = FacilityManager.builder()
+            .facility(facility)
+            .user(user)
+            .build();
+
+        FacilityManager saveManager = facilityManagerRepository.save(manager);
+        return saveManager;
+    }
+
+    private Facility getFacility() {
+        Address address = Address.builder()
+            .city("서울")
+            .build();
+
+        Facility facility = Facility.builder()
+            .name("시설")
+            .sportType(SportType.FUTSAL)
+            .address(address)
+            .conventient("1010")
+            .build();
+
+        Facility saveFacility = facilityRepository.save(facility);
+        return saveFacility;
+    }
+
+    private Court getCourt(Facility facility) {
+
+        Court court = Court.builder()
+            .name("운동 코트")
+            .courtType(CourtType.ARTIFICIAL_TURF_FUTSAL)
+            .width(20)
+            .height(40)
+            .indoor(false)
+            .facility(facility)
+            .build();
+        Court saveUser = courtRepository.save(court);
+        return saveUser;
+    }
+
+    /* 회원 기본 설정 */
+    private User getUser() {
+        User user = User.builder()
+            .name("이름")
+            .email("email@email.com")
+            .password("password")
+            .phone("01000000000")
+            .build();
+        User savUser = userRepository.save(user);
+        return savUser;
+    }
+
 }

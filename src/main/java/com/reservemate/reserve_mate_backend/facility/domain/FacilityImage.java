@@ -24,9 +24,6 @@ public class FacilityImage extends BaseEntity {
     @Column(name = "image_url", nullable = false, length = 255)
     private String imageUrl;
 
-    @Column(name = "description", length = 200)
-    private String description;
-
     @Column(name = "is_main", nullable = false)
     private boolean main;
 
@@ -48,7 +45,6 @@ public class FacilityImage extends BaseEntity {
         Integer displayOrder,
         Facility facility) {
         this.imageUrl = imageUrl;
-        this.description = description;
         this.main = main != null ? main : false;
         this.displayOrder = displayOrder;
         this.uploadedAt = LocalDateTime.now();
@@ -57,7 +53,6 @@ public class FacilityImage extends BaseEntity {
 
     public void update(String imageUrl, String description, Boolean main, Integer displayOrder) {
         this.imageUrl = imageUrl != null ? imageUrl : this.imageUrl;
-        this.description = description != null ? description : this.description;
         this.main = main != null ? main : this.main;
         this.displayOrder = displayOrder != null ? displayOrder : this.displayOrder;
     }

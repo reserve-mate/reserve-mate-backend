@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.dto.respone;
 
+import java.time.LocalDate;
+
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
@@ -17,13 +19,16 @@ import lombok.Setter;
 public class MatchesDto {
 
     private Long matchId;
-    private String courtName;
+    private String matchName;
     private MatchStatus matchStatus;
+    private String facilityName;
     private String fullAddress;
-    private String matchDate;
-    private String matchTime;
+    private LocalDate matchDate;
+    private Integer matchTime;
+    private Integer matchEndTime;
     private SportType sportType;
     private int matchPrice;
     private int teamCapacity;
+    private Long playerCnt;
 
 }

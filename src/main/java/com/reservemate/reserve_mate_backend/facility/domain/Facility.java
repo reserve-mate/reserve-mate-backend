@@ -2,11 +2,17 @@ package com.reservemate.reserve_mate_backend.facility.domain;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.user.domain.User;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalTime;
+
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
@@ -24,27 +30,43 @@ public class Facility extends BaseEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SportType sportType;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Embedded
     private Address address;
 
-    @Column(name = "contact_phone", length = 20)
-    private String contactPhone;
+    @Column(name = "conventient", nullable = false)
+    @ColumnDefault("0000")
+    private String conventient;
 
     @Builder
-    public Facility(String name, String description, Address address, String contactPhone) {
+    public Facility(String name, SportType sportType, String description, Address address, String conventient) {
         this.name = name;
+        this.sportType = sportType;
         this.description = description;
         this.address = address;
-        this.contactPhone = contactPhone;
+        this.conventient = conventient;
     }
 
-    public void update(String name, String description, Address address, String contactPhone) {
+    @Builder
+    public Facility(Long id, String name, SportType sportType, String description, Address address,
+        String conventient) {
+        this.id = id;
+        this.name = name;
+        this.sportType = sportType;
+        this.description = description;
+        this.address = address;
+        this.conventient = conventient;
+    }
+
+    public void update(String name, String description, Address address) {
         this.name = name != null ? name : this.name;
         this.description = description != null ? description : this.description;
         this.address = address != null ? address : this.address;
-        this.contactPhone = contactPhone != null ? contactPhone : this.contactPhone;
     }
 }
