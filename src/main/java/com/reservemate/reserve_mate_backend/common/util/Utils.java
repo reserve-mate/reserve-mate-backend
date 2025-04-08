@@ -64,6 +64,7 @@ public class Utils {
         }
     }
 
+    /* 날짜 포맷 수정 */
     public static LocalDateTime localDateTimeFormat(LocalDateTime localDateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String datePattern = localDateTime.format(formatter);

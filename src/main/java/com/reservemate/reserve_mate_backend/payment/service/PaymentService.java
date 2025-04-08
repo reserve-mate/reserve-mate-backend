@@ -1,10 +1,12 @@
 package com.reservemate.reserve_mate_backend.payment.service;
 
-import java.io.IOException;
 import java.net.http.HttpResponse;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -15,9 +17,11 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
-import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentFailRequestDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
+import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.payment.util.PaymentUtil;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -31,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentCustomRepository paymentCustomRepository;
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
 
@@ -48,6 +53,28 @@ public class PaymentService {
 
     @Value("${toss.pay.failurl}")
     private String failUrl;
+
+    /* 매치 결제 내역 */
+    public Slice<PaymentHistResDto> getPaymentHistory(PaymentHistReqDto histReqDto) {
+
+        User user = userRepository.findById(histReqDto.getUserId())
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Slice<PaymentHistResDto> payments = null;
+        if (histReqDto.getPayType().equals("match")) {
+            payments = paymentCustomRepository.getMatchPayHist(user.getId(), histReqDto.getPaymentStatus(), pageable);
+        }
+
+        if (histReqDto.getPayType().equals("reserve")) {
+            // 추후 코드 작성 예정
+            return null;
+        }
+
+        return payments;
+
+    }
 
     /* 결제 취소  */
     @Transactional

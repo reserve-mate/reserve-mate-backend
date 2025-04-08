@@ -4,19 +4,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
-import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentFailRequestDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.service.PaymentService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/payment")
@@ -24,6 +27,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    @GetMapping("/payHist")
+    public ResponseEntity<Slice<PaymentHistResDto>> getPayHist(@RequestBody PaymentHistReqDto histReqDto) {
+        return ResponseEntity.ok(paymentService.getPaymentHistory(histReqDto));
+    }
 
     @PutMapping("/cancel")
     public ResponseEntity<PaymentResponse> requestCancelPayment(@RequestBody CancelPayRequestDto cancelPayRequestDto) {
