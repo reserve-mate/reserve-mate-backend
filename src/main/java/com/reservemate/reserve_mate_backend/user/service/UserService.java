@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.user.service;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.mail.service.MailService;
 import com.reservemate.reserve_mate_backend.common.mail.util.RedisEmailAuthentication;
 import com.reservemate.reserve_mate_backend.common.sms.dto.RequestFindEmailDto;
@@ -11,6 +12,8 @@ import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -29,16 +32,18 @@ public class UserService {
     private final RedisEmailAuthentication redisEmailAuthentication;
     private final SmsUtil smsUtil;
     private final RedisSmsAuthentication redisSmsAuthentication;
+    private final JwtUtil jwtUtil;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
         MailService mailService, RedisEmailAuthentication redisEmailAuthentication, SmsUtil smsUtil,
-        RedisSmsAuthentication redisSmsAuthentication) {
+        RedisSmsAuthentication redisSmsAuthentication, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
         this.redisEmailAuthentication = redisEmailAuthentication;
         this.smsUtil = smsUtil;
         this.redisSmsAuthentication = redisSmsAuthentication;
+        this.jwtUtil = jwtUtil;
     }
 
     public ResponseEntity<ResponseUserDto> registerUser(RequestUserDto requestUserDto) {
@@ -147,5 +152,43 @@ public class UserService {
             "해당번호로 가입한 사용자가 없습니다."));
 
         return user.getEmail();
+    }
+
+    public ResponseEntity<ResponseUserDto> profilePage(HttpServletRequest request, HttpServletResponse response) {
+        //header 에서 accessToken 가져오기
+        /*
+        String authorizationHeader = request.getHeader("Authorization");
+        String accessToken = null;
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+            accessToken = authorizationHeader.substring(7);
+        }
+        
+         */
+        String accessToken = request.getHeader("access");
+        //accessToken 없는경우
+        if (accessToken == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            Long id = jwtUtil.getId(accessToken);
+            User savedUser = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("가입하지 않은 유저입니다."));
+            return ResponseEntity.ok(new ResponseUserDto(savedUser));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+    }
+
+    @Transactional
+    public ResponseEntity<String> updateProfile(Long id, RequestUserDto request) {
+        User user = userRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        user.updateProfile(
+            request.getName(),
+            request.getPhone());
+        return ResponseEntity.ok("저장되었습니다.");
     }
 }
