@@ -17,11 +17,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ContextConfiguration;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
-import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
@@ -180,14 +179,7 @@ public class MatchPlayerServiceTest {
 
     private Court getCourt(Facility facility) {
 
-        Court court = Court.builder()
-            .id(1L)
-            .name("운동 코트")
-            //.sportType(SportType.FUTSAL)
-            //.capacity(12)
-            .indoor(false)
-            .facility(facility)
-            .build();
+        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
 
         return court;
     }

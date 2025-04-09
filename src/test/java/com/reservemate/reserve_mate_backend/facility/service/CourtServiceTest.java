@@ -61,15 +61,18 @@ public class CourtServiceTest {
         List<Court> courts = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
-            Court court = Court.builder()
-                .id(Long.valueOf(i))
-                .name("코트" + i)
-                .courtType(CourtType.ARTIFICIAL_TURF_FUTSAL)
-                .width(20)
-                .height(40)
-                .indoor(false)
-                .facility(facility)
-                .build();
+            // Court court1Court = Court.builder()
+            //     .id(Long.valueOf(i))
+            //     .name("코트" + i)
+            //     .courtType(CourtType.ARTIFICIAL_TURF_FUTSAL)
+            //     .width(20)
+            //     .height(40)
+            //     .indoor(false)
+            //     .facility(facility)
+            //     .build();
+
+            Court court = new Court(Long.valueOf(i), "코트" + i, CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false,
+                facility);
 
             courts.add(court);
         }
