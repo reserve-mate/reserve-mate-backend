@@ -181,7 +181,7 @@ public class MatchPlayerServiceTest {
     private Court getCourt(Facility facility) {
 
         Court court = Court.builder()
-            .id(1L)
+//            .id(1L)
             .name("운동 코트")
             //.sportType(SportType.FUTSAL)
             //.capacity(12)

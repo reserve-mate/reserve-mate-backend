@@ -315,7 +315,7 @@ public class MatchServiceTest {
     // 매니저 데이터 저장
     private FacilityManager getFacilityManager(User user, Facility facility) {
         FacilityManager manager = FacilityManager.builder()
-            .id(1L)
+//            .id(1L)
             .facility(facility)
             .user(user)
             .build();
@@ -337,7 +337,7 @@ public class MatchServiceTest {
     private Court getCourt(Facility facility) {
 
         Court court = Court.builder()
-            .id(1L)
+//            .id(1L)
             .name("운동 코트")
             //.sportType(SportType.FUTSAL)
             //.capacity(12)
