@@ -92,11 +92,12 @@ public class FacilityServiceTest {
         List<FacilityManager> facilityManagers = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
-            FacilityManager facilityManager = FacilityManager.builder()
-                .id(Long.valueOf(i))
-                .facility(getFacilityLoop(i))
-                .user(getUserLoop(i))
-                .build();
+            // FacilityManager facilityManager = FacilityManager.builder()
+            //     .id(Long.valueOf(i))
+            //     .facility(getFacilityLoop(i))
+            //     .user(getUserLoop(i))
+            //     .build();
+            FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i));
 
             facilityManagers.add(facilityManager);
         }

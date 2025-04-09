@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +25,7 @@ import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
@@ -314,11 +314,7 @@ public class MatchServiceTest {
 
     // 매니저 데이터 저장
     private FacilityManager getFacilityManager(User user, Facility facility) {
-        FacilityManager manager = FacilityManager.builder()
-//            .id(1L)
-            .facility(facility)
-            .user(user)
-            .build();
+        FacilityManager manager = new FacilityManager(1L, facility, user);
         return manager;
     }
 
@@ -336,14 +332,16 @@ public class MatchServiceTest {
 
     private Court getCourt(Facility facility) {
 
-        Court court = Court.builder()
-//            .id(1L)
-            .name("운동 코트")
-            //.sportType(SportType.FUTSAL)
-            //.capacity(12)
-            .indoor(false)
-            .facility(facility)
-            .build();
+        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
+
+        // Court court = Court.builder()
+        //     .id(1L)
+        //     .name("운동 코트")
+        //     //.sportType(SportType.FUTSAL)
+        //     //.capacity(12)
+        //     .indoor(false)
+        //     .facility(facility)
+        //     .build();
 
         return court;
     }

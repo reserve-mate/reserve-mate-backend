@@ -23,7 +23,14 @@ public enum ErrorCode {
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
         "겹치는 시간대에 매치가 존재합니다."), END_MATCH_ERROR(BAD_REQUEST, "이미 진행중 또는는 종료된 매치입니다."), FINISH_MATCH_ERROR(BAD_REQUEST,
-            "이미 인원이 마감된 매치입니다."), NO_MATCH_ERROR(BAD_REQUEST, "매치가 정보 존재하지 않습니다.");
+            "이미 인원이 마감된 매치입니다."), NO_MATCH_ERROR(BAD_REQUEST, "매치가 정보 존재하지 않습니다."), INVALID_PRICE(BAD_REQUEST,
+                "가격이 일치하지 않습니다.")
+
+    // 결제 관련 에러
+    , PAYMETN_ERROR(INTERNAL_SERVER_ERROR, "결제처리가 정상적으로 처리되지 않았습니다."), PAYMENT_FAILED(BAD_REQUEST,
+        "결제처리에 실패했습니다."), NOT_FOUND_PAYMENT(BAD_REQUEST, "결제 정보가 존재하지 않습니다."), DUPLICATION_PAYMENT(BAD_REQUEST,
+            "이미 결제 요청한 이력이 존재합니다."), DUPLICATION_PAYMENT_CONFIRM(BAD_REQUEST, "이미 결제를 승인한 이력이 존재합니다."), NOT_PAID(
+                BAD_REQUEST, "결제된 이력이 존재하지 않습니다."), PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST, "결제 금액이 일치하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

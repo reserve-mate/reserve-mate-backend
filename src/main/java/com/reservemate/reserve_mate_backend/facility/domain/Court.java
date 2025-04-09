@@ -59,7 +59,6 @@ public class Court extends BaseEntity {
         this.facility = facility;
     }
 
-    @Builder
     public Court(
         Long id,
         String name,

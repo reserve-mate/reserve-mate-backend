@@ -2,15 +2,12 @@ package com.reservemate.reserve_mate_backend.facility.domain;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
-import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalTime;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.SQLDelete;
