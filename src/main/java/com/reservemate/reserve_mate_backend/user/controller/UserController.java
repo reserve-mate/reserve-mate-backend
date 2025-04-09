@@ -7,6 +7,8 @@ import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.service.UserService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,4 +87,17 @@ public class UserController {
         String email = userService.verifyAuthCodeAndReturnEmail(findEmailDto.getAuthCode(), findEmailDto.getPhone());
         return ResponseEntity.ok("가입하신 이메일은" + email + "입니다.");
     }
+
+    //프로필 정보 페이지
+    @GetMapping("/me/profile")
+    public ResponseEntity<ResponseUserDto> profilePage(HttpServletRequest request, HttpServletResponse response) {
+        return userService.profilePage(request, response);
+    }
+
+    //프로필 정보 수정
+    @PutMapping("/me/update/profile/{id}")
+    public ResponseEntity<String> updateProfile(@PathVariable Long id, @RequestBody RequestUserDto request) {
+        return userService.updateProfile(id, request);
+    }
+
 }

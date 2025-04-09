@@ -32,7 +32,7 @@ public class AuthService {
                 refresh = cookie.getValue();
             }
         }
-
+        System.out.println("===============refresh=========" + refresh);
         //null check
         if (refresh == null) {
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
