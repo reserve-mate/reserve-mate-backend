@@ -34,14 +34,16 @@ public class SaveAmountRequest {
     public String getFailReason(String responseBody) {
         String failMsg = "결제처리에 실패하였습니다.";
 
-        JSONParser jsonParser = new JSONParser();
-        JSONObject object = null;
-        try {
-            object = (JSONObject) jsonParser.parse(responseBody);
-            failMsg = object.get("message").toString();
-        } catch (ParseException e) {
-            e.printStackTrace();
-            throw new ApiException(ErrorCode.SERVER_ERROR);
+        if (!responseBody.equals("")) {
+            JSONParser jsonParser = new JSONParser();
+            JSONObject object = null;
+            try {
+                object = (JSONObject) jsonParser.parse(responseBody);
+                failMsg = object.get("message").toString();
+            } catch (ParseException e) {
+                e.printStackTrace();
+                throw new ApiException(ErrorCode.SERVER_ERROR);
+            }
         }
 
         return failMsg;

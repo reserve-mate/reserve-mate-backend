@@ -33,6 +33,8 @@ import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
@@ -63,6 +65,9 @@ public class PaymentServiceTest {
 
     @Mock
     private PaymentCustomRepository paymentCustomRepository;
+
+    @Mock
+    private MatchPlayerRepository matchPlayerRepository;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -159,6 +164,8 @@ public class PaymentServiceTest {
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
         Payment payment = getPayment();
         given(paymentRepository.save(any(Payment.class))).willReturn(payment);
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            false);
         given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(false);
 
         /* when */

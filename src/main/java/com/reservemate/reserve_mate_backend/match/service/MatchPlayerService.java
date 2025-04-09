@@ -2,14 +2,12 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import org.springframework.stereotype.Service;
 
-import com.reservemate.reserve_mate_backend.common.exception.ApiException;
-import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.ApplyMatchDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -52,25 +50,11 @@ public class MatchPlayerService {
      * 매치 신청
      */
     @Transactional
-    public void applyForMatch(ApplyMatchDto applyMatchDto) {
-        User user = userRepository.findById(applyMatchDto.getUserId())
-            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+    public void applyForMatch(ApplyPlayerDto applyPlayerDto) {
+        User user = applyPlayerDto.getUser();
+        Match match = applyPlayerDto.getMatch();
 
-        Match match = matchRepository.findById(applyMatchDto.getMatchId())
-            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
-
-        match.isOverMatch();
-        match.isEndMatch();
-        match.isFinish();
-        boolean isExist = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
-
-        if (isExist) {
-            throw new IllegalArgumentException("이미 매치 신청 내역이 존재합니다.");
-        }
-
-        MatchPlayer matchPlayer = applyMatchDto.toMatchPlayer(user, match);
-
-        // TODO : 결제 기능 필요
+        MatchPlayer matchPlayer = MatchPlayer.toMatchPlayer(user, match);
 
         matchPlayerRepository.save(matchPlayer);
 

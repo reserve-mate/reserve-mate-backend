@@ -4,6 +4,7 @@ import java.net.http.HttpResponse;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -13,8 +14,11 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
@@ -29,15 +33,20 @@ import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentCustomRepository paymentCustomRepository;
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
+    private final MatchPlayerRepository matchPlayerRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${toss.pay.clientkey}")
     private String tossClient;
@@ -54,6 +63,12 @@ public class PaymentService {
     @Value("${toss.pay.failurl}")
     private String failUrl;
 
+    /* 매치 삭제 시 일괄 삭제 */
+    @Transactional
+    public void bulkPaymentCancel() {
+
+    }
+
     /* 매치 결제 내역 */
     public Slice<PaymentHistResDto> getPaymentHistory(PaymentHistReqDto histReqDto) {
 
@@ -65,6 +80,7 @@ public class PaymentService {
         Slice<PaymentHistResDto> payments = null;
         if (histReqDto.getPayType().equals("match")) {
             payments = paymentCustomRepository.getMatchPayHist(user.getId(), histReqDto.getPaymentStatus(), pageable);
+
         }
 
         if (histReqDto.getPayType().equals("reserve")) {
@@ -116,8 +132,13 @@ public class PaymentService {
         match.isFinish();
         match.validatePrice(confirmRequestDto.getAmount());
 
-        boolean isExistPayment = paymentRepository.existsPayment(user.getId(), match.getMatchId());
+        /* 매치를 신청한 이력이 있는지 검증 */
+        boolean existPlayer = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
+        if (existPlayer)
+            throw new ApiException(ErrorCode.EXIST_MATCH_PLAYER_ERROR);
 
+        /* 결제를 한 이력이 있는지 검증 */
+        boolean isExistPayment = paymentRepository.existsPayment(user.getId(), match.getMatchId());
         if (isExistPayment)
             throw new ApiException(ErrorCode.DUPLICATION_PAYMENT);
 
@@ -133,7 +154,7 @@ public class PaymentService {
     public PaymentResponse requestPayConfirm(SaveAmountRequest amountRequest) {
         Payment payment = paymentRepository.findByImpUid(amountRequest.getOrderId())
             .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
-        payment.isPaidNo();
+        payment.isNotReady();
 
         // toss payments에 결제 요청
         try {
@@ -147,6 +168,7 @@ public class PaymentService {
             } else {
                 payment.verifyPayment(amountRequest.getAmount());
                 payment.markAsPaid(amountRequest.getPaymentKey());
+                eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
             }
 
         } catch (Exception e) {

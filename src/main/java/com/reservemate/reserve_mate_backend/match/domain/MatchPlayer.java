@@ -51,6 +51,15 @@ public class MatchPlayer extends BaseEntity {
     @JoinColumn(name = "match_id")
     private Match match;
 
+    public static MatchPlayer toMatchPlayer(User user, Match match) {
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .user(user)
+            .match(match)
+            .status(PlayerStatus.READY)
+            .build();
+        return matchPlayer;
+    }
+
     public void isCanCancel() {  // 취소 가능 여부 검사
         if (this.status == PlayerStatus.CANCEL) {
             throw new IllegalArgumentException("이미 취소된 매치입니다.");

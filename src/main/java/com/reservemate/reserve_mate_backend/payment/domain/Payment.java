@@ -139,9 +139,9 @@ public class Payment extends BaseEntity {
     }
 
     // 이미 결제된 데이터 인지
-    public void isPaidNo() {
-        if (this.status == PaymentStatus.PAID) {
-            throw new ApiException(ErrorCode.DUPLICATION_PAYMENT_CONFIRM);
+    public void isNotReady() {
+        if (this.status != PaymentStatus.READY) {
+            throw new ApiException(ErrorCode.NOT_READY_PAYEMNT);
         }
     }
 

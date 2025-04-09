@@ -26,9 +26,9 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.ApplyMatchDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -107,48 +107,20 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 신청 테스트")
     void testApplyForMatch() {
         /* given */
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL))
-            .willReturn(false);
-
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
-            .userId(user.getId())
-            .build();
+        ApplyPlayerDto applyPlayerDto = new ApplyPlayerDto(user, match);
+        given(matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY)).willReturn(3);
 
         ArgumentCaptor<MatchPlayer> argumentCaptor = ArgumentCaptor.forClass(MatchPlayer.class);
 
         /* when */
-        matchPlayerService.applyForMatch(applyMatchDto);
+        matchPlayerService.applyForMatch(applyPlayerDto);
 
         /* then */
         verify(matchPlayerRepository, times(1)).save(argumentCaptor.capture());
 
         MatchPlayer matchPlayer = argumentCaptor.getValue();
 
-        //assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
         assertThat(matchPlayer.getMatch().getCourt().getName()).isEqualTo(court.getName());
-    }
-
-    @Test
-    @DisplayName("중복된 신청된 매치가 있는지 검증")
-    void testIsDupleMatchApply() {
-        /* given */
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL))
-            .willReturn(true);
-
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
-            .userId(user.getId())
-            .build();
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.applyForMatch(applyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 매치 신청 내역이 존재합니다.");
     }
 
     private Match getMatch(Court court, String userName) {
