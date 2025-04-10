@@ -51,6 +51,15 @@ public class PaymentResponse {
         return response;
     }
 
+    public static PaymentResponse toCancelResponse(String orderId, String cancelReason, PaymentStatus paymentStatus) {
+        PaymentResponse paymentResponse = PaymentResponse.builder()
+            .orderId(orderId)
+            .cancelReason(cancelReason)
+            .paymentStatus(paymentStatus)
+            .build();
+        return paymentResponse;
+    }
+
     public static PaymentResponse toErrorResponse(JSONObject errorJson) {
         PaymentResponse response = PaymentResponse.builder()
             .errorCode(errorJson.get("code").toString())

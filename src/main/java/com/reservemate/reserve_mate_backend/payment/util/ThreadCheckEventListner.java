@@ -28,6 +28,7 @@ public class ThreadCheckEventListner {
     @EventListener
     public void cancelMatchPlayer(CancelPlayerDto cancelPlayerDto) {
         log.info("매치 결제 취소 성공 시 매치 취소");
+        matchPlayerService.cancelMatchRequest(cancelPlayerDto);
     }
 
 }

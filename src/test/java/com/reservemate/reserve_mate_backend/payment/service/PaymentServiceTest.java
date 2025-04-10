@@ -38,14 +38,17 @@ import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
+import com.reservemate.reserve_mate_backend.payment.client.impl.PayClientImpl;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
+import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
@@ -88,6 +91,8 @@ public class PaymentServiceTest {
     @InjectMocks
     private PaymentService paymentService;
 
+    private PayClient tossClient;
+
     private User user;
     private Facility facility;
     private Court court;
@@ -107,6 +112,8 @@ public class PaymentServiceTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+
+        tossClient = new PayClientImpl();
 
         mockWebServer = new MockWebServer();
         mockWebServer.start();
@@ -182,6 +189,49 @@ public class PaymentServiceTest {
     @AfterEach
     void terminate() throws IOException {
         mockWebServer.shutdown();
+    }
+
+    @Test
+    @DisplayName("결제 취소 테스트")
+    void testRequestCancelPayment() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+
+        CancelPayRequestDto cancelPayRequestDto = CancelPayRequestDto.builder()
+            .paymentKey("tviva20250410231140WtiG4")
+            .cancelReason("단순 변심")
+            .cancelAmount(11000)
+            .build();
+
+        payment.markAsPaid(cancelPayRequestDto.getPaymentKey());
+        given(paymentRepository.findByMerchantUid(cancelPayRequestDto.getPaymentKey())).willReturn(Optional.of(
+            payment));
+        given(matchPlayerRepository.findByUserAndMatch(payment.getUser(), payment.getMatch())).willReturn(Optional.of(
+            matchPlayer));
+
+        int refundAmount = payment.refundAmount();
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+        when(mockResponse.statusCode()).thenReturn(200);
+        when(payClient.requestCancelPay(cancelPayRequestDto.getPaymentKey(), cancelPayRequestDto.getCancelReason(),
+            refundAmount)).thenReturn(mockResponse);
+
+        /* when */
+        PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
+
+        /* then */
+        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
+        assertThat(response.getPaymentStatus()).isEqualTo(payment.getStatus());
+    }
+
+    private MatchPlayer getMatchPlayer(User user, Match match) {
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .playerId(1L)
+            .user(user)
+            .match(match)
+            .build();
+        return matchPlayer;
     }
 
     @Test
@@ -291,7 +341,7 @@ public class PaymentServiceTest {
 
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
-        when(payClient.requestPay(any(), any(), any(), any())).thenReturn(mockResponse);
+        when(payClient.requestPay(any())).thenReturn(mockResponse);
 
         /* when */
         PaymentResponse response = paymentService.requestPayConfirm(amountRequest);
@@ -321,7 +371,7 @@ public class PaymentServiceTest {
             .build();
 
         /* when */
-        HttpResponse response = amountRequest.requestPay("secretKey", mockWebServerUrl, "confirm");
+        HttpResponse response = tossClient.requestPayForTest("secretKey", mockWebServerUrl, amountRequest);
 
         /* then */
         assertThat(response.statusCode()).isEqualTo(400);
@@ -346,7 +396,7 @@ public class PaymentServiceTest {
             .build();
 
         /* when */
-        HttpResponse response = amountRequest.requestPay("secretKey", mockWebServerUrl, "confirm");
+        HttpResponse response = tossClient.requestPayForTest("secretKey", mockWebServerUrl, amountRequest);
 
         /* then */
         assertThat(response.statusCode()).isEqualTo(200);

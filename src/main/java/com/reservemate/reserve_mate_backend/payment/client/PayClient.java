@@ -7,7 +7,12 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountReques
 
 public interface PayClient {
 
-    HttpResponse requestPay(String tossSecret, String tossApiUrl, String apiName,
+    HttpResponse requestPay(SaveAmountRequest amountRequest) throws IOException, InterruptedException;
+
+    HttpResponse requestPayForTest(String scretKey, String url,
         SaveAmountRequest amountRequest) throws IOException, InterruptedException;
+
+    HttpResponse requestCancelPay(String paymentKey, String cancelReason,
+        int cancelAmount) throws IOException, InterruptedException;
 
 }

@@ -30,7 +30,6 @@ import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResD
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
-import com.reservemate.reserve_mate_backend.payment.util.PaymentUtil;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -112,8 +111,8 @@ public class PaymentService {
         try {
             int refundAmount = payment.refundAmount();
 
-            HttpResponse response = PaymentUtil.requestCancelPay(tossSecret, tossApiUrl + cancelPayRequestDto
-                .getPaymentKey(), "/cancel", cancelPayRequestDto.getCancelReason(), refundAmount);
+            HttpResponse response = payClient.requestCancelPay(cancelPayRequestDto.getPaymentKey(), cancelPayRequestDto
+                .getCancelReason(), refundAmount);
             if (response.statusCode() == 200) {
                 payment.cancel(cancelPayRequestDto.getCancelReason(), refundAmount);
                 eventPublisher.publishEvent(new CancelPlayerDto(matchPlayer));
@@ -126,7 +125,7 @@ public class PaymentService {
             throw new ApiException(ErrorCode.SERVER_ERROR);
         }
 
-        return PaymentResponse.toPaymentResponse(payment, successUrl, failUrl);
+        return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason(), payment.getStatus());
     }
 
     // 결제 요청
@@ -167,26 +166,30 @@ public class PaymentService {
         payment.isNotReady();
         payment.verifyPayment(amountRequest.getAmount());
 
+        PaymentResponse response = null;
         // toss payments에 결제 요청
         try {
-            HttpResponse httpResponse = payClient.requestPay(tossSecret, tossApiUrl, "confirm", amountRequest);
+            HttpResponse httpResponse = payClient.requestPay(amountRequest);
             if (httpResponse.statusCode() != 200) {
-                PaymentUtil.requestCancelPay(tossSecret, tossApiUrl, amountRequest.getPaymentKey() + "/cancel",
-                    failUrl, payment.getAmount());
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
+                payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, payment.getAmount());
                 payment.cancel(failMsg, payment.getAmount());
+
+                response = PaymentResponse.toCancelResponse(amountRequest.getOrderId(), failMsg, payment.getStatus());
             } else {
                 payment.markAsPaid(amountRequest.getPaymentKey());
                 eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
+
+                response = PaymentResponse.toPaymentResponse(payment, successUrl, failUrl);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             payment.markAsFailed();
-            //throw new ApiException(ErrorCode.PAYMETN_ERROR);
+            throw new ApiException(ErrorCode.PAYMETN_ERROR);
         }
 
-        return PaymentResponse.toPaymentResponse(payment, successUrl, failUrl);
+        return response;
 
     }
 
