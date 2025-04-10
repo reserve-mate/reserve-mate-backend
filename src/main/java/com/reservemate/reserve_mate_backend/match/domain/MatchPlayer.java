@@ -6,6 +6,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import jakarta.persistence.Column;
@@ -60,11 +62,16 @@ public class MatchPlayer extends BaseEntity {
         return matchPlayer;
     }
 
+    /* 해당 매치가 종료된 매치인지 검증 */
+    public void isFinish() {
+        this.match.isFinish();
+    }
+
     public void isCanCancel() {  // 취소 가능 여부 검사
         if (this.status == PlayerStatus.CANCEL) {
-            throw new IllegalArgumentException("이미 취소된 매치입니다.");
+            throw new ApiException(ErrorCode.ALREADY_CANCEL_PLAYER);
         } else if (this.status == PlayerStatus.COMPLETED) {
-            throw new IllegalArgumentException("이미 참여했던 이력이 있는 매치입니다.");
+            throw new ApiException(ErrorCode.ALREADY_COMPLETE_PLAYER);
         }
     }
 

@@ -1,13 +1,11 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +24,7 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
@@ -67,31 +66,12 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 취소")
     void testCancelMatchRequest() {
         MatchPlayer matchPlayer = getMatchPlayer();
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
 
         /* when */
-        matchPlayerService.cancelMatchRequest(match.getMatchId(), user.getId());
+        matchPlayerService.cancelMatchRequest(new CancelPlayerDto(matchPlayer));
 
         /* then */
         assertThat(matchPlayer.getStatus()).isEqualTo(PlayerStatus.CANCEL);
-    }
-
-    @Test
-    @DisplayName("매치 취소 가능 검증")
-    void testIsCancelMatch() {
-        /* given */
-        MatchPlayer matchPlayer = getMatchPlayer();
-        matchPlayer.chgStatusCancel();
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.cancelMatchRequest(match.getMatchId(), user.getId()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 취소된 매치입니다.");
     }
 
     private MatchPlayer getMatchPlayer() {

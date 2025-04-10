@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.payment.util;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchPlayerService;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 
@@ -21,6 +22,12 @@ public class ThreadCheckEventListner {
     public void registMatchPlayer(ApplyPlayerDto playerDto) {
         log.info("결제 성공 시 매치 플레이어 등록");
         matchPlayerService.applyForMatch(playerDto);
+    }
+
+    /*  */
+    @EventListener
+    public void cancelMatchPlayer(CancelPlayerDto cancelPlayerDto) {
+        log.info("매치 결제 취소 성공 시 매치 취소");
     }
 
 }

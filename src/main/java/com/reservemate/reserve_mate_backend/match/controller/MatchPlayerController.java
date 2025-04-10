@@ -21,7 +21,7 @@ public class MatchPlayerController {
     @PutMapping("/cancelMatch/{matchId}")
     public void cancelMatchRequest(@PathVariable(name = "matchId") Long matchId,
         @RequestParam(name = "userId") Long userId) {
-        matchPlayerService.cancelMatchRequest(matchId, userId);
+        //matchPlayerService.cancelMatchRequest(matchId, userId);
     }
 
 }
