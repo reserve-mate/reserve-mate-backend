@@ -42,3 +42,12 @@ spring:
       number: 01075119908
   app:
     base-url: http://localhost:8080
+toss:
+  pay:
+    clientkey: ""
+    secretkey: ""
+    idempotency: ""
+    baseurl: "https://api.tosspayments.com/v1/payments/"
+    successurl: "http://localhost:8080/payment/success"
+    failurl: "http://localhost:8080/payment/fail"
+

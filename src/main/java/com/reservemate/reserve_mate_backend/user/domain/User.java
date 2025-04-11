@@ -113,4 +113,11 @@ public class User extends BaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }
+
+    public void updateProfile(String name, String phone) {
+        if (name != null)
+            this.name = name;
+        if (phone != null)
+            this.phone = phone;
+    }
 }

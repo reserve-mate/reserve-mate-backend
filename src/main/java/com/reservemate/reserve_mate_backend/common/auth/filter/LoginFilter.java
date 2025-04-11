@@ -66,6 +66,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         //응답
         response.setHeader("access", access);
+        response.setHeader("Access-Control-Expose-Headers", "access");
+
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
 
@@ -98,7 +100,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         log.info("================Login falied: {} ========", failed.getMessage());
         log.info("====================================================");
 
-        response.setStatus(401);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.setContentType("application/json; charset=UTF-8");
+        try {
+            response.getWriter().write("{\"message\":\"이메일 또는 비밀번호가 올바르지 않습니다.\"}");
+        } catch (IOException e) {
+            throw new RuntimeException("login error", e);
+        }
     }
 
     @Override

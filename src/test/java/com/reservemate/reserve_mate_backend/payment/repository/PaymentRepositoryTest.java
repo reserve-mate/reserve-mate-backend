@@ -1,12 +1,10 @@
-package com.reservemate.reserve_mate_backend.match.repository;
+package com.reservemate.reserve_mate_backend.payment.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
-import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -25,6 +22,9 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerR
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -32,7 +32,7 @@ import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @Transactional
-public class MatchRepositoryTest {
+public class PaymentRepositoryTest {
 
     @Autowired
     private MatchRepository matchRepository;
@@ -48,6 +48,9 @@ public class MatchRepositoryTest {
 
     @Autowired
     private FacilityManagerRepository facilityManagerRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     private User user;
     private Facility facility;
@@ -65,66 +68,29 @@ public class MatchRepositoryTest {
     }
 
     @Test
-    @DisplayName("현재 시간 종료 매치 상태값 수정")
-    void testUpdateEndBeforeMatch() {
+    @DisplayName("결제 중복 데이터 조회")
+    void testExistsPayment() {
         /* given */
-        List<Match> matches = saveMatches();
-        int matchTime = Utils.getNowTime();
+        Payment payment = getPayment();
+        paymentRepository.save(payment);
 
         /* when */
-        matchRepository.updateEndBeforeMatch(LocalDate.now(), matchTime, MatchStatus.END);
+        boolean existPayment = paymentRepository.existsPayment(user.getId(), match.getMatchId());
 
         /* then */
-        for (int i = 0; i < matches.size(); i++) {
-            if (matches.get(i).getMatchStatus() == MatchStatus.END) {
-                assertThat(matches.get(i).getMatchStatus()).isEqualTo(MatchStatus.END);
-            }
-        }
+        assertThat(existPayment).isEqualTo(true);
+
     }
 
-    private List<Match> saveMatches() {
-        List<Match> matches = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            Match saveMatch = Match.builder()
-                .matchName("매치" + i)
-                .matchStatus(MatchStatus.APPLICABLE)
-                .teamCapacity(18)
-                .matchDate(LocalDate.now())
-                .matchTime(20 + i)
-                .endTime(21 + i)
-                .matchPrice(11000)
-                .court(court)
-                .facilityManager(facilityManager)
-                .build();
-
-            Match realMatch = matchRepository.save(saveMatch);
-            matches.add(realMatch);
-        }
-        return matches;
-    }
-
-    @Test
-    @DisplayName("해당 날짜 매치 목록 조회")
-    void testFindByMatchDateAndCourt() {
-
-        /* when */
-        List<Match> matches = matchRepository.findByMatchDateAndCourt(LocalDate.now(), court);
-
-        /* then */
-        assertThat(matches.isEmpty()).isFalse();
-    }
-
-    @Test
-    @DisplayName("매치 중복 검사")
-    void dupleMatchTest() {
-        /* given */
-        LocalDate date = LocalDate.of(2025, 3, 26);
-        int matchTime = 16;
-
-        /* when */
-        boolean isDuple = matchRepository.existsByMatchDateAndMatchTimeAndCourt(date, matchTime, court);
-
-        Assertions.assertThat(isDuple).isFalse();
+    private Payment getPayment() {
+        Payment payment = Payment.builder()
+            .impUid(UUID.randomUUID().toString())
+            .amount(11000)
+            .payMethod(PaymentMethod.CARD)
+            .user(user)
+            .match(match)
+            .build();
+        return payment;
     }
 
     private Match getMatch(Court court, FacilityManager manager) {
@@ -196,5 +162,4 @@ public class MatchRepositoryTest {
         User savUser = userRepository.save(user);
         return savUser;
     }
-
 }
