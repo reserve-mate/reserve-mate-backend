@@ -3,7 +3,6 @@ package com.reservemate.reserve_mate_backend.payment.service;
 import java.net.http.HttpResponse;
 
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,21 +49,6 @@ public class PaymentService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final PayClient payClient;
-
-    @Value("${toss.pay.clientkey}")
-    private String tossClient;
-
-    @Value("${toss.pay.secretkey}")
-    private String tossSecret;
-
-    @Value("${toss.pay.baseurl}")
-    private String tossApiUrl;
-
-    @Value("${toss.pay.successurl}")
-    private String successUrl;
-
-    @Value("${toss.pay.failurl}")
-    private String failUrl;
 
     /* 매치 삭제 시 일괄 삭제 */
     @Transactional
@@ -180,7 +164,7 @@ public class PaymentService {
                 payment.markAsPaid(amountRequest.getPaymentKey());
                 eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
 
-                response = PaymentResponse.toPaymentResponse(payment, successUrl, failUrl);
+                response = PaymentResponse.toPaymentConfirm(payment);
             }
 
         } catch (Exception e) {

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -192,6 +194,41 @@ public class PaymentServiceTest {
     }
 
     @Test
+    @DisplayName("결제 취소 실패 테스트")
+    void testRequestCancelPaymentFail() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+
+        CancelPayRequestDto cancelPayRequestDto = CancelPayRequestDto.builder()
+            .paymentKey("tviva20250410231140WtiG4")
+            .cancelReason("단순 변심")
+            .cancelAmount(11000)
+            .build();
+
+        payment.markAsPaid(cancelPayRequestDto.getPaymentKey());
+        given(paymentRepository.findByMerchantUid(cancelPayRequestDto.getPaymentKey())).willReturn(Optional.of(
+            payment));
+        given(matchPlayerRepository.findByUserAndMatch(payment.getUser(), payment.getMatch())).willReturn(Optional.of(
+            matchPlayer));
+
+        int refundAmount = payment.refundAmount();
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+        when(mockResponse.statusCode()).thenReturn(400);
+        when(mockResponse.body()).thenReturn("{\"message\":\"결제 취소 실패\"}");
+        when(payClient.requestCancelPay(cancelPayRequestDto.getPaymentKey(), cancelPayRequestDto.getCancelReason(),
+            refundAmount)).thenReturn(mockResponse);
+
+        /* when */
+        PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
+
+        /* then */
+        assertThat(response.getErrorCode()).isEqualTo("400");
+        assertThat(response.getErrorMsg()).isEqualTo("결제 취소 실패");
+    }
+
+    @Test
     @DisplayName("결제 취소 테스트")
     void testRequestCancelPayment() throws Exception {
         /* given */
@@ -222,16 +259,7 @@ public class PaymentServiceTest {
 
         /* then */
         assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
-        assertThat(response.getPaymentStatus()).isEqualTo(payment.getStatus());
-    }
-
-    private MatchPlayer getMatchPlayer(User user, Match match) {
-        MatchPlayer matchPlayer = MatchPlayer.builder()
-            .playerId(1L)
-            .user(user)
-            .match(match)
-            .build();
-        return matchPlayer;
+        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
     }
 
     @Test
@@ -324,6 +352,36 @@ public class PaymentServiceTest {
         assertThat(returnResponse.getOrderId()).isEqualTo(payment.getImpUid());
         assertThat(returnResponse.getSuccessUrl()).isEqualTo(confirmRequestDto.getSuccessUrl());
         assertThat(returnResponse.getFailUrl()).isEqualTo(confirmRequestDto.getFailUrl());
+    }
+
+    @Test
+    @DisplayName("결제 최종 승인 실패 테스트")
+    void testRequestPayConfirmFail() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        given(paymentRepository.findByImpUid(payment.getImpUid())).willReturn(Optional.of(payment));
+
+        SaveAmountRequest amountRequest = SaveAmountRequest.builder()
+            .amount(payment.getAmount())
+            .orderId(payment.getImpUid())
+            .paymentKey("tviva20250409200902SF275")
+            .build();
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+        when(mockResponse.statusCode()).thenReturn(400);
+        when(mockResponse.body()).thenReturn("{\"message\":\"결제 실패\"}");
+        when(payClient.requestPay(any())).thenReturn(mockResponse);
+
+        HttpResponse<String> mockFailRes = mock(HttpResponse.class);
+        lenient().when(mockFailRes.statusCode()).thenReturn(200); // mock 중복시 lenient 적용 (중복 stubbing 무시)
+        when(payClient.requestCancelPay(anyString(), anyString(), anyInt())).thenReturn(mockFailRes);
+
+        /* when */
+        PaymentResponse response = paymentService.requestPayConfirm(amountRequest);
+
+        /* then */
+        assertThat(response.getOrderId()).isEqualTo(amountRequest.getOrderId());
+        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
     }
 
     @Test
@@ -422,6 +480,16 @@ public class PaymentServiceTest {
             .isInstanceOf(ApiException.class)
             .hasMessage("결제 요청된 이력이 존재하지 않습니다.");
 
+    }
+
+    /* 매치 플레이어 세팅 */
+    private MatchPlayer getMatchPlayer(User user, Match match) {
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .playerId(1L)
+            .user(user)
+            .match(match)
+            .build();
+        return matchPlayer;
     }
 
     private Payment getPayment() {
