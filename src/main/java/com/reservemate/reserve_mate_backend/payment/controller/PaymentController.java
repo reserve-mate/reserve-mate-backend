@@ -28,16 +28,19 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    /* 결제 이력 조회 */
     @GetMapping("/payHist")
     public ResponseEntity<Slice<PaymentHistResDto>> getPayHist(@RequestBody PaymentHistReqDto histReqDto) {
         return ResponseEntity.ok(paymentService.getPaymentHistory(histReqDto));
     }
 
+    /* 결제 취소 */
     @PutMapping("/cancel")
     public ResponseEntity<PaymentResponse> requestCancelPayment(@RequestBody CancelPayRequestDto cancelPayRequestDto) {
         return ResponseEntity.ok(paymentService.requestCancelPayment(cancelPayRequestDto));
     }
 
+    /* 결제 요청 */
     @PostMapping("/pay")
     public ResponseEntity<PaymentResponse> requestPayment(@RequestBody ConfirmRequestDto confirmRequestDto) {
         return ResponseEntity.ok(paymentService.requestPayment(confirmRequestDto));
