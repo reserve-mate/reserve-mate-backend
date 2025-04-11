@@ -2,13 +2,14 @@ package com.reservemate.reserve_mate_backend.payment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,7 +44,6 @@ import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
-import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
@@ -53,6 +54,7 @@ import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
@@ -318,40 +320,38 @@ public class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("결제 요청 중복 테스트")
-    void testPayConfirmDuplication() {
+    @DisplayName("매치 검증 후 결제")
+    void testRequestPayment() {
         /* given */
-        ConfirmRequestDto confirmRequestDto = getConfirmRequestDto(user, match);
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(true);
+        given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(false);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(
+            PaymentMethod.CARD, UUID.randomUUID().toString(), 11000, match, user);
+        ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+
+        /* when */
+        paymentService.requestPayment(requestPaymentDto);
 
         /* then */
-        assertThrows(ApiException.class, () -> paymentService.requestPayment(confirmRequestDto));
+        verify(paymentRepository, times(1)).save(captor.capture());
+        Payment payment = captor.getValue();
+
+        assertThat(payment.getPayMethod()).isEqualTo(requestPaymentDto.getPaymentMethod());
+        assertThat(payment.getImpUid()).isEqualTo(requestPaymentDto.getOrderId());
+        assertThat(payment.getAmount()).isEqualTo(requestPaymentDto.getAmount());
     }
 
     @Test
-    @DisplayName("결제 요청 테스트")
-    void requestPayment() {
+    @DisplayName("매치 검증 후 결제 요청 Exception[결제 요청 또는 완료 이력이 있는지 검증]")
+    void testRequestPaymentException() {
         /* given */
-        ConfirmRequestDto confirmRequestDto = getConfirmRequestDto(user, match);
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        Payment payment = getPayment();
-        given(paymentRepository.save(any(Payment.class))).willReturn(payment);
-        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
-            false);
-        given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(false);
-
-        /* when */
-        PaymentResponse returnResponse = paymentService.requestPayment(confirmRequestDto);
+        given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(true);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(
+            PaymentMethod.CARD, UUID.randomUUID().toString(), 11000, match, user);
 
         /* then */
-
-        assertThat(returnResponse.getAmount()).isEqualTo(confirmRequestDto.getAmount());
-        assertThat(returnResponse.getOrderId()).isEqualTo(payment.getImpUid());
-        assertThat(returnResponse.getSuccessUrl()).isEqualTo(confirmRequestDto.getSuccessUrl());
-        assertThat(returnResponse.getFailUrl()).isEqualTo(confirmRequestDto.getFailUrl());
+        assertThatThrownBy(() -> paymentService.requestPayment(requestPaymentDto))
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 결제 요청한 이력이 존재합니다.");
     }
 
     @Test
