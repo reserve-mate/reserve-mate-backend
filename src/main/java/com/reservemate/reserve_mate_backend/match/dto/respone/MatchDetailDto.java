@@ -46,6 +46,8 @@ public class MatchDetailDto {
     private List<MatchPlayerDto> playerDtos;// 참가자 목록록
     private List<String> imageDtos;         // 시설 이미지 목록
 
+    private boolean isMatchApply;
+
     public static MatchDetailDto toMatchDetailDto(Match match, User user,
         List<MatchPlayer> matchPlayers, List<FacilityImage> images) {
 
@@ -70,8 +72,23 @@ public class MatchDetailDto {
             .playerCnt(matchPlayers.size())
             .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
             .imageDtos(getFacilityImages(images))
+            .isMatchApply(isMatchApply(matchPlayers, user.getId()))
             .build();
         return detailDto;
+    }
+
+    private static boolean isMatchApply(List<MatchPlayer> matchPlayers, Long userId) {
+
+        boolean isMatch = false;
+
+        for (MatchPlayer matchPlayer : matchPlayers) {
+            if (matchPlayer.getUser().getId() == userId) {
+                isMatch = true;
+                break;
+            }
+        }
+
+        return isMatch;
     }
 
     private static List<String> getFacilityImages(List<FacilityImage> images) {

@@ -14,16 +14,14 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
-import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
-import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
-import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
@@ -43,7 +41,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentCustomRepository paymentCustomRepository;
-    private final MatchRepository matchRepository;
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
 
@@ -112,34 +109,20 @@ public class PaymentService {
         return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason(), payment.getStatus());
     }
 
-    // 결제 요청
+    /* 매치 검증 후 결제 요청 */
     @Transactional
-    public PaymentResponse requestPayment(ConfirmRequestDto confirmRequestDto) {
-
-        User user = userRepository.findById(confirmRequestDto.getUserId())
-            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        Match match = matchRepository.findById(confirmRequestDto.getMatchId())
-            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
-        match.isEndMatch();
-        match.isFinish();
-        match.validatePrice(confirmRequestDto.getAmount());
-
-        /* 매치를 신청한 이력이 있는지 검증 */
-        boolean existPlayer = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
-        if (existPlayer)
-            throw new ApiException(ErrorCode.EXIST_MATCH_PLAYER_ERROR);
+    public void requestPayment(RequestPaymentDto requestPaymentDto) {
+        User user = requestPaymentDto.getUser();
+        Match match = requestPaymentDto.getMatch();
 
         /* 결제를 한 이력이 있는지 검증 */
         boolean isExistPayment = paymentRepository.existsPayment(user.getId(), match.getMatchId());
+
         if (isExistPayment)
             throw new ApiException(ErrorCode.DUPLICATION_PAYMENT);
 
-        Payment payment = confirmRequestDto.toEntity(confirmRequestDto, match, user);
-        payment = paymentRepository.save(payment);
-
-        return PaymentResponse.toPaymentResponse(payment, confirmRequestDto.getSuccessUrl(), confirmRequestDto
-            .getFailUrl());
+        Payment payment = requestPaymentDto.toEntity();
+        paymentRepository.save(payment);
     }
 
     // 결제 최종 승인 후 데이터 처리

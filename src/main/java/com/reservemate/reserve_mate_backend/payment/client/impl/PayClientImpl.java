@@ -25,12 +25,6 @@ public class PayClientImpl implements PayClient {
     @Value("${toss.pay.baseurl}")
     private String tossApiUrl;
 
-    @Value("${toss.pay.successurl}")
-    private String successUrl;
-
-    @Value("${toss.pay.failurl}")
-    private String failUrl;
-
     @Override
     public HttpResponse requestPay(SaveAmountRequest amountRequest) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

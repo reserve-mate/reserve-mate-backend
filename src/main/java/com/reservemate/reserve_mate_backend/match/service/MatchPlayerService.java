@@ -1,14 +1,23 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
+import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +26,40 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MatchPlayerService {
 
+    @Value("${toss.pay.successurl}")
+    private String successUrl;
+
+    @Value("${toss.pay.failurl}")
+    private String failUrl;
+
     private final MatchPlayerRepository matchPlayerRepository;
+    private final MatchRepository matchRepository;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    /* 매치 신청 요청 */
+    @Transactional
+    public MatchApplyResponse requestApplyMatch(RequestMatchDto requestMatchDto) {
+
+        User user = userRepository.findById(requestMatchDto.getUserId())
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        Match match = matchRepository.findById(requestMatchDto.getMatchId())
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isEndMatch();
+        match.isFinish();
+        match.validatePrice(requestMatchDto.getAmount());
+
+        boolean existPlayer = matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
+        if (existPlayer)
+            throw new ApiException(ErrorCode.EXIST_MATCH_PLAYER_ERROR);
+
+        /* 결제 요청(DB 저장) */
+        eventPublisher.publishEvent(RequestPaymentDto.toRequestPaymentDto(requestMatchDto, user, match));
+
+        return MatchApplyResponse.toMatchApplyResponse(requestMatchDto, user, match.getMatchName(), successUrl,
+            failUrl);
+    }
 
     /*
      * 매치 취소

@@ -1,11 +1,14 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,8 +18,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -25,8 +30,11 @@ import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -45,6 +53,9 @@ public class MatchPlayerServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MatchPlayerService matchPlayerService;
@@ -81,6 +92,55 @@ public class MatchPlayerServiceTest {
             .user(user)
             .build();
         return matchPlayer;
+    }
+
+    @Test
+    @DisplayName("매치 신청 요청 Exception[해당 매치 신청이력이 존재함]")
+    void testRequestApplyMatchFail() {
+        /* given */
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            true);
+
+        RequestMatchDto requestMatchDto = RequestMatchDto.builder()
+            .orderId(UUID.randomUUID().toString())
+            .amount(match.getMatchPrice())
+            .userId(user.getId())
+            .matchId(match.getMatchId())
+            .paymentMethod(PaymentMethod.CARD)
+            .build();
+
+        assertThatThrownBy(() -> matchPlayerService.requestApplyMatch(requestMatchDto))
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 해당 매치에 신청한 이력이 존재합니다.");
+    }
+
+    @Test
+    @DisplayName("매치 신청 요청")
+    void testRequestApplyMatch() {
+        /* given */
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            false);
+
+        RequestMatchDto requestMatchDto = RequestMatchDto.builder()
+            .orderId(UUID.randomUUID().toString())
+            .amount(match.getMatchPrice())
+            .userId(user.getId())
+            .matchId(match.getMatchId())
+            .paymentMethod(PaymentMethod.CARD)
+            .build();
+
+        /* when */
+        MatchApplyResponse matchApplyResponse = matchPlayerService.requestApplyMatch(requestMatchDto);
+
+        /* then */
+        assertThat(matchApplyResponse.getCustomerName()).isEqualTo(user.getName());
+        assertThat(matchApplyResponse.getCustomerEmail()).isEqualTo(user.getEmail());
+        assertThat(matchApplyResponse.getOrderId()).isEqualTo(requestMatchDto.getOrderId());
+        assertThat(matchApplyResponse.getOrderName()).isEqualTo(match.getMatchName());
     }
 
     @Test
