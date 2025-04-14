@@ -11,15 +11,17 @@ import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
@@ -74,6 +76,32 @@ public class PaymentService {
 
         return payments;
 
+    }
+
+    /* 매치 취소 검증 후 결제 취소 */
+    @Transactional
+    public void cancelPayment(CancelPaymentDto cancelPaymentDto) throws Exception {
+        User user = cancelPaymentDto.getUser();
+        Match match = cancelPaymentDto.getMatch();
+
+        Payment payment = paymentRepository.findByMatchAndUser(match, user)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
+        payment.isPaid();
+
+        int refundAmount = payment.refundAmount();
+
+        HttpResponse response = payClient.requestCancelPay(payment.getMerchantUid(), cancelPaymentDto
+            .getCancelReason(), refundAmount);
+        if (response.statusCode() == 200) {
+            payment.cancel(cancelPaymentDto.getCancelReason(), refundAmount);
+        } else {
+            JSONObject errorResponse = Utils.stringToJson(response.body().toString());
+            String code = errorResponse.get("code") != null ? errorResponse.get("code").toString() : "400";
+            String message = errorResponse.get("message") != null ? errorResponse.get("message").toString()
+                : "처리 중 에러가 발생하였습니다.";
+
+            throw new TossApiException(code, message);
+        }
     }
 
     /* 결제 취소  */

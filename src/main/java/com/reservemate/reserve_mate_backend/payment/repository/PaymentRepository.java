@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.user.domain.User;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -16,5 +18,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     boolean existsPayment(@Param("userId") Long id, @Param("matchId") Long matchId);
 
     Optional<Payment> findByMerchantUid(String paymentKey);
+
+    Optional<Payment> findByMatchAndUser(Match match, User user);
 
 }

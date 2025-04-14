@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.payment.dto.request;
+package com.reservemate.reserve_mate_backend.match.dto.request;
 
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.user.domain.User;

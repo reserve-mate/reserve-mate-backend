@@ -3,9 +3,9 @@ package com.reservemate.reserve_mate_backend.payment.util;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchPlayerService;
-import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
