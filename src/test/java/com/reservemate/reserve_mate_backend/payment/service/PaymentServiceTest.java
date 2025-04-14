@@ -37,6 +37,7 @@ import org.springframework.data.domain.Slice;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -52,6 +53,7 @@ import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
@@ -193,6 +195,78 @@ public class PaymentServiceTest {
     @AfterEach
     void terminate() throws IOException {
         mockWebServer.shutdown();
+    }
+
+    @Test
+    @DisplayName("결제 취소 리팩토링 테스트[결제 취소 처리 성공]")
+    void testCancelPayment() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        payment.markAsPaid("결제완료일련번호");
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
+        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+            .of(payment));
+        int refundAmount = payment.refundAmount();
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+        when(mockResponse.statusCode()).thenReturn(200);
+        when(payClient.requestCancelPay(payment.getMerchantUid(), cancelPaymentDto.getCancelReason(), refundAmount))
+            .thenReturn(mockResponse);
+
+        /* when */
+        paymentService.cancelPayment(cancelPaymentDto);
+
+        /* then */
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(payment.getRefundAmount()).isEqualTo(refundAmount);
+
+    }
+
+    @Test
+    @DisplayName("결제 취소 리팩토링 테스트[Exception toss 결제 처리가 안된 경우]")
+    void testCancelPaymentTossException() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        payment.markAsPaid("결제완료일련번호");
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
+        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+            .of(payment));
+        int refundAmount = payment.refundAmount();
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+        when(mockResponse.statusCode()).thenReturn(400);
+        when(mockResponse.body()).thenReturn("{\"message\":\"결제 취소 실패\"}");
+        when(payClient.requestCancelPay(payment.getMerchantUid(), cancelPaymentDto.getCancelReason(), refundAmount))
+            .thenReturn(mockResponse);
+
+        /* then */
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelPaymentDto))
+            .isInstanceOf(TossApiException.class)
+            .hasMessage("결제 취소 실패");
+
+    }
+
+    @Test
+    @DisplayName("결제 취소 리팩토링 테스트[Exception PAID 상태가 아닌 결제인 경우]")
+    void testCancelPaymentException() {
+        /* given */
+        Payment payment = getPayment();
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
+        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+            .of(payment));
+
+        payment.markAsFailed(); // 실패로 상태 변경
+
+        /* then */
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelPaymentDto))
+            .isInstanceOf(ApiException.class)
+            .hasMessage("결제된 이력이 존재하지 않습니다.");
     }
 
     @Test

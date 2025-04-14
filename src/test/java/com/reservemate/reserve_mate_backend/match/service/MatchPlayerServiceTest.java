@@ -29,13 +29,14 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.CancelMatchRequest;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
-import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -71,6 +72,46 @@ public class MatchPlayerServiceTest {
         facility = getFacility();
         court = getCourt(facility);
         match = getMatch(court, user.getName());
+    }
+
+    @Test
+    @DisplayName("매치 취소 리팩토링 테스트")
+    void testCancelMatch() {
+        /* given */
+        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(user.getId(), match.getMatchId(), 11000,
+            "단순 변심");
+
+        given(userRepository.findById(cancelMatchRequest.getUserId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
+        MatchPlayer matchPlayer = getMatchPlayer();
+        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
+        given(matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY)).willReturn(3);
+
+        /* when */
+        matchPlayerService.cancelMatch(cancelMatchRequest);
+
+        /* then */
+        assertThat(matchPlayer.getStatus()).isEqualTo(PlayerStatus.CANCEL);
+        assertThat(match.getMatchStatus()).isEqualTo(MatchStatus.APPLICABLE);
+    }
+
+    @Test
+    @DisplayName("매치 취소 리팩토링 테스트[Exception: 준비가 되었던 플레이어인지 검증]")
+    void testCancelMatchException() {
+        /* given */
+        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(user.getId(), match.getMatchId(), 11000,
+            "단순 변심");
+
+        given(userRepository.findById(cancelMatchRequest.getUserId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
+        MatchPlayer matchPlayer = getMatchPlayer();
+        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
+        matchPlayer.chgStatusCancel();
+
+        /* then */
+        assertThatThrownBy(() -> matchPlayerService.cancelMatch(cancelMatchRequest))
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 취소된 매치입니다.");
     }
 
     @Test

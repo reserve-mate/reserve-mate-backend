@@ -25,31 +25,34 @@ public class MatchDateDto {
     public static List<MatchDateDto> getMatchMonthDates(LocalDate matchDate, List<MatchDateDto> dateDtos) {
         List<MatchDateDto> matchDateDtos = new ArrayList<>();
 
-        List<LocalDate> monthDates = Utils.getDateOfMonth(matchDate);
+        List<LocalDate> monthDates = Utils.getDateOfTwoWeeks(matchDate); // 한달 날짜를 담은 데이터
 
         for (LocalDate localDate : monthDates) {
-            MatchDateDto dateDto = null;
 
-            for (MatchDateDto matchDateDto : dateDtos) {
-                dateDto = MatchDateDto.getMatchDateDto(localDate, matchDateDto);
-            }
+            MatchDateDto matchDateDto = getMatchDateDto(localDate, dateDtos);
 
-            matchDateDtos.add(dateDto);
+            matchDateDtos.add(matchDateDto);
+
         }
 
         return matchDateDtos;
     }
 
-    private static MatchDateDto getMatchDateDto(LocalDate date, MatchDateDto matchDate) {
+    private static MatchDateDto getMatchDateDto(LocalDate date, List<MatchDateDto> dateDtos) {
 
-        Long matchCnt = (date.isEqual(matchDate.getMatchDate())) ? matchDate.getMatchCnt() : 0L;
+        MatchDateDto dateDto = dateDtos.stream()
+            .filter(dto -> date.isEqual(dto.getMatchDate()))
+            .findFirst()
+            .orElse(null);
 
-        MatchDateDto dateDto = MatchDateDto.builder()
+        Long matchCnt = (dateDto != null) ? dateDto.getMatchCnt() : 0L;
+
+        MatchDateDto matchDateDto = MatchDateDto.builder()
             .matchDate(date)
             .matchCnt(matchCnt)
             .build();
 
-        return dateDto;
+        return matchDateDto;
     }
 
 }

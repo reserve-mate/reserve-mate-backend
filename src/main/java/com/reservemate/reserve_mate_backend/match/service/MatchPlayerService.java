@@ -9,12 +9,14 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.CancelMatchRequest;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
-import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -36,6 +38,28 @@ public class MatchPlayerService {
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    /* 매치 취소 */
+    @Transactional
+    public void cancelMatch(CancelMatchRequest cancelMatchRequest) {
+        User user = userRepository.findById(cancelMatchRequest.getUserId())
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        Match match = matchRepository.findById(cancelMatchRequest.getMatchId())
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isEndMatch();
+
+        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(user, match)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PLAYER));
+        matchPlayer.isCanCancel();
+
+        eventPublisher.publishEvent(new CancelPaymentDto(matchPlayer, cancelMatchRequest.getCancelReason()));
+
+        matchPlayer.chgStatusCancel();
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+        match.chgMatchStatus(playerCnt);
+    }
 
     /* 매치 신청 요청 */
     @Transactional
