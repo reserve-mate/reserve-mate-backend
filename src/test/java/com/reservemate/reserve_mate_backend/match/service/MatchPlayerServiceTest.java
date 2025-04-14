@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +18,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -26,9 +29,13 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.ApplyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
+import com.reservemate.reserve_mate_backend.payment.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -46,6 +53,9 @@ public class MatchPlayerServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MatchPlayerService matchPlayerService;
@@ -67,31 +77,12 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 취소")
     void testCancelMatchRequest() {
         MatchPlayer matchPlayer = getMatchPlayer();
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
 
         /* when */
-        matchPlayerService.cancelMatchRequest(match.getMatchId(), user.getId());
+        matchPlayerService.cancelMatchRequest(new CancelPlayerDto(matchPlayer));
 
         /* then */
         assertThat(matchPlayer.getStatus()).isEqualTo(PlayerStatus.CANCEL);
-    }
-
-    @Test
-    @DisplayName("매치 취소 가능 검증")
-    void testIsCancelMatch() {
-        /* given */
-        MatchPlayer matchPlayer = getMatchPlayer();
-        matchPlayer.chgStatusCancel();
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.cancelMatchRequest(match.getMatchId(), user.getId()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 취소된 매치입니다.");
     }
 
     private MatchPlayer getMatchPlayer() {
@@ -104,51 +95,72 @@ public class MatchPlayerServiceTest {
     }
 
     @Test
-    @DisplayName("매치 신청 테스트")
-    void testApplyForMatch() {
+    @DisplayName("매치 신청 요청 Exception[해당 매치 신청이력이 존재함]")
+    void testRequestApplyMatchFail() {
         /* given */
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL))
-            .willReturn(false);
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            true);
 
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
+        RequestMatchDto requestMatchDto = RequestMatchDto.builder()
+            .orderId(UUID.randomUUID().toString())
+            .amount(match.getMatchPrice())
             .userId(user.getId())
+            .matchId(match.getMatchId())
+            .paymentMethod(PaymentMethod.CARD)
             .build();
+
+        assertThatThrownBy(() -> matchPlayerService.requestApplyMatch(requestMatchDto))
+            .isInstanceOf(ApiException.class)
+            .hasMessage("이미 해당 매치에 신청한 이력이 존재합니다.");
+    }
+
+    @Test
+    @DisplayName("매치 신청 요청")
+    void testRequestApplyMatch() {
+        /* given */
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            false);
+
+        RequestMatchDto requestMatchDto = RequestMatchDto.builder()
+            .orderId(UUID.randomUUID().toString())
+            .amount(match.getMatchPrice())
+            .userId(user.getId())
+            .matchId(match.getMatchId())
+            .paymentMethod(PaymentMethod.CARD)
+            .build();
+
+        /* when */
+        MatchApplyResponse matchApplyResponse = matchPlayerService.requestApplyMatch(requestMatchDto);
+
+        /* then */
+        assertThat(matchApplyResponse.getCustomerName()).isEqualTo(user.getName());
+        assertThat(matchApplyResponse.getCustomerEmail()).isEqualTo(user.getEmail());
+        assertThat(matchApplyResponse.getOrderId()).isEqualTo(requestMatchDto.getOrderId());
+        assertThat(matchApplyResponse.getOrderName()).isEqualTo(match.getMatchName());
+    }
+
+    @Test
+    @DisplayName("매치 신청 테스트")
+    void testApplyForMatch() {
+        /* given */
+        ApplyPlayerDto applyPlayerDto = new ApplyPlayerDto(user, match);
+        given(matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY)).willReturn(3);
 
         ArgumentCaptor<MatchPlayer> argumentCaptor = ArgumentCaptor.forClass(MatchPlayer.class);
 
         /* when */
-        matchPlayerService.applyForMatch(applyMatchDto);
+        matchPlayerService.applyForMatch(applyPlayerDto);
 
         /* then */
         verify(matchPlayerRepository, times(1)).save(argumentCaptor.capture());
 
         MatchPlayer matchPlayer = argumentCaptor.getValue();
 
-        //assertThat(matchPlayer.getMatch().getManager()).isEqualTo(match.getManager());
         assertThat(matchPlayer.getMatch().getCourt().getName()).isEqualTo(court.getName());
-    }
-
-    @Test
-    @DisplayName("중복된 신청된 매치가 있는지 검증")
-    void testIsDupleMatchApply() {
-        /* given */
-        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL))
-            .willReturn(true);
-
-        ApplyMatchDto applyMatchDto = ApplyMatchDto.builder()
-            .matchId(match.getMatchId())
-            .userId(user.getId())
-            .build();
-
-        /* then */
-        assertThatThrownBy(() -> matchPlayerService.applyForMatch(applyMatchDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 매치 신청 내역이 존재합니다.");
     }
 
     private Match getMatch(Court court, String userName) {
@@ -178,7 +190,6 @@ public class MatchPlayerServiceTest {
     }
 
     private Court getCourt(Facility facility) {
-
         Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
 
         return court;

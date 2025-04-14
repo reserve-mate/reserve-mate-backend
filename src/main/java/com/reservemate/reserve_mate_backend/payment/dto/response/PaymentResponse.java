@@ -51,12 +51,33 @@ public class PaymentResponse {
         return response;
     }
 
-    public static PaymentResponse toErrorResponse(JSONObject errorJson) {
-        PaymentResponse response = PaymentResponse.builder()
-            .errorCode(errorJson.get("code").toString())
-            .errorMsg(errorJson.get("message").toString())
+    public static PaymentResponse toPaymentConfirm(Payment payment) {
+        return PaymentResponse.builder()
+            .paymentMethod(payment.getPayMethod())
+            .paymentStatus(payment.getStatus())
+            .amount(payment.getAmount())
+            .orderId(payment.getImpUid())
+            .createdAt(payment.getCreatedAt())
             .build();
-        return response;
+    }
+
+    public static PaymentResponse toCancelResponse(String orderId, String cancelReason, PaymentStatus paymentStatus) {
+        PaymentResponse paymentResponse = PaymentResponse.builder()
+            .orderId(orderId)
+            .cancelReason(cancelReason)
+            .paymentStatus(paymentStatus)
+            .build();
+        return paymentResponse;
+    }
+
+    public static PaymentResponse toErrorResponse(JSONObject errorJson) {
+        String code = errorJson.get("code") != null ? errorJson.get("code").toString() : "400";
+        String message = errorJson.get("message") != null ? errorJson.get("message").toString() : "처리 중 에러가 발생하였습니다.";
+
+        return PaymentResponse.builder()
+            .errorCode(code)
+            .errorMsg(message)
+            .build();
     }
 
 }

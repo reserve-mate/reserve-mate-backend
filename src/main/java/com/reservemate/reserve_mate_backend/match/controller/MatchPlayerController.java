@@ -1,17 +1,16 @@
 package com.reservemate.reserve_mate_backend.match.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.reservemate.reserve_mate_backend.match.dto.request.ApplyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.service.MatchPlayerService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -21,15 +20,9 @@ public class MatchPlayerController {
 
     private final MatchPlayerService matchPlayerService;
 
-    @PutMapping("/cancelMatch/{matchId}")
-    public void cancelMatchRequest(@PathVariable(name = "matchId") Long matchId,
-        @RequestParam(name = "userId") Long userId) {
-        matchPlayerService.cancelMatchRequest(matchId, userId);
-    }
-
-    @PostMapping("/apply")
-    public void applyForMatch(@RequestBody ApplyMatchDto applyMatchDto) {
-        matchPlayerService.applyForMatch(applyMatchDto);
+    @PostMapping("/requestApplyMatch")
+    public ResponseEntity<MatchApplyResponse> requestApplyMatch(@RequestBody RequestMatchDto requestMatchDto) {
+        return ResponseEntity.ok(matchPlayerService.requestApplyMatch(requestMatchDto));
     }
 
 }

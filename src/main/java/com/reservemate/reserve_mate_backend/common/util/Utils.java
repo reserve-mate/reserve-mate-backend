@@ -20,16 +20,21 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 public class Utils {
 
     public static JSONObject stringToJson(String responseBody) {
-        //String failMsg = "처리 중 에러가 발생하였습니다. 다시 시도해주세요.";
+        String failMsg = "처리 중 에러가 발생하였습니다. 다시 시도해주세요.";
 
-        JSONParser jsonParser = new JSONParser();
-        JSONObject object = null;
-        try {
-            object = (JSONObject) jsonParser.parse(responseBody);
-            //failMsg = object.get("message").toString();
-        } catch (ParseException e) {
-            e.printStackTrace();
-            throw new ApiException(ErrorCode.SERVER_ERROR);
+        JSONObject object = new JSONObject();
+
+        if (!responseBody.equals("")) {
+            JSONParser jsonParser = new JSONParser();
+            try {
+                object = (JSONObject) jsonParser.parse(responseBody);
+                //failMsg = object.get("message").toString();
+            } catch (ParseException e) {
+                e.printStackTrace();
+                object.put("code", ErrorCode.SERVER_ERROR.getHttpStatus());
+                object.put("message", failMsg);  // 예외 시 기본 메시지 넣기
+                //throw new ApiException(ErrorCode.SERVER_ERROR);
+            }
         }
 
         return object;
