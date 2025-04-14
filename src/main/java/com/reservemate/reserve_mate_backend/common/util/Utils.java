@@ -43,6 +43,16 @@ public class Utils {
         return LocalTime.now().getHour();
     }
 
+    // 2주간의 날짜 가져오기
+    public static List<LocalDate> getDateOfTwoWeeks(LocalDate date) {
+        date = (date != null) ? date : LocalDate.now();
+
+        // 첫날부터 마지막 날짜까지 stream생성하여 List로 변환
+        return Stream.iterate(date, matchDate -> matchDate.plusDays(1))
+            .limit(14) // 마지막날까지 포함
+            .toList();
+    }
+
     // 한달 날짜 가져오기
     public static List<LocalDate> getDateOfMonth(LocalDate date) {
         date = (date != null) ? date : LocalDate.now();

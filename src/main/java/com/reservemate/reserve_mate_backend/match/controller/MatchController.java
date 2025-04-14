@@ -34,18 +34,23 @@ public class MatchController {
     private final MatchService matchService;
 
     @DeleteMapping("/deleteMatch/{matchId}")
-    public void deleteMatch(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+    public ResponseEntity<Void> deleteMatch(@PathVariable("matchId") Long matchId,
+        @RequestParam("userId") Long userId) {
         matchService.deleteMatch(matchId, userId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/reReCruit/{matchId}")
-    public void reReCruit(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+    public ResponseEntity<Void> reReCruit(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
         matchService.reReCruit(matchId, userId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/chgFinish/{matchId}")
-    public void chgEndMatch(@PathVariable("matchId") Long matchId, @RequestParam("userId") Long userId) {
+    public ResponseEntity<Void> chgEndMatch(@PathVariable("matchId") Long matchId,
+        @RequestParam("userId") Long userId) {
         matchService.chgEndMatch(matchId, userId);
+        return ResponseEntity.ok().build();
     }
 
     /* 매치 목록 조회 */
@@ -71,14 +76,17 @@ public class MatchController {
 
     /* 매치 정보 수정 */
     @PutMapping("/modifyMatch/{matchId}")
-    public void modifyMatch(@PathVariable(name = "matchId") Long matchId, @RequestBody ModifyMatchDto modifyMatchDto) {
+    public ResponseEntity<Void> modifyMatch(@PathVariable(name = "matchId") Long matchId,
+        @RequestBody ModifyMatchDto modifyMatchDto) {
         matchService.modifyMatch(matchId, modifyMatchDto);
+        return ResponseEntity.ok().build();
     }
 
     /* 매치 등록 */
     @PostMapping("/registMatch")
-    public void registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
+    public ResponseEntity<Void> registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
         matchService.registMatch(createMatchDto);
+        return ResponseEntity.ok().build();
     }
 
 }

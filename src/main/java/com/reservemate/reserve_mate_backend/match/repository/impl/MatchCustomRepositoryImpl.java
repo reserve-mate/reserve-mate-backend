@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
@@ -42,12 +44,23 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         )
             .from(match)
             .where(
-                sportTypeEq(matchSearchDto.getSportType()), searchValueLike(matchSearchDto.getSearchValue())
+                betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
+                searchValueLike(matchSearchDto.getSearchValue())
             )
             .groupBy(match.matchDate)
             .fetch();
 
         return matchDates;
+    }
+
+    private BooleanExpression betweenTwoWeek(LocalDate matchDate) {
+        LocalDate searchDate = LocalDate.now();
+        if (matchDate != null)
+            searchDate = matchDate;
+
+        LocalDate twoWeekAgo = searchDate.plusDays(13);
+
+        return match.matchDate.between(searchDate, twoWeekAgo);
     }
 
     private BooleanExpression matchDateEq(LocalDate matchDate) {
