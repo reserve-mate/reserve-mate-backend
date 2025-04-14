@@ -31,4 +31,8 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     @Query("update MatchPlayer mp set mp.status = :playerStatus where mp.match.matchId = :matchId")
     void updatePlayersMatchRemoved(@Param("matchId") Long matchId, @Param("playerStatus") PlayerStatus playerStatus);
 
+    @Modifying(clearAutomatically = true)
+    @Query("update MatchPlayer mp set mp.status = 'COMPLETED', mp.updatedAt = now() where mp.match.matchId in (:matchIds)")
+    void updateBeforeMatchs(@Param("matchIds") List<Long> matchIds);
+
 }

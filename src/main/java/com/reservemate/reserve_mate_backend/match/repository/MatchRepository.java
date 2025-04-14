@@ -25,4 +25,11 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     void updateEndBeforeMatch(@Param("matchDate") LocalDate matchDate, @Param("nowTime") int nowTime,
         @Param("end") MatchStatus end);
 
+    @Query("select m.matchId from Match m where m.matchDate = :matchDate and m.matchTime = :matchTime")
+    List<Long> findByMatchDateAndMatchTime(@Param("matchDate") LocalDate matchDate, @Param("matchTime") int matchTime);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Match m set m.matchStatus = 'END', m.updatedAt = now() where m.matchId in (:matchIds)")
+    void updateBeforeMatchs(@Param("matchIds") List<Long> matchIds);
+
 }
