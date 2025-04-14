@@ -1,7 +1,5 @@
 package com.reservemate.reserve_mate_backend.common.exception;
 
-import org.springframework.http.HttpStatus;
-
 import lombok.Getter;
 
 @Getter

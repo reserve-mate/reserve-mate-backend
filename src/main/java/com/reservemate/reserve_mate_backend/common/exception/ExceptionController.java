@@ -12,4 +12,9 @@ public class ExceptionController {
         return ErrorDto.toResponseEntity(ex);
     }
 
+    @ExceptionHandler(TossApiException.class)
+    protected ResponseEntity<TossErrorDto> handleTossException(TossApiException ex) {
+        return TossErrorDto.toTossResponseEntity(ex);
+    }
+
 }
