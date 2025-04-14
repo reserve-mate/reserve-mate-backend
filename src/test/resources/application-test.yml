@@ -40,12 +40,11 @@ spring:
       secret: HFK9EJRFS1RMXB2XVDJDQ1SFQLORMJ29
     phone:
       number: 01075119908
-app:
-  base-url: http://localhost:8080
-  file:
-    base-path: /tmp/test-uploads/
-    profile-image: profileImage/
-
+  app:
+    base-url: http://localhost:8080
+    file:
+      base-path: /tmp/test-uploads/
+      profile-image: profileImage/
 toss:
   pay:
     clientkey: ""
@@ -54,3 +53,4 @@ toss:
     baseurl: "https://api.tosspayments.com/v1/payments/"
     successurl: "http://localhost:8080/payment/success"
     failurl: "http://localhost:8080/payment/fail"
+
