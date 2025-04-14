@@ -76,6 +76,7 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**")
                     .permitAll()
+                    .requestMatchers("/profileImage/**").permitAll()
                     .anyRequest()
                     .authenticated() // 그 외 로그인 한 사람만 접근 가능
             )

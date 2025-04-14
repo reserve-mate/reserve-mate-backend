@@ -42,6 +42,9 @@ spring:
       number: 01075119908
   app:
     base-url: http://localhost:8080
+    file:
+      base-path: /tmp/test-uploads/
+      profile-image: profileImage/
 toss:
   pay:
     clientkey: ""

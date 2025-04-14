@@ -120,4 +120,8 @@ public class User extends BaseEntity {
         if (phone != null)
             this.phone = phone;
     }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 }

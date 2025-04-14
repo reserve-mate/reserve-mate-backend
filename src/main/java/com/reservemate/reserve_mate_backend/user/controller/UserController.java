@@ -1,8 +1,11 @@
 package com.reservemate.reserve_mate_backend.user.controller;
 
+import com.reservemate.reserve_mate_backend.common.file.dto.RequestImageUploadDto;
+import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.mail.dto.RequestMailDto;
 import com.reservemate.reserve_mate_backend.common.mail.dto.RequestResetPasswordDto;
 import com.reservemate.reserve_mate_backend.common.sms.dto.RequestFindEmailDto;
+import com.reservemate.reserve_mate_backend.user.dto.request.RequestChangePasswordDto;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.service.UserService;
@@ -14,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,9 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final FileService fileService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FileService fileService) {
         this.userService = userService;
+        this.fileService = fileService;
     }
 
     // 회원등록
@@ -100,4 +106,17 @@ public class UserController {
         return userService.updateProfile(id, request);
     }
 
+    //프로필 비밀번호 변경
+    @PutMapping("/me/change/password/{id}")
+    public ResponseEntity<String> changePassword(@PathVariable Long id,
+        @RequestBody RequestChangePasswordDto changePassword) {
+        return userService.changePassword(id, changePassword);
+    }
+
+    //프로필 이미지 수정
+    @PostMapping("/me/update/profileImage")
+    public ResponseEntity<?> uploadProfileImage(@ModelAttribute RequestImageUploadDto imageUploadDto,
+        HttpServletRequest request) {
+        return fileService.uploadProfileImage(imageUploadDto, request);
+    }
 }

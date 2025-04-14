@@ -8,6 +8,7 @@ import com.reservemate.reserve_mate_backend.common.sms.util.RedisSmsAuthenticati
 import com.reservemate.reserve_mate_backend.common.sms.util.SmsUtil;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
+import com.reservemate.reserve_mate_backend.user.dto.request.RequestChangePasswordDto;
 import com.reservemate.reserve_mate_backend.user.dto.request.RequestUserDto;
 import com.reservemate.reserve_mate_backend.user.dto.response.ResponseUserDto;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -156,14 +157,6 @@ public class UserService {
 
     public ResponseEntity<ResponseUserDto> profilePage(HttpServletRequest request, HttpServletResponse response) {
         //header 에서 accessToken 가져오기
-        /*
-        String authorizationHeader = request.getHeader("Authorization");
-        String accessToken = null;
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
-            accessToken = authorizationHeader.substring(7);
-        }
-        
-         */
         String accessToken = request.getHeader("access");
         //accessToken 없는경우
         if (accessToken == null) {
@@ -190,5 +183,19 @@ public class UserService {
             request.getName(),
             request.getPhone());
         return ResponseEntity.ok("저장되었습니다.");
+    }
+
+    @Transactional
+    public ResponseEntity<String> changePassword(Long id, RequestChangePasswordDto changePasswordDto) {
+        User user = userRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.updatePassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 }
