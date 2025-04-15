@@ -21,7 +21,6 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRep
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
-import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
@@ -57,7 +56,13 @@ public class MatchService {
     @Transactional
     public void endBeforeMatch() {
         log.info("---------" + LocalTime.now().getHour() + "시 ---------");
-        matchRepository.updateEndBeforeMatch(LocalDate.now(), (Utils.getNowTime()), MatchStatus.END);
+        List<Long> matchIds = matchRepository.findByMatchDateAndMatchTime(LocalDate.now(), (Utils.getNowTime()));
+
+        if (!matchIds.isEmpty()) {
+            matchRepository.updateBeforeMatchs(matchIds);
+            matchPlayerRepository.updateBeforeMatchs(matchIds);
+        }
+
     }
 
     @Transactional

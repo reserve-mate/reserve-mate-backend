@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -62,6 +63,34 @@ public class MatchRepositoryTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("시간 지난 매치 상태 업데이트")
+    void testUpdateBeforeMatchs() {
+        /* given */
+        List<Match> matches = saveMatches();
+        List<Long> matchIds = Arrays.asList(1L, 2L);
+
+        /* when */
+        matchRepository.updateBeforeMatchs(matchIds);
+
+        /* then */
+        for (Match match : matches) {
+            if (match.getMatchStatus() == MatchStatus.END) {
+                assertThat(match.getMatchStatus()).isEqualTo(MatchStatus.END);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("시간 지난 매치 일련번호 조회")
+    void testFindByMatchDateAndMatchTime() {
+        /* when */
+        List<Long> matchIds = matchRepository.findByMatchDateAndMatchTime(LocalDate.now(), (Utils.getNowTime()));
+
+        /* then */
+        assertThat(matchIds.size()).isZero();
     }
 
     @Test

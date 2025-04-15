@@ -3,6 +3,9 @@ package com.reservemate.reserve_mate_backend.match.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +69,49 @@ public class MatchPlayerRepositoryTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("시간 지난 매치 COMPLETED 상태로 변경")
+    void testUpdateBeforeMatchs() {
+        /* given */
+        List<MatchPlayer> matches = saveMatchPlayersReturn(match);
+        List<Long> matchIds = Arrays.asList(1L, 2L);
+
+        /* when */
+        matchPlayerRepository.updateBeforeMatchs(matchIds);
+
+        /* then */
+        for (MatchPlayer matchPlayer : matches) {
+            if (matchPlayer.getStatus() == PlayerStatus.COMPLETED) {
+                assertThat(matchPlayer.getStatus()).isEqualTo(PlayerStatus.COMPLETED);
+            }
+        }
+    }
+
+    private List<MatchPlayer> saveMatchPlayersReturn(Match match) {
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            User loopUser = User.builder()
+                .name("이름" + (i + 1))
+                .email("email" + (i + 100) + "@email.com")
+                .password("password")
+                .phone("010000000" + (i + 1))
+                .build();
+
+            User saveUser = userRepository.save(loopUser);
+
+            MatchPlayer player = MatchPlayer.builder()
+                .status(PlayerStatus.READY)
+                .user(saveUser)
+                .match(match)
+                .build();
+
+            MatchPlayer saveMatchPlayer = matchPlayerRepository.save(player);
+            matchPlayers.add(saveMatchPlayer);
+        }
+
+        return matchPlayers;
     }
 
     @Test
@@ -140,6 +186,27 @@ public class MatchPlayerRepositoryTest {
         /* then */
         assertThat(saveMatchPlayer.getStatus()).isEqualTo(matchPlayer.getStatus());
         assertThat(saveMatchPlayer.getUser().getName()).isEqualTo(user.getName());
+    }
+
+    private List<Match> saveMatches() {
+        List<Match> matches = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Match saveMatch = Match.builder()
+                .matchName("매치" + i)
+                .matchStatus(MatchStatus.APPLICABLE)
+                .teamCapacity(18)
+                .matchDate(LocalDate.now())
+                .matchTime(20 + i)
+                .endTime(21 + i)
+                .matchPrice(11000)
+                .court(court)
+                .facilityManager(facilityManager)
+                .build();
+
+            Match realMatch = matchRepository.save(saveMatch);
+            matches.add(realMatch);
+        }
+        return matches;
     }
 
     private Match getMatch(Court court, FacilityManager manager) {
