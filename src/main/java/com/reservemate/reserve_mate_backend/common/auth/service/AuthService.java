@@ -8,10 +8,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class AuthService {
 
@@ -32,7 +34,10 @@ public class AuthService {
                 refresh = cookie.getValue();
             }
         }
-        System.out.println("===============refresh=========" + refresh);
+        log.info("==========================================");
+        log.info("============Reissue======================");
+        log.info("=============refreshToken : " + refresh);
+        log.info("========================================");
         //null check
         if (refresh == null) {
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
@@ -67,6 +72,10 @@ public class AuthService {
         refreshRepository.deleteById(refresh);
         addRefreshToken(id, newRefresh, 86400000L);
 
+        log.info("==========================================");
+        log.info("======NewAccessToken: " + newAccess);
+        log.info("======NewRefreshToken : " + newRefresh);
+        log.info("========================================");
         //응답
         response.setHeader("access", newAccess);
         response.addCookie(createCookie("refresh", newRefresh));
