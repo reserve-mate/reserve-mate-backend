@@ -18,6 +18,11 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 
 public class Utils {
 
+    // s3 파일 저장 url 가져오기
+    public static String getPublicUrl(String bucket, String regionName, String filename) {
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, regionName, filename);
+    }
+
     /* String to Json(문자열   JSON 변환) */
     public static JSONObject stringToJson(String responseBody) {
         String failMsg = "처리 중 에러가 발생하였습니다. 다시 시도해주세요.";
