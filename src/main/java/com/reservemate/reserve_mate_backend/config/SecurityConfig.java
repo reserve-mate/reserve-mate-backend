@@ -97,7 +97,8 @@ public class SecurityConfig {
             List.of(
                 "http://localhost:3000",
                 "https://localhost:3000",
-                "https://reserve-mate-eta.vercel.app"
+                "https://reserve-mate-eta.vercel.app",
+                "https://api.sportmate.site"
             )
         );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
