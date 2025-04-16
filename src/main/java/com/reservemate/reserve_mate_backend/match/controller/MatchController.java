@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.controller;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
@@ -32,6 +33,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MatchController {
 
     private final MatchService matchService;
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> postMethodName(@RequestParam("file") MultipartFile multipartFile) {
+        try {
+            String imageUrl = matchService.uploadFile(multipartFile);
+            return ResponseEntity.ok("File uploaded successfully! imageUrl: " + imageUrl);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok("File upload failed!");
+        }
+    }
 
     @DeleteMapping("/deleteMatch/{matchId}")
     public ResponseEntity<Void> deleteMatch(@PathVariable("matchId") Long matchId,
