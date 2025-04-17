@@ -40,7 +40,7 @@ jobs:
     needs: format-and-build
     runs-on: ubuntu-latest
 
-    stpes:
+    steps:
       - name: deploy
         uses: appleboy/ssh-action@v1
         env: 
