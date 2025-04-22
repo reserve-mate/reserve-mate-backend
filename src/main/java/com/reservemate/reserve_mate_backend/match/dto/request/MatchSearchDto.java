@@ -9,12 +9,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
+@ToString
 public class MatchSearchDto {
 
     private int pageNumber;
@@ -23,7 +25,7 @@ public class MatchSearchDto {
     private SportType sportType;
     private LocalDate matchDate;
 
-    public void setMatchDate() {
+    public void initMatchDateIfNull() {
         if (this.matchDate == null) {
             this.matchDate = LocalDate.now();
         }

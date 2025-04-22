@@ -145,7 +145,7 @@ public class MatchService {
     /* 매치 조회(일반 사용자) */
     @Transactional
     public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
-        matchSearchDto.setMatchDate();
+        matchSearchDto.initMatchDateIfNull();
 
         Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
         Slice<MatchesDto> matches = matchCustomRepository.getMatches(pageable, matchSearchDto);
