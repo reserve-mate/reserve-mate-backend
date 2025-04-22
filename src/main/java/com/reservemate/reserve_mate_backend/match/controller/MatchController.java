@@ -66,13 +66,13 @@ public class MatchController {
     }
 
     /* 매치 목록 조회 */
-    @GetMapping("/matches")
+    @PostMapping("/matches")
     public ResponseEntity<Slice<MatchesDto>> getMethodName(@RequestBody MatchSearchDto matchSearchDto) {
         return ResponseEntity.ok(matchService.getMatches(matchSearchDto));
     }
 
     /* 날짜별 매치 조회 */
-    @GetMapping("/matcheDates")
+    @PostMapping("/matcheDates")
     public ResponseEntity<List<MatchDateDto>> getMatchDates(@RequestBody MatchSearchDto matchSearchDto) {
         List<MatchDateDto> matchesDtos = matchService.getMatchDates(matchSearchDto);
         return ResponseEntity.ok(matchesDtos);
