@@ -145,9 +145,10 @@ public class MatchService {
     /* 매치 조회(일반 사용자) */
     @Transactional
     public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
+        matchSearchDto.initSportType();
         matchSearchDto.initMatchDateIfNull();
 
-        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
+        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 1);
         Slice<MatchesDto> matches = matchCustomRepository.getMatches(pageable, matchSearchDto);
 
         return matches;
@@ -158,6 +159,7 @@ public class MatchService {
      */
     @Transactional
     public List<MatchDateDto> getMatchDates(MatchSearchDto matchSearchDto) {
+        matchSearchDto.initSportType();
 
         List<MatchDateDto> dateDtos = matchCustomRepository.getMatchesForDate(matchSearchDto);
 

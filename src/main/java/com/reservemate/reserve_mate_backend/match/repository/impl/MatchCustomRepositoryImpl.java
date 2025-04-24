@@ -1,6 +1,5 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
@@ -73,7 +71,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     private BooleanExpression searchValueLike(String searchValue) {
         String likeSearch = "%" + searchValue + "%";
-        return (searchValue != null) ? match.matchName.like(likeSearch).or(match.court.facility.name.like(likeSearch))
+        return (searchValue != null && (searchValue.equals(""))) ? match.matchName.like(likeSearch).or(
+            match.court.facility.name.like(likeSearch))
             : null;
     }
 

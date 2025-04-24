@@ -23,7 +23,14 @@ public class MatchSearchDto {
 
     private String searchValue;
     private SportType sportType;
+
     private LocalDate matchDate;
+
+    public void initSportType() {
+        if (this.sportType == SportType.ALL) {
+            this.sportType = null;
+        }
+    }
 
     public void initMatchDateIfNull() {
         if (this.matchDate == null) {
