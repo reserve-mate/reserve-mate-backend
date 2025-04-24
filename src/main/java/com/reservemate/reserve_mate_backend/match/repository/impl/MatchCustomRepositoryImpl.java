@@ -71,7 +71,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     private BooleanExpression searchValueLike(String searchValue) {
         String likeSearch = "%" + searchValue + "%";
-        return (searchValue != null && (searchValue.equals(""))) ? match.matchName.like(likeSearch).or(
+        return (searchValue != null) ? match.matchName.like(likeSearch).or(
             match.court.facility.name.like(likeSearch))
             : null;
     }
