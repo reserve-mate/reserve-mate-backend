@@ -79,9 +79,9 @@ public class MatchController {
     }
 
     /*매치 단일 조회 */
-    @GetMapping("/{matchId}")
+    @GetMapping("/matches/{matchId}")
     public ResponseEntity<MatchDetailDto> getMatch(@PathVariable(name = "matchId") Long matchId,
-        @RequestParam(name = "userId") Long userId) {
+        @RequestParam(name = "userId", required = false) Long userId) {
         MatchDetailDto detailDto = matchService.getMatch(matchId, userId);
         return ResponseEntity.ok(detailDto);
     }

@@ -189,8 +189,13 @@ public class MatchService {
      * 매치 상세
      */
     public MatchDetailDto getMatch(Long matchId, Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        User user = null;
+
+        if (userId != null) {
+            user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        }
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));

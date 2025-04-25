@@ -166,10 +166,11 @@ public class MatchServiceTest {
         MatchDetailDto matchDetailDto = matchService.getMatch(match.getMatchId(), user.getId());
 
         /* then */
-        assertThat(matchDetailDto.getManager()).isEqualTo(user.getName());
-        assertThat(matchDetailDto.getMatchDate()).isEqualTo(Utils.localDateFormatWeek(match.getMatchDate()));
-        assertThat(matchDetailDto.getMatchPrice()).isEqualTo(match.getMatchPrice());
-        assertThat(matchDetailDto.getCourtName()).isEqualTo(court.getName());
+        assertThat(matchDetailDto.getUserDataDto().getUserName()).isEqualTo(user.getName());
+        assertThat(matchDetailDto.getMatchDataDto().getMatchDate()).isEqualTo(Utils.localDateFormatWeek(match
+            .getMatchDate()));
+        assertThat(matchDetailDto.getMatchDataDto().getMatchPrice()).isEqualTo(match.getMatchPrice());
+        assertThat(matchDetailDto.getFacilityDataDto().getCourtName()).isEqualTo(court.getName());
     }
 
     @Test

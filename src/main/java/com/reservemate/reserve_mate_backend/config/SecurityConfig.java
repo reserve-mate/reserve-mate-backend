@@ -55,7 +55,8 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
             .authorizeHttpRequests(
-                auth -> auth.requestMatchers("/login", "/", "/users/register", "/match/matcheDates", "/match/matches")
+                auth -> auth.requestMatchers("/login", "/", "/users/register", "/match/matcheDates", "/match/matches",
+                    "/match/matches/*")
                     .permitAll()
                     .requestMatchers(
                         "/mail/send/authCode",
