@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -41,6 +42,7 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -57,6 +59,7 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+    private final JwtUtil jwtUtil;
 
     private final AmazonS3 amazonS3;
 
@@ -188,11 +191,13 @@ public class MatchService {
     /*
      * 매치 상세
      */
-    public MatchDetailDto getMatch(Long matchId, Long userId) {
+    public MatchDetailDto getMatch(HttpServletRequest request, Long matchId) {
 
         User user = null;
 
-        if (userId != null) {
+        String accessToken = request.getHeader("access");
+        if (accessToken != null) {
+            Long userId = jwtUtil.getId(accessToken);
             user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         }

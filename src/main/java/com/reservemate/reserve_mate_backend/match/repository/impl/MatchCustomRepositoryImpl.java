@@ -14,6 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.domain.QMatch;
 import com.reservemate.reserve_mate_backend.match.domain.QMatchPlayer;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
@@ -102,7 +103,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .leftJoin(matchPlayer).on(matchPlayer.match.eq(match)).fetchJoin()
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
-                    matchSearchDto.getSearchValue())
+                    matchSearchDto.getSearchValue()), matchPlayer.status.eq(PlayerStatus.READY)
             )
             .groupBy(match.matchId)
             .orderBy(match.matchTime.asc())
