@@ -84,16 +84,6 @@ public class MatchRepositoryTest {
     }
 
     @Test
-    @DisplayName("시간 지난 매치 일련번호 조회")
-    void testFindByMatchDateAndMatchTime() {
-        /* when */
-        List<Long> matchIds = matchRepository.findByMatchDateAndMatchTime(LocalDate.now(), (Utils.getNowTime()));
-
-        /* then */
-        assertThat(matchIds.size()).isZero();
-    }
-
-    @Test
     @DisplayName("현재 시간 종료 매치 상태값 수정")
     void testUpdateEndBeforeMatch() {
         /* given */

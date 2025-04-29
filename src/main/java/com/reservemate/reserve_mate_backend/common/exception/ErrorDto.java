@@ -23,7 +23,9 @@ public class ErrorDto {
             .message(ex.getMessage())
             .build();
 
-        return ResponseEntity.ok(errorDTO);
+        return ResponseEntity
+            .status(ex.getErrorCode().getHttpStatus())
+            .body(errorDTO);
     }
 
 }
