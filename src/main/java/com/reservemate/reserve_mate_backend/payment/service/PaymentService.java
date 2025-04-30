@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
@@ -18,6 +19,7 @@ import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
+import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
@@ -32,6 +34,7 @@ import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -45,9 +48,11 @@ public class PaymentService {
     private final PaymentCustomRepository paymentCustomRepository;
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final MatchRepository matchRepository;
 
     private final ApplicationEventPublisher eventPublisher;
     private final PayClient payClient;
+    private final JwtUtil jwtUtil;
 
     /* 매치 삭제 시 일괄 삭제 */
     @Transactional
@@ -134,7 +139,7 @@ public class PaymentService {
             throw new ApiException(ErrorCode.SERVER_ERROR);
         }
 
-        return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason(), payment.getStatus());
+        return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason());
     }
 
     /* 매치 검증 후 결제 요청 */
@@ -155,11 +160,16 @@ public class PaymentService {
 
     // 결제 최종 승인 후 데이터 처리
     @Transactional
-    public PaymentResponse requestPayConfirm(SaveAmountRequest amountRequest) {
-        Payment payment = paymentRepository.findByImpUid(amountRequest.getOrderId())
-            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
-        payment.isNotReady();
-        payment.verifyPayment(amountRequest.getAmount());
+    public PaymentResponse requestPayConfirm(HttpServletRequest request , SaveAmountRequest amountRequest) {
+
+        String accessToken = request.getHeader("access");
+        Long userId = jwtUtil.getId(accessToken);
+
+        Match match = matchRepository.findById(amountRequest.getMatchId())
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.validatePrice(amountRequest.getAmount());
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         PaymentResponse response = null;
         // toss payments에 결제 요청
@@ -167,20 +177,19 @@ public class PaymentService {
             HttpResponse httpResponse = payClient.requestPay(amountRequest);
             if (httpResponse.statusCode() != 200) {
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
-                payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, payment.getAmount());
-                payment.cancel(failMsg, payment.getAmount());
+                payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, amountRequest.getAmount());
 
-                response = PaymentResponse.toCancelResponse(amountRequest.getOrderId(), failMsg, payment.getStatus());
+                response = PaymentResponse.toCancelResponse(amountRequest.getOrderId(), failMsg);
             } else {
-                payment.markAsPaid(amountRequest.getPaymentKey());
+
+                Payment payment = amountRequest.toEntity(match, user);
+                paymentRepository.save(payment);
                 eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
 
                 response = PaymentResponse.toPaymentConfirm(payment);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            payment.markAsFailed();
             throw new ApiException(ErrorCode.PAYMETN_ERROR);
         }
 

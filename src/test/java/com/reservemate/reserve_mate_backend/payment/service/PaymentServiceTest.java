@@ -29,12 +29,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
@@ -65,6 +67,7 @@ import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -93,6 +96,9 @@ public class PaymentServiceTest {
 
     @Mock
     private PayClient payClient;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -398,8 +404,7 @@ public class PaymentServiceTest {
     void testRequestPayment() {
         /* given */
         given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(false);
-        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(
-            PaymentMethod.CARD, UUID.randomUUID().toString(), 11000, match, user);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(UUID.randomUUID().toString(), 11000, match, user);
         ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
 
         /* when */
@@ -409,7 +414,6 @@ public class PaymentServiceTest {
         verify(paymentRepository, times(1)).save(captor.capture());
         Payment payment = captor.getValue();
 
-        assertThat(payment.getPayMethod()).isEqualTo(requestPaymentDto.getPaymentMethod());
         assertThat(payment.getImpUid()).isEqualTo(requestPaymentDto.getOrderId());
         assertThat(payment.getAmount()).isEqualTo(requestPaymentDto.getAmount());
     }
@@ -419,8 +423,7 @@ public class PaymentServiceTest {
     void testRequestPaymentException() {
         /* given */
         given(paymentRepository.existsPayment(user.getId(), match.getMatchId())).willReturn(true);
-        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(
-            PaymentMethod.CARD, UUID.randomUUID().toString(), 11000, match, user);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(UUID.randomUUID().toString(), 11000, match, user);
 
         /* then */
         assertThatThrownBy(() -> paymentService.requestPayment(requestPaymentDto))
@@ -432,14 +435,21 @@ public class PaymentServiceTest {
     @DisplayName("결제 최종 승인 실패 테스트")
     void testRequestPayConfirmFail() throws Exception {
         /* given */
-        Payment payment = getPayment();
-        given(paymentRepository.findByImpUid(payment.getImpUid())).willReturn(Optional.of(payment));
-
         SaveAmountRequest amountRequest = SaveAmountRequest.builder()
-            .amount(payment.getAmount())
-            .orderId(payment.getImpUid())
+            .amount(match.getMatchPrice())
+            .orderId(UUID.randomUUID().toString())
             .paymentKey("tviva20250409200902SF275")
             .build();
+        
+        given(matchRepository.findById(amountRequest.getMatchId())).willReturn(Optional.of(match));
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+    
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(400);
@@ -451,7 +461,7 @@ public class PaymentServiceTest {
         when(payClient.requestCancelPay(anyString(), anyString(), anyInt())).thenReturn(mockFailRes);
 
         /* when */
-        PaymentResponse response = paymentService.requestPayConfirm(amountRequest);
+        PaymentResponse response = paymentService.requestPayConfirm(request, amountRequest);
 
         /* then */
         assertThat(response.getOrderId()).isEqualTo(amountRequest.getOrderId());
@@ -462,26 +472,40 @@ public class PaymentServiceTest {
     @DisplayName("결제 최종 승인 테스트")
     void testRequestPayConfirm() throws Exception {
         /* given */
-        Payment payment = getPayment();
-        given(paymentRepository.findByImpUid(payment.getImpUid())).willReturn(Optional.of(payment));
-
         SaveAmountRequest amountRequest = SaveAmountRequest.builder()
-            .amount(payment.getAmount())
-            .orderId(payment.getImpUid())
+            .amount(match.getMatchPrice())
+            .orderId(UUID.randomUUID().toString())
             .paymentKey("tviva20250409200902SF275")
+            .matchId(match.getMatchId())
             .build();
+
+        given(matchRepository.findById(amountRequest.getMatchId())).willReturn(Optional.of(match));
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
         when(payClient.requestPay(any())).thenReturn(mockResponse);
 
+        ArgumentCaptor<Payment> argumentCaptor = ArgumentCaptor.forClass(Payment.class);
+
         /* when */
-        PaymentResponse response = paymentService.requestPayConfirm(amountRequest);
+        PaymentResponse response = paymentService.requestPayConfirm(request, amountRequest);
 
         /* then */
-        assertThat(response.getOrderId()).isEqualTo(amountRequest.getOrderId());
-        assertThat(response.getAmount()).isEqualTo(amountRequest.getAmount());
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(paymentRepository, times(1)).save(argumentCaptor.capture());
+
+        Payment payment = argumentCaptor.getValue();
+
+        assertThat(response.getOrderId()).isEqualTo(payment.getImpUid());
+        assertThat(response.getAmount()).isEqualTo(payment.getAmount());
+        assertThat(response.getPaymentStatus()).isEqualTo(payment.getStatus());
     }
 
     @Test
@@ -532,28 +556,6 @@ public class PaymentServiceTest {
 
         /* then */
         assertThat(response.statusCode()).isEqualTo(200);
-    }
-
-    @Test
-    @DisplayName("결제 최종 승인 테스트[Exception : 해당 결제가 결제 요청된 데이터가 아닌 경우]")
-    void testIsConfirmPay() {
-
-        /* given */
-        Payment payment = getPayment();
-        given(paymentRepository.findByImpUid(payment.getImpUid())).willReturn(Optional.of(payment));
-        SaveAmountRequest amountRequest = SaveAmountRequest.builder()
-            .amount(payment.getAmount())
-            .orderId(payment.getImpUid())
-            .paymentKey("tviva20250409200902SF275")
-            .build();
-
-        payment.cancel("단순 변심", amountRequest.getAmount());
-
-        /* then */
-        assertThatThrownBy(() -> paymentService.requestPayConfirm(amountRequest))
-            .isInstanceOf(ApiException.class)
-            .hasMessage("결제 요청된 이력이 존재하지 않습니다.");
-
     }
 
     /* 매치 플레이어 세팅 */

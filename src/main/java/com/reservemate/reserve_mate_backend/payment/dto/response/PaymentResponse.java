@@ -61,11 +61,11 @@ public class PaymentResponse {
             .build();
     }
 
-    public static PaymentResponse toCancelResponse(String orderId, String cancelReason, PaymentStatus paymentStatus) {
+    public static PaymentResponse toCancelResponse(String orderId, String cancelReason) {
         PaymentResponse paymentResponse = PaymentResponse.builder()
             .orderId(orderId)
             .cancelReason(cancelReason)
-            .paymentStatus(paymentStatus)
+            .paymentStatus(PaymentStatus.CANCELED)
             .build();
         return paymentResponse;
     }
