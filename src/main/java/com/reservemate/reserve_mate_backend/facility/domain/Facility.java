@@ -82,8 +82,9 @@ public class Facility extends BaseEntity {
             (cafe ? "1" : "0");
     }
 
-    public static Facility create(RequestCreateFacility dto){
-        String conventient = setConventient(dto.isHasParking(), dto.isHasShower(), dto.isHasEquipmentRental(),dto.isHasCafe());
+    public static Facility create(RequestCreateFacility dto) {
+        String conventient = setConventient(dto.isHasParking(), dto.isHasShower(), dto.isHasEquipmentRental(), dto
+            .isHasCafe());
         return Facility.builder()
             .name(dto.getName())
             .sportType(dto.getSportType())

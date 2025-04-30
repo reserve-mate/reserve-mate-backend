@@ -17,30 +17,30 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/admin/facilities")
 public class AdminFacilityController {
 
-  private final AdminFacilityService adminFacilityService;
-  private final ObjectMapper objectMapper;
+    private final AdminFacilityService adminFacilityService;
+    private final ObjectMapper objectMapper;
 
-  public AdminFacilityController(AdminFacilityService adminFacilityService,
-      ObjectMapper objectMapper) {
-    this.adminFacilityService = adminFacilityService;
-    this.objectMapper = objectMapper;
-  }
+    public AdminFacilityController(AdminFacilityService adminFacilityService,
+        ObjectMapper objectMapper) {
+        this.adminFacilityService = adminFacilityService;
+        this.objectMapper = objectMapper;
+    }
 
-  @GetMapping
+    @GetMapping
 //  @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
-  public ResponseEntity<?> getAdminFacilities() {
-    return ResponseEntity.ok("관리자만 접근 가능합니다.");
-  }
+    public ResponseEntity<?> getAdminFacilities() {
+        return ResponseEntity.ok("관리자만 접근 가능합니다.");
+    }
 
-  @PostMapping
+    @PostMapping
 //  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<?> createFacility(@RequestPart("facilityData") RequestCreateFacility requestCreateFacility,
-                                        @RequestPart(value = "images", required = false) List<MultipartFile> images,
-                                        @RequestPart(value="imageMeta", required = false) List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
-    System.out.println(requestCreateFacility.getAddress());
-    System.out.println(facilityImageUploadDtoList);
-    adminFacilityService.createFacility(requestCreateFacility, images, facilityImageUploadDtoList);
-    return ResponseEntity.ok().build();
-  }
+    public ResponseEntity<?> createFacility(@RequestPart("facilityData") RequestCreateFacility requestCreateFacility,
+        @RequestPart(value = "images", required = false) List<MultipartFile> images,
+        @RequestPart(value = "imageMeta", required = false) List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
+        System.out.println(requestCreateFacility.getAddress());
+        System.out.println(facilityImageUploadDtoList);
+        adminFacilityService.createFacility(requestCreateFacility, images, facilityImageUploadDtoList);
+        return ResponseEntity.ok().build();
+    }
 
 }

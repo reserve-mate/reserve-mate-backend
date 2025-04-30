@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class RequestCreateCourt {
+
     private String name;
     private CourtType courtType;
     private int width;

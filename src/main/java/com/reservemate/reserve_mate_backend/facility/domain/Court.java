@@ -102,7 +102,7 @@ public class Court extends BaseEntity {
         this.active = false;
     }
 
-    public static Court create(RequestCreateCourt dto, Facility facility){
+    public static Court create(RequestCreateCourt dto, Facility facility) {
         return Court.builder()
             .name(dto.getName())
             .courtType(dto.getCourtType())

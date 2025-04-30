@@ -65,8 +65,7 @@ public class FacilityImage extends BaseEntity {
         this.main = false;
     }
 
-
-    public static FacilityImage create(String imageUrl, boolean isMain, Integer displayOrder, Facility facility){
+    public static FacilityImage create(String imageUrl, boolean isMain, Integer displayOrder, Facility facility) {
         return FacilityImage.builder()
             .imageUrl(imageUrl)
             .main(isMain)

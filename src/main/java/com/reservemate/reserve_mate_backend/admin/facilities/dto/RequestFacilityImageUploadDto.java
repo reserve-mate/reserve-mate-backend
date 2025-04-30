@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 public class RequestFacilityImageUploadDto {
+
     private MultipartFile file;
     private String fileType;
     private String description;

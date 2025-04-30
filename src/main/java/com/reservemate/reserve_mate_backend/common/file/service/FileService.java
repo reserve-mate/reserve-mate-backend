@@ -79,12 +79,12 @@ public class FileService {
     /*
     * 파일 다중 업로드 : 파일 List + 폴더 저장위치
     * */
-    public List<String> uploadFiles(List<MultipartFile> files, String targetFilePath){
+    public List<String> uploadFiles(List<MultipartFile> files, String targetFilePath) {
         //디렉토리 경로
         String directoryPath = basePath + targetFilePath;
         File directory = new File(directoryPath);
 
-        if (!directory.exists()){
+        if (!directory.exists()) {
             directory.mkdirs();
         }
 
@@ -96,12 +96,12 @@ public class FileService {
                 //실제 저장경로 (./uploads/targetFilePath/uuid_파일명)
                 File destinationFile = new File(directory, imageFileName);
 
-              try {
-                file.transferTo(destinationFile);
-                return savedUrl;
-              } catch (IOException e) {
-                throw new RuntimeException("파일 업로드 중 오류 발생", e);
-              }
+                try {
+                    file.transferTo(destinationFile);
+                    return savedUrl;
+                } catch (IOException e) {
+                    throw new RuntimeException("파일 업로드 중 오류 발생", e);
+                }
             })
             .toList();
     }

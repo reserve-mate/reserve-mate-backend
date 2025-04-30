@@ -7,19 +7,20 @@ import lombok.Getter;
 
 @Getter
 public class RequestCreateFacility {
-  private String name;
-  private SportType sportType;
-  private Address address;
-  private String detailAddress;
-  private String description;
 
-  private boolean hasParking;
-  private boolean hasShower;
-  private boolean hasEquipmentRental;
-  private boolean hasCafe;
+    private String name;
+    private SportType sportType;
+    private Address address;
+    private String detailAddress;
+    private String description;
 
-  private List<RequestCreateCourt> courts;
+    private boolean hasParking;
+    private boolean hasShower;
+    private boolean hasEquipmentRental;
+    private boolean hasCafe;
 
-  private List<RequestOperatingHour> operatingHours;
+    private List<RequestCreateCourt> courts;
+
+    private List<RequestOperatingHour> operatingHours;
 
 }

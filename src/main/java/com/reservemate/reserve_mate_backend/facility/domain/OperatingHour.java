@@ -76,7 +76,7 @@ public class OperatingHour extends BaseEntity {
         this.holiday = holiday != null ? holiday : this.holiday;
     }
 
-    public static OperatingHour create(RequestOperatingHour dto, Facility facility){
+    public static OperatingHour create(RequestOperatingHour dto, Facility facility) {
         return OperatingHour.builder()
             .dayOfWeek(dto.getDayOfWeek())
             .openTime(LocalTime.parse(dto.getOpenTime()))
