@@ -42,10 +42,11 @@ public class Address {
     }
 
     public String getFullAddress() {
-        return this.city
-            + " " + this.district
-            + " " + this.streetAddress
-            + " " + this.detailAddress;
+        String fullAddress = this.city + " " + this.district + " " + this.streetAddress;
+        if (this.detailAddress != null)
+            fullAddress = fullAddress + " " + this.detailAddress;
+
+        return fullAddress;
     }
 
     @Override

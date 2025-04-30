@@ -45,6 +45,16 @@ spring:
     file:
       base-path: /tmp/test-uploads/
       profile-image: profileImage/
+  cloud:
+    aws:
+      credentials:
+        access-key: accesskey
+        secret-key: secretkey
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: bucket-files
+
 toss:
   pay:
     clientkey: ""

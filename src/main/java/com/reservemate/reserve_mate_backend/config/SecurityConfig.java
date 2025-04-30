@@ -55,7 +55,8 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
             .authorizeHttpRequests(
-                auth -> auth.requestMatchers("/login", "/", "/users/register")
+                auth -> auth.requestMatchers("/login", "/", "/users/register", "/match/matcheDates", "/match/matches",
+                    "/match/matches/*")
                     .permitAll()
                     .requestMatchers(
                         "/mail/send/authCode",
@@ -100,7 +101,8 @@ public class SecurityConfig {
             List.of(
                 "http://localhost:3000",
                 "https://localhost:3000",
-                "https://reserve-mate-eta.vercel.app"
+                "https://reserve-mate-eta.vercel.app",
+                "https://api.sportmate.site"
             )
         );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

@@ -19,8 +19,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -46,6 +49,7 @@ import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,6 +76,9 @@ public class MatchServiceTest {
 
     @Mock
     private FacilityManagerRepository facilityManagerRepository;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private MatchService matchService;
@@ -156,6 +163,11 @@ public class MatchServiceTest {
         List<MatchPlayer> matchPlayers = new ArrayList<>();
         List<FacilityImage> facilityImages = new ArrayList<>();
 
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
         given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY))
@@ -163,13 +175,14 @@ public class MatchServiceTest {
         given(facilityImageRepository.findByFacility(facility)).willReturn(facilityImages);
 
         /* when */
-        MatchDetailDto matchDetailDto = matchService.getMatch(match.getMatchId(), user.getId());
+        MatchDetailDto matchDetailDto = matchService.getMatch(request, user.getId());
 
         /* then */
-        assertThat(matchDetailDto.getManager()).isEqualTo(user.getName());
-        assertThat(matchDetailDto.getMatchDate()).isEqualTo(Utils.localDateFormatWeek(match.getMatchDate()));
-        assertThat(matchDetailDto.getMatchPrice()).isEqualTo(match.getMatchPrice());
-        assertThat(matchDetailDto.getCourtName()).isEqualTo(court.getName());
+        //assertThat(matchDetailDto.getUserDataDto().getUserName()).isEqualTo(user.getName());
+        assertThat(matchDetailDto.getMatchDataDto().getMatchDate()).isEqualTo(Utils.localDateFormatWeek(match
+            .getMatchDate()));
+        assertThat(matchDetailDto.getMatchDataDto().getMatchPrice()).isEqualTo(match.getMatchPrice());
+        assertThat(matchDetailDto.getFacilityDataDto().getCourtName()).isEqualTo(court.getName());
     }
 
     @Test

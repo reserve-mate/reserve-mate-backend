@@ -1,15 +1,23 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -34,6 +42,7 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -50,6 +59,12 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+    private final JwtUtil jwtUtil;
+
+    private final AmazonS3 amazonS3;
+
+    @Value("${spring.cloud.aws.s3.bucket}")
+    private String bucket;
 
     /* 시간이 지난 날짜 종료 처리 */
     @Scheduled(cron = "0 0 6-23 * * *") // 5초마다 실행
@@ -63,6 +78,24 @@ public class MatchService {
             matchPlayerRepository.updateBeforeMatchs(matchIds);
         }
 
+    }
+
+    public String uploadFile(MultipartFile multipartFile) throws IOException {
+        String filename = UUID.randomUUID().toString();
+
+        // 메타 데이터 설정
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(multipartFile.getContentType());
+        metadata.setContentLength(multipartFile.getSize());
+
+        // S3에 파일 업로드 요청 생성
+        PutObjectRequest objectRequest = new PutObjectRequest(bucket, filename, multipartFile.getInputStream(),
+            metadata);
+
+        // S3에 파일 업로드
+        amazonS3.putObject(objectRequest);
+
+        return Utils.getPublicUrl(bucket, amazonS3.getRegionName(), filename);
     }
 
     @Transactional
@@ -115,9 +148,10 @@ public class MatchService {
     /* 매치 조회(일반 사용자) */
     @Transactional
     public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
-        matchSearchDto.setMatchDate();
+        matchSearchDto.initSportType();
+        matchSearchDto.initMatchDateIfNull();
 
-        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
+        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 1);
         Slice<MatchesDto> matches = matchCustomRepository.getMatches(pageable, matchSearchDto);
 
         return matches;
@@ -128,6 +162,7 @@ public class MatchService {
      */
     @Transactional
     public List<MatchDateDto> getMatchDates(MatchSearchDto matchSearchDto) {
+        matchSearchDto.initSportType();
 
         List<MatchDateDto> dateDtos = matchCustomRepository.getMatchesForDate(matchSearchDto);
 
@@ -156,9 +191,16 @@ public class MatchService {
     /*
      * 매치 상세
      */
-    public MatchDetailDto getMatch(Long matchId, Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+    public MatchDetailDto getMatch(HttpServletRequest request, Long matchId) {
+
+        User user = null;
+
+        String accessToken = request.getHeader("access");
+        if (accessToken != null) {
+            Long userId = jwtUtil.getId(accessToken);
+            user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        }
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
