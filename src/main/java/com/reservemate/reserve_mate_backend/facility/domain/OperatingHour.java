@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestOperatingHour;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
@@ -73,5 +74,15 @@ public class OperatingHour extends BaseEntity {
         this.openTime = openTime != null ? openTime : this.openTime;
         this.closeTime = closeTime != null ? closeTime : this.closeTime;
         this.holiday = holiday != null ? holiday : this.holiday;
+    }
+
+    public static OperatingHour create(RequestOperatingHour dto, Facility facility){
+        return OperatingHour.builder()
+            .dayOfWeek(dto.getDayOfWeek())
+            .openTime(LocalTime.parse(dto.getOpenTime()))
+            .closeTime(LocalTime.parse(dto.getCloseTime()))
+            .holiday(dto.getHoliday())
+            .facility(facility)
+            .build();
     }
 }

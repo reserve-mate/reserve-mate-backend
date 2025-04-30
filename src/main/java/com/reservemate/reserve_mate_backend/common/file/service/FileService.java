@@ -5,9 +5,9 @@ import com.reservemate.reserve_mate_backend.common.file.dto.RequestImageUploadDt
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -76,4 +76,33 @@ public class FileService {
         return ResponseEntity.ok().body("프로필 이미지가 성공적으로 업로드 되었습니다.");
     }
 
+    /*
+    * 파일 다중 업로드 : 파일 List + 폴더 저장위치
+    * */
+    public List<String> uploadFiles(List<MultipartFile> files, String targetFilePath){
+        //디렉토리 경로
+        String directoryPath = basePath + targetFilePath;
+        File directory = new File(directoryPath);
+
+        if (!directory.exists()){
+            directory.mkdirs();
+        }
+
+        return files.stream()
+            .filter(file -> !file.isEmpty())
+            .map(file -> {
+                String imageFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                String savedUrl = "/" + targetFilePath + imageFileName;
+                //실제 저장경로 (./uploads/targetFilePath/uuid_파일명)
+                File destinationFile = new File(directory, imageFileName);
+
+              try {
+                file.transferTo(destinationFile);
+                return savedUrl;
+              } catch (IOException e) {
+                throw new RuntimeException("파일 업로드 중 오류 발생", e);
+              }
+            })
+            .toList();
+    }
 }

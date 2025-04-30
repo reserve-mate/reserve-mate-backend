@@ -1,14 +1,21 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
-
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.SQLDelete;
 
@@ -65,5 +72,24 @@ public class Facility extends BaseEntity {
         this.name = name != null ? name : this.name;
         this.description = description != null ? description : this.description;
         this.address = address != null ? address : this.address;
+    }
+
+    public static String setConventient(boolean parking, boolean shower, boolean rental,
+        boolean cafe) {
+        return (parking ? "1" : "0") +
+            (shower ? "1" : "0") +
+            (rental ? "1" : "0") +
+            (cafe ? "1" : "0");
+    }
+
+    public static Facility create(RequestCreateFacility dto){
+        String conventient = setConventient(dto.isHasParking(), dto.isHasShower(), dto.isHasEquipmentRental(),dto.isHasCafe());
+        return Facility.builder()
+            .name(dto.getName())
+            .sportType(dto.getSportType())
+            .description(dto.getDescription())
+            .address(dto.getAddress())
+            .conventient(conventient)
+            .build();
     }
 }
