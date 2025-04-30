@@ -107,7 +107,7 @@ public class MatchPlayerService {
         match.isEndMatch();
         match.isFinish();
         match.validatePrice(amount);
-        
+
         return matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
     }
 

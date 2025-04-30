@@ -440,12 +440,12 @@ public class PaymentServiceTest {
             .orderId(UUID.randomUUID().toString())
             .paymentKey("tviva20250409200902SF275")
             .build();
-        
+
         given(matchRepository.findById(amountRequest.getMatchId())).willReturn(Optional.of(match));
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         String fakeAccessToken = "mocked.jwt.token";
-    
+
         given(request.getHeader("access")).willReturn(fakeAccessToken);
         given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
 

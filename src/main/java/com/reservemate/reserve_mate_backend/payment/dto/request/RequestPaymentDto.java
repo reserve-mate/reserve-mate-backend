@@ -21,7 +21,8 @@ public class RequestPaymentDto {
     private User user;
 
     public static RequestPaymentDto toRequestPaymentDto(RequestMatchDto requestMatchDto, User user, Match match) {
-        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(UUID.randomUUID().toString(), requestMatchDto.getAmount(), match, user);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(UUID.randomUUID().toString(), requestMatchDto
+            .getAmount(), match, user);
 
         return requestPaymentDto;
     }

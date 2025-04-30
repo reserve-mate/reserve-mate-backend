@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @RestController
 @RequestMapping("/player")
 @RequiredArgsConstructor
@@ -27,7 +26,8 @@ public class MatchPlayerController {
     private final MatchPlayerService matchPlayerService;
 
     @PostMapping("/requestApplyMatch")
-    public ResponseEntity<MatchApplyResponse> requestApplyMatch(HttpServletRequest request, @RequestBody RequestMatchDto requestMatchDto) {
+    public ResponseEntity<MatchApplyResponse> requestApplyMatch(HttpServletRequest request,
+        @RequestBody RequestMatchDto requestMatchDto) {
         return ResponseEntity.ok(matchPlayerService.requestApplyMatch(request, requestMatchDto));
     }
 
@@ -38,9 +38,9 @@ public class MatchPlayerController {
     }
 
     @GetMapping("/verifyMatch")
-    public ResponseEntity<Boolean> verifyMatch(HttpServletRequest request, @RequestParam(name = "matchId") Long matchId, @RequestParam(name = "amount") int amount) {
+    public ResponseEntity<Boolean> verifyMatch(HttpServletRequest request, @RequestParam(name = "matchId") Long matchId,
+        @RequestParam(name = "amount") int amount) {
         return ResponseEntity.ok(matchPlayerService.verifyApplyMatch(request, matchId, amount));
     }
-    
 
 }

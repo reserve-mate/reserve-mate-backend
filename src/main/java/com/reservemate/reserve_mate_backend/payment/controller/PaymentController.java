@@ -41,7 +41,8 @@ public class PaymentController {
 
     /* 토스에 결제 승인받기 */
     @PostMapping("/approve")
-    public ResponseEntity<PaymentResponse> postMethodName(HttpServletRequest request, @RequestBody SaveAmountRequest amountRequest) {
+    public ResponseEntity<PaymentResponse> postMethodName(HttpServletRequest request,
+        @RequestBody SaveAmountRequest amountRequest) {
         return ResponseEntity.ok(paymentService.requestPayConfirm(request, amountRequest));
     }
 

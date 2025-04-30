@@ -29,15 +29,15 @@ public class SaveAmountRequest {
     private String paymentKey;
     private Long matchId;
 
-    public Payment toEntity(Match match, User user){
+    public Payment toEntity(Match match, User user) {
         Payment payment = Payment.builder()
-        .impUid(this.orderId)
-        .merchantUid(this.paymentKey)
-        .amount(this.amount)
-        .payMethod(PaymentMethod.CARD)
-        .match(match)
-        .user(user)
-        .build();
+            .impUid(this.orderId)
+            .merchantUid(this.paymentKey)
+            .amount(this.amount)
+            .payMethod(PaymentMethod.CARD)
+            .match(match)
+            .user(user)
+            .build();
 
         return payment;
     }

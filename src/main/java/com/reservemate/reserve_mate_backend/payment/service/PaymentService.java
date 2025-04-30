@@ -160,7 +160,7 @@ public class PaymentService {
 
     // 결제 최종 승인 후 데이터 처리
     @Transactional
-    public PaymentResponse requestPayConfirm(HttpServletRequest request , SaveAmountRequest amountRequest) {
+    public PaymentResponse requestPayConfirm(HttpServletRequest request, SaveAmountRequest amountRequest) {
 
         String accessToken = request.getHeader("access");
         Long userId = jwtUtil.getId(accessToken);
