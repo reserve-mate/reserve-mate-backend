@@ -186,7 +186,7 @@ public class PaymentService {
                 paymentRepository.save(payment);
                 eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
 
-                response = PaymentResponse.toPaymentConfirm(payment);
+                response = PaymentResponse.toMatchPaymentResponse(match);
             }
         } catch (Exception e) {
             e.printStackTrace();

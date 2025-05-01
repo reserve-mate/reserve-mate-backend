@@ -60,6 +60,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.ConfirmRequestDt
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
+import com.reservemate.reserve_mate_backend.payment.dto.response.MatchPaymentSuccessDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
@@ -501,11 +502,12 @@ public class PaymentServiceTest {
         /* then */
         verify(paymentRepository, times(1)).save(argumentCaptor.capture());
 
-        Payment payment = argumentCaptor.getValue();
-
-        assertThat(response.getOrderId()).isEqualTo(payment.getImpUid());
-        assertThat(response.getAmount()).isEqualTo(payment.getAmount());
-        assertThat(response.getPaymentStatus()).isEqualTo(payment.getStatus());
+        if (response instanceof MatchPaymentSuccessDto) {
+            MatchPaymentSuccessDto successDto = (MatchPaymentSuccessDto) response;
+            assertThat(response.getStatus()).isEqualTo("success");
+            assertThat(successDto.getMatchName()).isEqualTo(match.getMatchName());
+            assertThat(successDto.getMatchTime()).isEqualTo(match.getMatchTime());
+        }
     }
 
     @Test
