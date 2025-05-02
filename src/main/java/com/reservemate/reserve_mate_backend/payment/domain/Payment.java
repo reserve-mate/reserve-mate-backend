@@ -82,7 +82,8 @@ public class Payment extends BaseEntity {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
         this.amount = amount;
-        this.status = PaymentStatus.READY;
+        this.status = PaymentStatus.PAID;
+        this.paidAt = LocalDateTime.now();
         this.payMethod = payMethod;
         this.user = user;
         this.match = match;

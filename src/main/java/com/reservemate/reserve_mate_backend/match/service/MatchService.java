@@ -151,7 +151,7 @@ public class MatchService {
         matchSearchDto.initSportType();
         matchSearchDto.initMatchDateIfNull();
 
-        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 1);
+        Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
         Slice<MatchesDto> matches = matchCustomRepository.getMatches(pageable, matchSearchDto);
 
         return matches;

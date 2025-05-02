@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
@@ -21,6 +22,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDt
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +40,7 @@ public class MatchPlayerService {
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final JwtUtil jwtUtil;
 
     /* 매치 취소 */
     @Transactional
@@ -63,9 +66,12 @@ public class MatchPlayerService {
 
     /* 매치 신청 요청 */
     @Transactional
-    public MatchApplyResponse requestApplyMatch(RequestMatchDto requestMatchDto) {
+    public MatchApplyResponse requestApplyMatch(HttpServletRequest request, RequestMatchDto requestMatchDto) {
 
-        User user = userRepository.findById(requestMatchDto.getUserId())
+        String accessToken = request.getHeader("access");
+        Long userId = jwtUtil.getId(accessToken);
+
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         Match match = matchRepository.findById(requestMatchDto.getMatchId())
@@ -83,6 +89,26 @@ public class MatchPlayerService {
 
         return MatchApplyResponse.toMatchApplyResponse(requestMatchDto, user, match.getMatchName(), successUrl,
             failUrl);
+    }
+
+    /*
+     * 신청해도 되는 매치인지 검증
+     */
+    @Transactional
+    public boolean verifyApplyMatch(HttpServletRequest request, Long matchId, int amount) {
+        String accessToken = request.getHeader("access");
+        Long userId = jwtUtil.getId(accessToken);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isEndMatch();
+        match.isFinish();
+        match.validatePrice(amount);
+
+        return matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL);
     }
 
     /*

@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 public class MatchApplyResponse {
 
-    private PaymentMethod paymentMethod;    // 결제 수단
+    //private PaymentMethod paymentMethod;    // 결제 수단
     private Integer amount;         // 매치 가격
     private String orderId;         // 주문 번호
     private String orderName;       // 매치 명
@@ -29,7 +29,7 @@ public class MatchApplyResponse {
     public static MatchApplyResponse toMatchApplyResponse(RequestMatchDto requestMatchDto, User user, String matchName,
         String successUrl, String failUrl) {
         return MatchApplyResponse.builder()
-            .paymentMethod(requestMatchDto.getPaymentMethod())
+            //.paymentMethod(requestMatchDto.getPaymentMethod())
             .orderName(matchName)
             .customerName(user.getName())
             .customerEmail(user.getEmail())
