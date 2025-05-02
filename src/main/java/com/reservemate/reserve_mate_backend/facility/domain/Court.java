@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestCreateCourt;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -22,6 +23,10 @@ public class Court extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private CourtMainType courtMainType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -50,12 +55,14 @@ public class Court extends BaseEntity {
         int width,
         int height,
         Boolean indoor,
+        Boolean active,
         Facility facility) {
         this.name = name;
         this.courtType = courtType;
         this.width = width;
         this.height = height;
         this.indoor = indoor != null ? indoor : false;
+        this.active = active != null ? active : false;
         this.facility = facility;
     }
 
@@ -93,5 +100,17 @@ public class Court extends BaseEntity {
 
     public void deactivate() {
         this.active = false;
+    }
+
+    public static Court create(RequestCreateCourt dto, Facility facility) {
+        return Court.builder()
+            .name(dto.getName())
+            .courtType(dto.getCourtType())
+            .width(dto.getWidth())
+            .height(dto.getHeight())
+            .indoor(dto.getIndoor())
+            .active(dto.getActive())
+            .facility(facility)
+            .build();
     }
 }
