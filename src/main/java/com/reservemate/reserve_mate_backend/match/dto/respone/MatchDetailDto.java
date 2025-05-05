@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.dto.respone;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
@@ -138,6 +139,8 @@ public class MatchDetailDto {
         private String userName;
         private String phone;
         private String userEmail;
+
+        @JsonProperty("isMatchApply")
         private boolean isMatchApply;
 
         public static UserDataDto toUserDataDto(User user, List<MatchPlayer> matchPlayers) {

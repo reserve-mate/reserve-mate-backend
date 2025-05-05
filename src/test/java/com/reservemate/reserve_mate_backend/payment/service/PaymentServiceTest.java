@@ -61,6 +61,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDt
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.MatchPaymentSuccessDto;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentCancelDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
@@ -465,8 +466,11 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.requestPayConfirm(request, amountRequest);
 
         /* then */
-        assertThat(response.getOrderId()).isEqualTo(amountRequest.getOrderId());
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
+        if (response instanceof PaymentResponse) {
+            PaymentCancelDto cancelDto = (PaymentCancelDto) response;
+            assertThat(cancelDto.getOrderId()).isEqualTo(amountRequest.getOrderId());
+            assertThat(cancelDto.getCancelReason()).isEqualTo("결제 실패");
+        }
     }
 
     @Test
@@ -490,6 +494,7 @@ public class PaymentServiceTest {
 
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
+        // 외부 api 가짜 응답
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
         when(payClient.requestPay(any())).thenReturn(mockResponse);
