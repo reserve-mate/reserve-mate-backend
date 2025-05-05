@@ -21,7 +21,9 @@ import lombok.Setter;
     use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type"
 )
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = MatchPaymentSuccessDto.class, name = "matchPaymentSuccess")
+    @JsonSubTypes.Type(value = MatchPaymentSuccessDto.class, name = "matchPaymentSuccess"),
+    @JsonSubTypes.Type(value = PaymentCancelDto.class, name = "cancelPayment"),
+    @JsonSubTypes.Type(value = PaymentFailDto.class, name = "failPayment")
 // 실패 dto 추가
 })
 @NoArgsConstructor
@@ -63,7 +65,7 @@ public class PaymentResponse {
 
     // 결제 승인 및 취소 실패 시
     public static PaymentResponse toPaymentFailed(JSONObject errObject) {
-        PaymentResponse failResponse = new PaymentFailDto("failed", errObject);
+        PaymentResponse failResponse = new PaymentFailDto("fail", errObject);
         return failResponse;
     }
 

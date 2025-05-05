@@ -175,11 +175,11 @@ public class PaymentService {
         // toss payments에 결제 요청
         try {
             HttpResponse httpResponse = payClient.requestPay(amountRequest);
-            if (httpResponse.statusCode() != 200) {
+            if (httpResponse.statusCode() != 200) { // 결제 승인 시 에러로 인한 취소는 DB에 넣지 않음
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
                 payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, amountRequest.getAmount());
 
-                response = PaymentResponse.toCancelResponse(amountRequest.getOrderId(), failMsg);
+                response = PaymentResponse.toPaymentCancel(amountRequest.getOrderId(), failMsg);
             } else {
 
                 Payment payment = amountRequest.toEntity(match, user);
@@ -188,6 +188,7 @@ public class PaymentService {
 
                 response = PaymentResponse.toMatchPaymentResponse(match);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new ApiException(ErrorCode.PAYMETN_ERROR);
