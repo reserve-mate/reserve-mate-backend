@@ -54,7 +54,7 @@ public class FacilityManager extends BaseEntity {
     public static List<Long> getFacilityIds(List<FacilityManager> facilityManagers) {
         List<Long> ids = new ArrayList<>();
         facilityManagers.forEach(facilityManager -> {
-            ids.add(facilityManager.getId());
+            ids.add(facilityManager.facility.getId());
         });
         return ids;
     }
