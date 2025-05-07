@@ -39,9 +39,11 @@ public class MatchTest {
     void testIsTimeConfilict() {
         /* given */
         // 예시: 기존 매치들 (16:00 ~ 18:00, 19:00 ~ 21:00)
+
+        Court court1 = new Court(2L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
         List<Match> existingMatches = List.of(
-            new Match(16, 18),
-            new Match(20, 22)
+            new Match(16, 18, facilityManager, court),
+            new Match(20, 22, facilityManager, court1)
         );
 
         int startTime = 16;

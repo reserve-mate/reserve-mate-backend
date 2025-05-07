@@ -234,12 +234,13 @@ public class MatchServiceTest {
         given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
             .willReturn(matches);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
-        given(matchRepository.existsByMatchDateAndMatchTimeAndCourt(
-            createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court)).willReturn(true);
+        given(matchRepository.existsConflictManager(
+            createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
+            createMatchDto.getMatchEndTime())).willReturn(true);
 
         assertThatThrownBy(() -> matchService.registMatch(createMatchDto))
             .isInstanceOf(ApiException.class)
-            .hasMessage("중복된 매치가 존재합니다.");
+            .hasMessage("해당 시간대에 이미 다른 코트에 매니저가 배정되어 있습니다.");
     }
 
     @Test
@@ -253,8 +254,9 @@ public class MatchServiceTest {
         given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
             .willReturn(matches);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
-        given(matchRepository.existsByMatchDateAndMatchTimeAndCourt(
-            createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court)).willReturn(false);
+        given(matchRepository.existsConflictManager(
+            createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
+            createMatchDto.getMatchEndTime())).willReturn(false);
         ArgumentCaptor<Match> arguMatch = ArgumentCaptor.forClass(Match.class);
 
         /* when */

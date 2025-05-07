@@ -222,16 +222,18 @@ public class MatchService {
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
         List<Match> matches = matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court);
-        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
+        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());    // 매치 시간대 검증
 
         FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        boolean isExistMatch = matchRepository
-            .existsByMatchDateAndMatchTimeAndCourt(createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court);
+        // 해당 매니저가 다른 매치에도 배정되어있는지 검증
+        boolean isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
+            facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
 
-        if (isExistMatch)
-            throw new ApiException(ErrorCode.EXIST_MATCH_ERROR);
+        if (isDupleMatchManager) {
+            throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);
+        }
 
         Match match = createMatchDto.toEntity(createMatchDto, court, facilityManager);
         matchRepository.save(match);

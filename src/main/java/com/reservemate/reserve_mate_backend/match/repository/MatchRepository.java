@@ -32,4 +32,15 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     @Query("update Match m set m.matchStatus = 'END', m.updatedAt = now() where m.matchId in (:matchIds)")
     void updateBeforeMatchs(@Param("matchIds") List<Long> matchIds);
 
+    @Query("select case when count(m) > 0 then true else false end"
+        + " from Match m"
+        + " where m.matchDate = :matchDate"
+        + " and m.facilityManager.id = :managerId"
+        + " and m.court.id != :courtId"
+        + " and m.matchTime < :matchEndTime"
+        + " and m.endTime > :matchTime")
+    boolean existsConflictManager(@Param("matchDate") LocalDate matchDate, @Param("managerId") Long facilityManager,
+        @Param("courtId") Long court, @Param("matchTime") Integer matchTime,
+        @Param("matchEndTime") Integer matchEndTime);
+
 }

@@ -83,9 +83,11 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "court_id")
     private Court court;
 
-    public Match(int start, int end) {
+    public Match(int start, int end, FacilityManager facilityManager, Court court) {
         this.matchTime = start;
         this.endTime = end;
+        this.facilityManager = facilityManager;
+        this.court = court;
     }
 
     public void validatePrice(Integer amount) {
@@ -117,6 +119,20 @@ public class Match extends BaseEntity {
                 if (Utils.isTimeConflict(existStarTime, existEndTime, newStartTime, newEndTime)) {
                     throw new ApiException(ErrorCode.EXIST_MATCH_TIME_ERROR);
                 }
+
+            }
+        }
+    }
+
+    // 해당 매니저 매치 시간대 겹치는지 검증
+    public static void isManagerConflict(List<Match> matches, int startTime, int endTime,
+        FacilityManager facilityManager) {
+        if (!matches.isEmpty()) {
+            LocalTime newStartTime = LocalTime.of(startTime, 0);
+            LocalTime newEndTime = LocalTime.of(endTime, 0);
+
+            for (Match match : matches) {
+                //boolean isOverLaapping = newStartTime.isBefore(newEndTime) && 
             }
         }
     }

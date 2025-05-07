@@ -33,8 +33,7 @@ public class CreateMatchDto {
     @NotNull(message = "회원 정보는 필수 입력 항목입니다.")
     private Long managerId;
 
-    @Min(10)
-    @Max(18)
+    @NotNull(message = "최대 참가 인원은 필수 입력 항목입니다.")
     private Integer teamCapacity;
 
     @NotNull(message = "매치 날짜는 필수 입력 항목입니다.")
