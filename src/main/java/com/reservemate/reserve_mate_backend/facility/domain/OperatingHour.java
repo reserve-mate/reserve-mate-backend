@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestOperatingHour;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestOperatingHour;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
