@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 
 import org.json.simple.JSONObject;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
@@ -14,6 +17,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = MatchPaymentSuccessDto.class, name = "matchPaymentSuccess"),
+    @JsonSubTypes.Type(value = PaymentCancelDto.class, name = "cancelPayment"),
+    @JsonSubTypes.Type(value = PaymentFailDto.class, name = "failPayment")
+// 실패 dto 추가
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,30 +33,48 @@ import lombok.Setter;
 @Setter
 public class PaymentResponse {
 
+    private String status; // success or fail
+
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
     private Integer amount;
     private String orderId;
 
-    private String successUrl;
-    private String failUrl;
-
     private String failReason;
-    private boolean cancelYN;
     private String cancelReason;
     private LocalDateTime createdAt;
 
     private String errorCode;
     private String errorMsg;
 
-    public static PaymentResponse toPaymentResponse(Payment payment, String successUrl, String failUrl) {
+    public PaymentResponse(String status) {
+        this.status = status;
+    }
+
+    // 결제 승인 성공
+    public static PaymentResponse toMatchPaymentResponse(Match match) {
+        PaymentResponse response = new MatchPaymentSuccessDto("success", match);
+        return response;
+    }
+
+    // 결제 취소 성공
+    public static PaymentResponse toPaymentCancel(String orderId, String cancelReason) {
+        PaymentResponse cancelResponse = new PaymentCancelDto("cancel", orderId, cancelReason);
+        return cancelResponse;
+    }
+
+    // 결제 승인 및 취소 실패 시
+    public static PaymentResponse toPaymentFailed(JSONObject errObject) {
+        PaymentResponse failResponse = new PaymentFailDto("fail", errObject);
+        return failResponse;
+    }
+
+    public static PaymentResponse toPaymentResponse(Payment payment) {
         PaymentResponse response = PaymentResponse.builder()
             .paymentMethod(payment.getPayMethod())
             .paymentStatus(payment.getStatus())
             .amount(payment.getAmount())
             .orderId(payment.getImpUid())
-            .successUrl(successUrl)
-            .failUrl(failUrl)
             .createdAt(payment.getCreatedAt())
             .build();
 
@@ -61,11 +91,11 @@ public class PaymentResponse {
             .build();
     }
 
-    public static PaymentResponse toCancelResponse(String orderId, String cancelReason, PaymentStatus paymentStatus) {
+    public static PaymentResponse toCancelResponse(String orderId, String cancelReason) {
         PaymentResponse paymentResponse = PaymentResponse.builder()
             .orderId(orderId)
             .cancelReason(cancelReason)
-            .paymentStatus(paymentStatus)
+            .paymentStatus(PaymentStatus.CANCELED)
             .build();
         return paymentResponse;
     }

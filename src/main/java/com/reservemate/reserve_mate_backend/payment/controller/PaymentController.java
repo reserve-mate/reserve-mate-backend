@@ -9,6 +9,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResD
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.service.PaymentService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Slice;
@@ -39,9 +40,10 @@ public class PaymentController {
     }
 
     /* 토스에 결제 승인받기 */
-    @PostMapping("/success")
-    public ResponseEntity<PaymentResponse> postMethodName(@RequestBody SaveAmountRequest amountRequest) {
-        return ResponseEntity.ok(paymentService.requestPayConfirm(amountRequest));
+    @PostMapping("/approve")
+    public ResponseEntity<PaymentResponse> postMethodName(HttpServletRequest request,
+        @RequestBody SaveAmountRequest amountRequest) {
+        return ResponseEntity.ok(paymentService.requestPayConfirm(request, amountRequest));
     }
 
 }

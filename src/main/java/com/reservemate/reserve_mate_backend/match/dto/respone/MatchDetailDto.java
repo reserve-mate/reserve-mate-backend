@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.dto.respone;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
@@ -63,6 +64,7 @@ public class MatchDetailDto {
     public static class MatchDataDto {
 
         private Long matchId;                   // 매치 일련번호
+        private String matchName;              // 매치 제목
         private String manager;                 // 매치 매니저
         private String mangerImage;             // 매니저 이미지
         private MatchStatus matchStatus;        // 매치 상태
@@ -76,6 +78,7 @@ public class MatchDetailDto {
         public static MatchDataDto toMatchDataDto(Match match) {
             MatchDataDto matchDataDto = MatchDataDto.builder()
                 .matchId(match.getMatchId())
+                .matchName(match.getMatchName())
                 .manager(match.getFacilityManager().getUser().getName())
                 .mangerImage(match.getFacilityManager().getUser().getProfileImage())
                 .matchStatus(match.getMatchStatus())
@@ -135,6 +138,9 @@ public class MatchDetailDto {
 
         private String userName;
         private String phone;
+        private String userEmail;
+
+        @JsonProperty("isMatchApply")
         private boolean isMatchApply;
 
         public static UserDataDto toUserDataDto(User user, List<MatchPlayer> matchPlayers) {
@@ -142,6 +148,7 @@ public class MatchDetailDto {
             UserDataDto userDto = UserDataDto.builder()
                 .userName(user.getName())
                 .phone(user.getPhone())
+                .userEmail(user.getEmail())
                 .isMatchApply(isMatchApply(matchPlayers, user.getId()))
                 .build();
 

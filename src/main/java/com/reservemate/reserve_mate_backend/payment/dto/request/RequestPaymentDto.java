@@ -15,15 +15,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public class RequestPaymentDto {
 
-    private PaymentMethod paymentMethod;    // 결제 타입 (현금/카드)
     private String orderId;
     private Integer amount;    // 가격
     private Match match;
     private User user;
 
     public static RequestPaymentDto toRequestPaymentDto(RequestMatchDto requestMatchDto, User user, Match match) {
-        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(
-            requestMatchDto.getPaymentMethod(), UUID.randomUUID().toString(), requestMatchDto.getAmount(), match, user);
+        RequestPaymentDto requestPaymentDto = new RequestPaymentDto(UUID.randomUUID().toString(), requestMatchDto
+            .getAmount(), match, user);
 
         return requestPaymentDto;
     }
@@ -32,7 +31,6 @@ public class RequestPaymentDto {
         return Payment.builder()
             .impUid(this.orderId)
             .amount(this.amount)
-            .payMethod(this.paymentMethod)
             .user(this.user)
             .match(this.match)
             .build();

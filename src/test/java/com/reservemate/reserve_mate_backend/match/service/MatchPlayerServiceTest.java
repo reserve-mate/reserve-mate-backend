@@ -17,9 +17,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -36,10 +38,10 @@ import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchApplyResponse;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +59,9 @@ public class MatchPlayerServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private MatchPlayerService matchPlayerService;
@@ -136,9 +141,34 @@ public class MatchPlayerServiceTest {
     }
 
     @Test
+    @DisplayName("신청 가능 매치인지 검증")
+    void testVerifyApplyMatch() {
+        /* given */
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+        given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
+            true);
+
+        boolean verifyMatch = matchPlayerService.verifyApplyMatch(request, match.getMatchId(), match.getMatchPrice());
+
+        assertThat(verifyMatch).isTrue();
+    }
+
+    @Test
     @DisplayName("매치 신청 요청 Exception[해당 매치 신청이력이 존재함]")
     void testRequestApplyMatchFail() {
         /* given */
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
         given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
@@ -147,12 +177,10 @@ public class MatchPlayerServiceTest {
         RequestMatchDto requestMatchDto = RequestMatchDto.builder()
             .orderId(UUID.randomUUID().toString())
             .amount(match.getMatchPrice())
-            .userId(user.getId())
             .matchId(match.getMatchId())
-            .paymentMethod(PaymentMethod.CARD)
             .build();
 
-        assertThatThrownBy(() -> matchPlayerService.requestApplyMatch(requestMatchDto))
+        assertThatThrownBy(() -> matchPlayerService.requestApplyMatch(request, requestMatchDto))
             .isInstanceOf(ApiException.class)
             .hasMessage("이미 해당 매치에 신청한 이력이 존재합니다.");
     }
@@ -161,6 +189,11 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 신청 요청")
     void testRequestApplyMatch() {
         /* given */
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        String fakeAccessToken = "mocked.jwt.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
         given(matchPlayerRepository.existsByUserAndMatchAndStatusNot(user, match, PlayerStatus.CANCEL)).willReturn(
@@ -169,13 +202,11 @@ public class MatchPlayerServiceTest {
         RequestMatchDto requestMatchDto = RequestMatchDto.builder()
             .orderId(UUID.randomUUID().toString())
             .amount(match.getMatchPrice())
-            .userId(user.getId())
             .matchId(match.getMatchId())
-            .paymentMethod(PaymentMethod.CARD)
             .build();
 
         /* when */
-        MatchApplyResponse matchApplyResponse = matchPlayerService.requestApplyMatch(requestMatchDto);
+        MatchApplyResponse matchApplyResponse = matchPlayerService.requestApplyMatch(request, requestMatchDto);
 
         /* then */
         assertThat(matchApplyResponse.getCustomerName()).isEqualTo(user.getName());

@@ -99,11 +99,10 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         )
             .from(match)
             .join(court).on(court.eq(match.court))
-            .join(facility).on(facility.eq(court.facility))
+            //.join(facility).on(facility.eq(court.facility))
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.eq(match), matchPlayer.status.eq(PlayerStatus.READY)
             )
-            .fetchJoin()
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
                     matchSearchDto.getSearchValue())
