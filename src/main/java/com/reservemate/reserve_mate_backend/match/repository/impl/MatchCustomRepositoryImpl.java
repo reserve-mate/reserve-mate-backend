@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,11 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
+import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
+import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.domain.QMatch;
@@ -21,6 +25,8 @@ import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
+import com.reservemate.reserve_mate_backend.user.domain.QUser;
+import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -52,6 +58,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return matchDates;
     }
 
+    // 2주간의 날짜 between(해당 날짜로 부터 2주 후)
     private BooleanExpression betweenTwoWeek(LocalDate matchDate) {
         LocalDate searchDate = LocalDate.now();
         if (matchDate != null)
@@ -62,14 +69,17 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return match.matchDate.between(searchDate, twoWeekAgo);
     }
 
+    // 날짜로 조회
     private BooleanExpression matchDateEq(LocalDate matchDate) {
         return (matchDate != null) ? match.matchDate.eq(matchDate) : null;
     }
 
+    // sportType 조회
     private BooleanExpression sportTypeEq(SportType sportType) {
         return (sportType != null) ? match.court.facility.sportType.eq(sportType) : null;
     }
 
+    // 검색어로 조회
     private BooleanExpression searchValueLike(String searchValue) {
         String likeSearch = "%" + searchValue + "%";
         return (searchValue != null) ? match.matchName.like(likeSearch).or(
@@ -125,6 +135,46 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         }
 
         return new SliceImpl<>(matches, pageable, hasNext);
+    }
+
+    /* 관리자 관점 */
+    @Override
+    public List<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest) {
+
+        QFacilityManager facilityManager = QFacilityManager.facilityManager; // 기본 관리자 테이블
+        QFacilityManager adminManager = QFacilityManager.facilityManager;   // user아이디와 관련된 facility 매핑 테이블
+        QUser user = QUser.user;
+        QCourt court = QCourt.court;
+        QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
+        QFacility facility = QFacility.facility;
+
+        List<UserRole> roles = Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_FACILITY_MANAGER);
+
+        List<AdminMatchesResponse> matchesResponses = query.select(
+            Projections.fields(AdminMatchesResponse.class,
+                match.matchId.as("matchId"), match.matchName.as("matchName"), match.matchDate.as(("matchDate")),
+                match.matchTime.as("match_time"), match.endTime.as("endTime"), facility.sportType.as("sportType"),
+                facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.countDistinct().as(
+                    "playerCnt"), match.matchStatus.as("matchStatus")
+            )
+        ).distinct()
+            .from(facilityManager)
+            .join(adminManager).on(facilityManager.facility.id.eq(adminManager.facility.id))
+            .join(facility).on(facility.id.eq(adminManager.facility.id))
+            .join(user).on(adminManager.user.id.eq(user.id), user.role.in(roles))
+            .join(court).on(facility.id.eq(court.facility.id))
+            .join(match).on(match.court.id.eq(court.id))
+            .leftJoin(matchPlayer).on(
+                matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.eq(PlayerStatus.READY)
+            )
+            .where(
+                facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue())
+            )
+            .groupBy(match.matchId)
+            .orderBy(match.matchDate.asc(), match.matchTime.asc())
+            .fetch();
+
+        return matchesResponses;
     }
 
 }

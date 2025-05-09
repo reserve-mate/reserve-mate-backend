@@ -348,15 +348,6 @@ public class MatchServiceTest {
 
         Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
 
-        // Court court = Court.builder()
-        //     .id(1L)
-        //     .name("운동 코트")
-        //     //.sportType(SportType.FUTSAL)
-        //     //.capacity(12)
-        //     .indoor(false)
-        //     .facility(facility)
-        //     .build();
-
         return court;
     }
 
