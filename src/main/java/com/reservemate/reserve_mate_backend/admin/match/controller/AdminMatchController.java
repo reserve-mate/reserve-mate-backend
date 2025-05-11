@@ -9,8 +9,7 @@ import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchServic
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +24,7 @@ public class AdminMatchController {
 
     /* 관리자 매치 목록 조회 */
     @PostMapping("/getMatches")
-    public ResponseEntity<List<AdminMatchesResponse>> getMatches(HttpServletRequest request,
+    public ResponseEntity<Slice<AdminMatchesResponse>> getMatches(HttpServletRequest request,
         @RequestBody AdminMatchesRequest adminMatchesRequest) {
         return ResponseEntity.ok(adminMatchService.getMatches(request, adminMatchesRequest));
     }

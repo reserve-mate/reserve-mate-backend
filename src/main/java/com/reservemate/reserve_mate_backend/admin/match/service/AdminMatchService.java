@@ -1,14 +1,15 @@
 package com.reservemate.reserve_mate_backend.admin.match.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
-import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
-import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,13 +25,18 @@ public class AdminMatchService {
 
     /* 관리자 매치 목록 조회 */
     @Transactional
-    public List<AdminMatchesResponse> getMatches(HttpServletRequest request, AdminMatchesRequest adminMatchesRequest) {
+    public Slice<AdminMatchesResponse> getMatches(HttpServletRequest request, AdminMatchesRequest adminMatchesRequest) {
 
         String accessToken = request.getHeader("access");
+        if (accessToken == null) {
+            throw new ApiException(ErrorCode.ADMIN_FORBIDDEN);
+        }
         Long userId = jwtUtil.getId(accessToken);
 
-        List<AdminMatchesResponse> matchesResponses = matchCustomRepository.getAdminMatches(userId,
-            adminMatchesRequest);
+        Pageable pageable = PageRequest.of(adminMatchesRequest.getPageNumber(), 6);
+
+        Slice<AdminMatchesResponse> matchesResponses = matchCustomRepository.getAdminMatches(userId,
+            adminMatchesRequest, pageable);
 
         return matchesResponses;
     }

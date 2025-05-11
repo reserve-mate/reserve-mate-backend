@@ -126,7 +126,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return checkEndPage(pageable, matches);
     }
 
-    private Slice<MatchesDto> checkEndPage(Pageable pageable, List<MatchesDto> matches) {
+    private <T> Slice<T> checkEndPage(Pageable pageable, List<T> matches) {
         boolean hasNext = false;
 
         if (matches.size() > pageable.getPageSize()) {
@@ -139,7 +139,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     /* 관리자 관점 */
     @Override
-    public List<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest) {
+    public Slice<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest,
+        Pageable pageable) {
 
         QFacilityManager facilityManager = QFacilityManager.facilityManager; // 기본 관리자 테이블
         QFacilityManager adminManager = QFacilityManager.facilityManager;   // user아이디와 관련된 facility 매핑 테이블
@@ -171,10 +172,12 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                 facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue())
             )
             .groupBy(match.matchId)
-            .orderBy(match.matchDate.asc(), match.matchTime.asc())
+            .offset(pageable.getOffset())
+            .orderBy(match.matchDate.desc(), match.matchTime.desc())
+            .limit(pageable.getPageSize() + 1)
             .fetch();
 
-        return matchesResponses;
+        return checkEndPage(pageable, matchesResponses);
     }
 
 }

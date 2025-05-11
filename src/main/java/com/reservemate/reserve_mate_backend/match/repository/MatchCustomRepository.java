@@ -18,6 +18,7 @@ public interface MatchCustomRepository {
     List<MatchDateDto> getMatchesForDate(MatchSearchDto matchSearchDto);
 
     // 관리자 관점 매치 조회
-    List<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest);
+    Slice<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest,
+        Pageable pageable);
 
 }
