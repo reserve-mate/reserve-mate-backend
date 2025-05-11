@@ -154,7 +154,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         List<AdminMatchesResponse> matchesResponses = query.select(
             Projections.fields(AdminMatchesResponse.class,
                 match.matchId.as("matchId"), match.matchName.as("matchName"), match.matchDate.as(("matchDate")),
-                match.matchTime.as("match_time"), match.endTime.as("endTime"), facility.sportType.as("sportType"),
+                match.matchTime.as("matchTime"), match.endTime.as("endTime"), facility.sportType.as("sportType"),
                 facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.countDistinct().as(
                     "playerCnt"), match.matchStatus.as("matchStatus")
             )
