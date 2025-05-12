@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,8 @@ import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -75,6 +78,9 @@ public class MatchServiceTest {
 
     @Mock
     private FacilityManagerRepository facilityManagerRepository;
+
+    @Mock
+    private PaymentRepository paymentRepository;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -162,12 +168,20 @@ public class MatchServiceTest {
         List<MatchPlayer> matchPlayers = new ArrayList<>();
         List<FacilityImage> facilityImages = new ArrayList<>();
 
+        Payment payment = Payment.builder()
+            .impUid(UUID.randomUUID().toString())
+            .match(match)
+            .user(user)
+            .build();
+
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         String fakeAccessToken = "mocked.jwt.token";
 
         given(request.getHeader("access")).willReturn(fakeAccessToken);
         given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(paymentRepository.findByMatchIdAndUserId(match.getMatchId(), user.getId())).willReturn(Optional.of(
+            payment));
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
         given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY))
             .willReturn(matchPlayers);
@@ -177,9 +191,10 @@ public class MatchServiceTest {
         MatchDetailDto matchDetailDto = matchService.getMatch(request, user.getId());
 
         /* then */
-        //assertThat(matchDetailDto.getUserDataDto().getUserName()).isEqualTo(user.getName());
+        assertThat(matchDetailDto.getUserDataDto().getUserName()).isEqualTo(user.getName());
         assertThat(matchDetailDto.getMatchDataDto().getMatchDate()).isEqualTo(Utils.localDateFormatWeek(match
             .getMatchDate()));
+        assertThat(matchDetailDto.getUserDataDto().getOrderId()).isEqualTo(payment.getImpUid());
         assertThat(matchDetailDto.getMatchDataDto().getMatchPrice()).isEqualTo(match.getMatchPrice());
         assertThat(matchDetailDto.getFacilityDataDto().getCourtName()).isEqualTo(court.getName());
     }

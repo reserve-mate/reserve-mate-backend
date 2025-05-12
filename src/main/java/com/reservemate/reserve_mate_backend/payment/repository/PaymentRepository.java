@@ -21,4 +21,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByMatchAndUser(Match match, User user);
 
+    @Query("select pm from Payment pm where pm.user.id = :userId and pm.match.matchId = :matchId and pm.status = 'PAID'")
+    Optional<Payment> findByMatchIdAndUserId(@Param("matchId") Long matchId, @Param("userId") Long userId);
+
 }

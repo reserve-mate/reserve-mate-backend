@@ -39,6 +39,8 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -59,6 +61,7 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+    private final PaymentRepository paymentRepository;
     private final JwtUtil jwtUtil;
 
     private final AmazonS3 amazonS3;
@@ -194,12 +197,15 @@ public class MatchService {
     public MatchDetailDto getMatch(HttpServletRequest request, Long matchId) {
 
         User user = null;
+        Payment payment = null;
 
         String accessToken = request.getHeader("access");
         if (accessToken != null) {
             Long userId = jwtUtil.getId(accessToken);
             user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+            payment = paymentRepository.findByMatchIdAndUserId(matchId, userId).orElse(payment);
         }
 
         Match match = matchRepository.findById(matchId)
@@ -209,7 +215,7 @@ public class MatchService {
 
         List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
 
-        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images);
+        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images, payment);
     }
 
     /*
