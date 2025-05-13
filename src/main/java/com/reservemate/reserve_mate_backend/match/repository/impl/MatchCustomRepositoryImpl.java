@@ -69,6 +69,11 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return match.matchDate.between(searchDate, twoWeekAgo);
     }
 
+    // 날짜 기간 검색
+    private BooleanExpression betweenDate(LocalDate startDate, LocalDate endDate) {
+        return (startDate != null && endDate != null) ? match.matchDate.between(startDate, endDate) : null;
+    }
+
     // 날짜로 조회
     private BooleanExpression matchDateEq(LocalDate matchDate) {
         return (matchDate != null) ? match.matchDate.eq(matchDate) : null;
@@ -169,11 +174,13 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                 matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.eq(PlayerStatus.READY)
             )
             .where(
-                facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue())
+                facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue()), sportTypeEq(
+                    adminMatchesRequest.getSportType()), betweenDate(adminMatchesRequest.getStartDate(),
+                        adminMatchesRequest.getEndDate())
             )
             .groupBy(match.matchId)
             .offset(pageable.getOffset())
-            .orderBy(match.matchDate.desc(), match.matchTime.desc())
+            .orderBy(match.matchDate.desc(), match.matchTime.desc(), match.matchId.desc())
             .limit(pageable.getPageSize() + 1)
             .fetch();
 

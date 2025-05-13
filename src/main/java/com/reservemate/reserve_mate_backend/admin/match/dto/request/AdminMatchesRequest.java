@@ -23,4 +23,10 @@ public class AdminMatchesRequest {  // 관리자 매치 목록 검색
     private LocalDate endDate;      // 검색 마지막 날짜
     private int pageNumber;         // 페이징
 
+    public void initSportType() {
+        if (this.sportType == SportType.ALL) {
+            this.sportType = null;
+        }
+    }
+
 }

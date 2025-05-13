@@ -26,6 +26,7 @@ public class AdminMatchService {
     /* 관리자 매치 목록 조회 */
     @Transactional
     public Slice<AdminMatchesResponse> getMatches(HttpServletRequest request, AdminMatchesRequest adminMatchesRequest) {
+        adminMatchesRequest.initSportType();
 
         String accessToken = request.getHeader("access");
         if (accessToken == null) {
