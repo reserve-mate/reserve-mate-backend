@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,17 +24,23 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
+import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
+import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
+import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +52,12 @@ public class AdminMatchServiceTest {
 
     @Mock
     private MatchCustomRepository matchCustomRepository;
+
+    @Mock
+    private MatchRepository matchRepository;
+
+    @Mock
+    private MatchPlayerRepository matchPlayerRepository;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -63,6 +78,35 @@ public class AdminMatchServiceTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("관리자 매치 상세 조회 테스트")
+    void testGetAdminMatchDetail() throws Exception, SecurityException {
+        /* given */
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .playerId(1L)
+            .status(PlayerStatus.READY)
+            .match(match)
+            .user(user)
+            .build();
+
+        Field field = BaseEntity.class.getDeclaredField("updatedAt");
+        field.setAccessible(true);
+        field.set(matchPlayer, LocalDateTime.now());
+
+        matchPlayers.add(matchPlayer);
+        given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY)).willReturn(matchPlayers);
+
+        /* when */
+        AdminMatchDetailResponse detailResponse = adminMatchService.getAdminMatchDetail(match.getMatchId());
+
+        /* then */
+        assertThat(detailResponse.getMatchTitle()).isEqualTo(match.getMatchName());
+        assertThat(detailResponse.getMatchTime()).isEqualTo(match.getMatchTime());
     }
 
     @Test
