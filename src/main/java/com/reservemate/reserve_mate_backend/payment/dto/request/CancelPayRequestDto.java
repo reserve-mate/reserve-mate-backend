@@ -15,6 +15,5 @@ public class CancelPayRequestDto {
 
     private String paymentKey;
     private String cancelReason;
-    private Integer cancelAmount;
 
 }

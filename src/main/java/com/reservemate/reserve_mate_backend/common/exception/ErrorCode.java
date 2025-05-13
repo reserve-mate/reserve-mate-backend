@@ -19,7 +19,8 @@ public enum ErrorCode {
     // common
     INVALID_INPUT_VALUE(BAD_REQUEST, "유효하지 않은 입력값입니다."), SERVER_ERROR(INTERNAL_SERVER_ERROR, "서버 오류"), USER_NOT_FOUND(
         UNAUTHORIZED, "유저 정보를 찾을 수 없습니다"), UNAUTHORIZED_CODE(UNAUTHORIZED, "인증 정보가 올바르지 않습니다."), ADMIN_FORBIDDEN(
-            FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다.")
+            FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다."), MISSING_QUERY_PARAM(BAD_REQUEST,
+                "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요.")
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
         "겹치는 시간대에 매치가 존재합니다."), END_MATCH_ERROR(BAD_REQUEST, "이미 진행중 또는는 종료된 매치입니다."), FINISH_MATCH_ERROR(BAD_REQUEST,
@@ -36,7 +37,8 @@ public enum ErrorCode {
         "결제처리에 실패했습니다."), NOT_FOUND_PAYMENT(BAD_REQUEST, "결제 정보가 존재하지 않습니다."), DUPLICATION_PAYMENT(BAD_REQUEST,
             "이미 결제 요청한 이력이 존재합니다."), DUPLICATION_PAYMENT_CONFIRM(BAD_REQUEST, "이미 결제를 승인한 이력이 존재합니다."), NOT_PAID(
                 BAD_REQUEST, "결제된 이력이 존재하지 않습니다."), PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST,
-                    "결제 금액이 일치하지 않습니다."), NOT_READY_PAYEMNT(BAD_REQUEST, "결제 요청된 이력이 존재하지 않습니다.");
+                    "결제 금액이 일치하지 않습니다."), NOT_READY_PAYEMNT(BAD_REQUEST, "결제 요청된 이력이 존재하지 않습니다."), NOT_CANCEL_PAYMENT(
+                        BAD_REQUEST, "아직 취소된 결제가 아닙니다. 결제 상태를 확인해주세요.");
 
     private final HttpStatus httpStatus;
     private final String message;
