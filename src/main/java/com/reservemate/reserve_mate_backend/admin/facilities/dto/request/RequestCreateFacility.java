@@ -11,7 +11,6 @@ public class RequestCreateFacility {
     private String name;
     private SportType sportType;
     private Address address;
-    private String detailAddress;
     private String description;
 
     private boolean hasParking;

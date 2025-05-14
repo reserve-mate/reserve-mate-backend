@@ -67,17 +67,20 @@ public class AdminFacilityService {
         courtRepository.saveAll(courts);
 
         //이미지 저장
-        List<String> imagePaths = fileService.uploadFiles(images, facilityImagesPath);
-        // 이미지 저장 리스트 + 받아온 이미지 세부정보 리스트
-        List<FacilityImage> image = IntStream.range(0, imagePaths.size())
-            .mapToObj(i -> {
-                String path = imagePaths.get(i);
-                RequestFacilityImageUploadDto meta = facilityImageUploadDtoList.get(i);
-                return FacilityImage.create(path, meta.isMain(), meta.getDisplayOrder(), savedFacility);
-            })
-            .toList();
+        if (images != null && !images.isEmpty() && images.size() == facilityImageUploadDtoList.size()) {
+            List<String> imagePaths = fileService.uploadFiles(images, facilityImagesPath);
+            // 이미지 저장 리스트 + 받아온 이미지 세부정보 리스트
+            List<FacilityImage> image = IntStream.range(0, imagePaths.size())
+                .mapToObj(i -> {
+                    String path = imagePaths.get(i);
+                    RequestFacilityImageUploadDto meta = facilityImageUploadDtoList.get(i);
+                    return FacilityImage.create(path, meta.isMain(), meta.getDisplayOrder(), savedFacility);
+                })
+                .toList();
 
-        facilityImageRepository.saveAll(image);
+            facilityImageRepository.saveAll(image);
+
+        }
     }
 
     public ResponseEntity<Slice<FacilityDto>> getAdminFacilityList(String keyword, long lastId, Pageable pageable) {
