@@ -26,7 +26,14 @@ public enum ErrorCode {
         "겹치는 시간대에 매치가 존재합니다."), END_MATCH_ERROR(BAD_REQUEST, "이미 진행중 또는는 종료된 매치입니다."), FINISH_MATCH_ERROR(BAD_REQUEST,
             "이미 인원이 마감된 매치입니다."), NO_MATCH_ERROR(BAD_REQUEST, "매치가 정보 존재하지 않습니다."), INVALID_PRICE(BAD_REQUEST,
                 "가격이 일치하지 않습니다."), MANAGER_ALREADY_ASSIGNED(BAD_REQUEST,
-                    "해당 시간대에 이미 다른 코트에 매니저가 배정되어 있습니다."), NON_DELETABLE(BAD_REQUEST, "해당 매치는 삭제할 수 없는 상태입니다.")
+                    "해당 시간대에 이미 다른 코트에 매니저가 배정되어 있습니다."), NON_DELETABLE(BAD_REQUEST,
+                        "해당 매치는 삭제할 수 없는 상태입니다."), NOT_ONGOING_MATCH(BAD_REQUEST,
+                            "진행중인 매치가 아닙니다."), ALREADY_ONGOING_MATCH(BAD_REQUEST,
+                                "이미 진행중인 매치입니다."), INVALID_MATCH_STATE_TRANSITION(BAD_REQUEST,
+                                    "모집이 완료되거나 참가자 수가 과반수가 넘은 매치만 시작할 수 있습니다."), INVALID_MATCH_STATE_CLOSE_TO_DEADLINE(
+                                        BAD_REQUEST,
+                                        "마감 임박 상태의 참가인원 과반수가 넘은 매치만 모집 마감 처리할 수 있습니다."), NOT_AVAILABLE_STAT_CHG(
+                                            BAD_REQUEST, "해당 상태에서는 상태를 변경할 수 없습니다.")
 
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,

@@ -124,19 +124,6 @@ public class Match extends BaseEntity {
         }
     }
 
-    // 해당 매니저 매치 시간대 겹치는지 검증
-    public static void isManagerConflict(List<Match> matches, int startTime, int endTime,
-        FacilityManager facilityManager) {
-        if (!matches.isEmpty()) {
-            LocalTime newStartTime = LocalTime.of(startTime, 0);
-            LocalTime newEndTime = LocalTime.of(endTime, 0);
-
-            for (Match match : matches) {
-                //boolean isOverLaapping = newStartTime.isBefore(newEndTime) && 
-            }
-        }
-    }
-
     public void isOverMatch() { // 날짜가 지난 매치인지 검증
         LocalDateTime nowDateTime = LocalDateTime.now();
         LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, LocalTime.of(this.matchTime, 0));
@@ -153,19 +140,15 @@ public class Match extends BaseEntity {
             if (playerCnt >= teamCapacityHalf) {
                 this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
             }
-        }
-
-        if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
-            if (playerCnt == this.teamCapacity) {
+        } else if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
+            if (playerCnt >= this.teamCapacity) {
                 this.matchStatus = MatchStatus.FINISH;
             }
 
             if (playerCnt < teamCapacityHalf) {
                 this.matchStatus = MatchStatus.APPLICABLE;
             }
-        }
-
-        if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
+        } else if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
             this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
         }
     }
@@ -230,7 +213,7 @@ public class Match extends BaseEntity {
         }
     }
 
-    // 매치 삭제 가능 상태 검증
+    // 매치 취소 가능 상태 검증
     public void isDeletable() {
         List<MatchStatus> status = List.of(MatchStatus.FINISH, MatchStatus.ONGOING, MatchStatus.END,
             MatchStatus.CANCELLED);
@@ -243,6 +226,53 @@ public class Match extends BaseEntity {
     // 매치 취소
     public void matchCancel() {
         this.matchStatus = MatchStatus.CANCELLED;
+    }
+
+    // 원하는 상태로 상태 변경
+    public void matchStatusChange(MatchStatus matchStatus) {
+        this.matchStatus = matchStatus;
+    }
+
+    // 진행중인 매치가 아닌 경우
+    public void isNotOngoinChk() {
+        if (this.matchStatus != MatchStatus.ONGOING) {
+            throw new ApiException(ErrorCode.NOT_ONGOING_MATCH);
+        }
+    }
+
+    // 이미 진행중인 매치인 경우
+    public void isOngoinChk() {
+        if (this.matchStatus == MatchStatus.ONGOING) {
+            throw new ApiException(ErrorCode.ALREADY_ONGOING_MATCH);
+        }
+    }
+
+    // 마감 상태이거나 마감 임박 상태가 아닌경우
+    public void isNotFinishOrClose(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        List<MatchStatus> matchStatus = List.of(MatchStatus.FINISH, MatchStatus.CLOSE_TO_DEADLINE);
+        if (!matchStatus.contains(this.matchStatus) || (playerCnt <= majority)) {
+            throw new ApiException(ErrorCode.INVALID_MATCH_STATE_TRANSITION);
+        }
+    }
+
+    // 마감 임박 상태가 아니거나 참가인원 수가 과반수가 넘지 않은 경우
+    public void isNotCloseToDeadLine(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        if (this.matchStatus != MatchStatus.CLOSE_TO_DEADLINE || (playerCnt <= majority)) {
+            throw new ApiException(ErrorCode.INVALID_MATCH_STATE_CLOSE_TO_DEADLINE);
+        }
+    }
+
+    // 상태 변경 가능 상태인지 검증
+    public void isAvailableStatChg() {
+        List<MatchStatus> matchStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CANCELLED);
+
+        if (matchStatus.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.NOT_AVAILABLE_STAT_CHG);
+        }
     }
 
 }

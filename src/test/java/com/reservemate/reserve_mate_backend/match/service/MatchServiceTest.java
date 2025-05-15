@@ -249,8 +249,10 @@ public class MatchServiceTest {
         CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
         List<Match> matches = getMatches(court, facilityManager);
 
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
         given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
+        given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
+            matchStatus))
             .willReturn(matches);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(
@@ -269,8 +271,10 @@ public class MatchServiceTest {
         CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
         List<Match> matches = getMatches(court, facilityManager);
 
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
         given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court))
+        given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
+            matchStatus))
             .willReturn(matches);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(

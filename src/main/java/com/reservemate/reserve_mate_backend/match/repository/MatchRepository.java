@@ -53,4 +53,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     // 금일 현재 시간 진행중 매치 조회(ONGOING)
     List<Match> findByMatchDateAndEndTimeAndMatchStatus(LocalDate now, int i, MatchStatus ongoing);
 
+    // 취소되거나 종료된 매치를 제외한 매치 조회
+    List<Match> findByMatchDateAndCourtAndMatchStatusNotIn(LocalDate matchDate, Court court,
+        List<MatchStatus> matchStatus);
+
 }

@@ -18,6 +18,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.domain.QMatch;
 import com.reservemate.reserve_mate_backend.match.domain.QMatchPlayer;
@@ -50,7 +51,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .from(match)
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
-                searchValueLike(matchSearchDto.getSearchValue())
+                searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED)
             )
             .groupBy(match.matchDate)
             .fetch();
@@ -120,7 +121,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
-                    matchSearchDto.getSearchValue())
+                    matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED)
             )
             .groupBy(match.matchId)
             .orderBy(match.matchTime.asc())

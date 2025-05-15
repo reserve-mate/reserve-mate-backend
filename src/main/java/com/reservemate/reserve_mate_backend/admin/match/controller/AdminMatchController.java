@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.admin.match.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.MatchStatusUpdateRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchService;
@@ -24,6 +25,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class AdminMatchController {
 
     private final AdminMatchService adminMatchService;
+
+    @PostMapping("/status/{matchId}")
+    public ResponseEntity<Void> updateMatchStat(@PathVariable("matchId") Long matchId,
+        @RequestBody MatchStatusUpdateRequest matchStatusUpdateRequest) {
+        adminMatchService.matchStatusChange(matchId, matchStatusUpdateRequest.getMatchStatus());
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/delete/{matchId}")
     public ResponseEntity<Void> adminDeleteMatch(@PathVariable("matchId") Long matchId) {

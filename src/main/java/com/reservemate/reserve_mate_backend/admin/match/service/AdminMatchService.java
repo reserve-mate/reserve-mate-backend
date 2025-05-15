@@ -37,6 +37,34 @@ public class AdminMatchService {
     private final ApplicationEventPublisher eventPublisher;
     private final JwtUtil jwtUtil;
 
+    /* 매치 상태 변경 */
+    @Transactional
+    public void matchStatusChange(Long matchId, MatchStatus matchStatus) {
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isAvailableStatChg();
+
+        if (matchStatus == MatchStatus.END) {
+            match.isEndMatch();
+            match.isNotOngoinChk();
+        } else if (matchStatus == MatchStatus.ONGOING || matchStatus == MatchStatus.FINISH) {
+            int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY) + 1;
+
+            if (matchStatus == MatchStatus.ONGOING) {
+                match.isOngoinChk();
+                match.isNotFinishOrClose(playerCnt);
+            } else if (matchStatus == MatchStatus.FINISH) {
+                match.isFinish();
+                match.isNotCloseToDeadLine(playerCnt);
+            }
+        } else if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
+            match.isNotFinish();
+        }
+
+        match.matchStatusChange(matchStatus);
+    }
+
     // 관리자 매치 삭제
     @Transactional
     public void deleteMatch(Long matchId) {

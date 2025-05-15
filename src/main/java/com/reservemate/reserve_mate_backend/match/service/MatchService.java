@@ -290,7 +290,9 @@ public class MatchService {
         Court court = courtRepository.findById(createMatchDto.getCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        List<Match> matches = matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court);
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
+        List<Match> matches = matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(),
+            court, matchStatus);
         Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());    // 매치 시간대 검증
 
         FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
