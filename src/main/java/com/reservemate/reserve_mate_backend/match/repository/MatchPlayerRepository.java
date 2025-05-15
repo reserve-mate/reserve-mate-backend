@@ -38,4 +38,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     // 해당 매치와 관련된 유저의 신청 정보 조회
     List<MatchPlayer> findByMatchAndUser(Match match, User user);
 
+    // 매치에 참가자가 있는지 검증
+    boolean existsByMatchAndStatus(Match match, PlayerStatus ready);
+
 }

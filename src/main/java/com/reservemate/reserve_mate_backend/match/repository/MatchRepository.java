@@ -26,7 +26,10 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         @Param("end") MatchStatus end);
 
     @Query("select m.matchId from Match m where m.matchDate = :matchDate and m.matchTime = :matchTime")
-    List<Long> findByMatchDateAndMatchTime(@Param("matchDate") LocalDate matchDate, @Param("matchTime") int matchTime);
+    List<Long> findByMatchDateAndMatchTimeLong(@Param("matchDate") LocalDate matchDate,
+        @Param("matchTime") int matchTime);
+
+    List<Match> findByMatchDateAndMatchTime(LocalDate matchDate, int matchTime);
 
     @Modifying(clearAutomatically = true)
     @Query("update Match m set m.matchStatus = 'END', m.updatedAt = now() where m.matchId in (:matchIds)")
@@ -42,5 +45,12 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     boolean existsConflictManager(@Param("matchDate") LocalDate matchDate, @Param("managerId") Long facilityManager,
         @Param("courtId") Long court, @Param("matchTime") Integer matchTime,
         @Param("matchEndTime") Integer matchEndTime);
+
+    // 금일 현재 시간 매치 조회(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH)
+    List<Match> findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate matchDate, int matchTime,
+        List<MatchStatus> status);
+
+    // 금일 현재 시간 진행중 매치 조회(ONGOING)
+    List<Match> findByMatchDateAndEndTimeAndMatchStatus(LocalDate now, int i, MatchStatus ongoing);
 
 }

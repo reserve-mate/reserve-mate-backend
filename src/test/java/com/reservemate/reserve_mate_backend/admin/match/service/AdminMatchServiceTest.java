@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -60,6 +61,9 @@ public class AdminMatchServiceTest {
     private MatchPlayerRepository matchPlayerRepository;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private JwtUtil jwtUtil;
 
     @InjectMocks
@@ -78,6 +82,34 @@ public class AdminMatchServiceTest {
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
+    }
+
+    @Test
+    @DisplayName("관리자 매치 삭제")
+    void testDeleteMatch() throws Exception, SecurityException {
+        /* given */
+        given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
+
+        // Field field = BaseEntity.class.getDeclaredField("deleted");
+        // field.setAccessible(true);
+        // field.set(match, true);
+
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+        MatchPlayer matchPlayer = MatchPlayer.builder()
+            .playerId(1L)
+            .status(PlayerStatus.READY)
+            .match(match)
+            .user(user)
+            .build();
+
+        matchPlayers.add(matchPlayer);
+        given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY)).willReturn(matchPlayers);
+
+        /* when */
+        adminMatchService.deleteMatch(match.getMatchId());
+
+        /* then */
+        assertThat(match.getMatchStatus()).isEqualTo(MatchStatus.CANCELLED);
     }
 
     @Test

@@ -77,7 +77,7 @@ public class MatchPlayer extends BaseEntity {
 
     // 매치 삭제로 인한 플레이서 상태 변경
     public void chgMatchRemoved() {
-        this.status = PlayerStatus.MATCH_REMOVED;
+        this.status = PlayerStatus.MATCH_CANCELLED;
     }
 
     // 매치 신청 상태 취소로 수정

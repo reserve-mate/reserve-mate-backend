@@ -22,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
@@ -83,6 +84,9 @@ public class MatchServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private JwtUtil jwtUtil;
 
     @InjectMocks
@@ -131,7 +135,7 @@ public class MatchServiceTest {
 
         /* then */
         verify(matchPlayerRepository, times(1))
-            .updatePlayersMatchRemoved(match.getMatchId(), PlayerStatus.MATCH_REMOVED);
+            .updatePlayersMatchRemoved(match.getMatchId(), PlayerStatus.MATCH_CANCELLED);
 
         verify(matchRepository, times(1)).delete(match);
     }

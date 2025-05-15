@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -214,6 +215,34 @@ public class PaymentServiceTest {
             return;
         }
         mockWebServer.shutdown();
+    }
+
+    @Test
+    @DisplayName("매치 삭제 후 각 플레이어 환불")
+    void testMatchCancelPayment() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+        List<MatchPlayer> players = List.of(matchPlayer);
+
+        payment.markAsPaid("결제완료일련번호");
+
+        for (MatchPlayer player : players) {
+            given(paymentRepository.findByMatchAndUserAndStatus(eq(player.getMatch()), eq(player.getUser()), eq(
+                PaymentStatus.PAID))).willReturn(Optional.of(payment));
+            String cancelReason = "매치 취소에 따른 환불 처리";
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.statusCode()).thenReturn(200);
+            when(payClient.requestCancelPay(payment.getMerchantUid(), cancelReason, payment.getAmount())).thenReturn(
+                response);
+        }
+
+        /* when */
+        paymentService.matchCancelPayment(players);
+
+        /* then */
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(players.get(0).getStatus()).isEqualTo(PlayerStatus.MATCH_CANCELLED);
     }
 
     @Test

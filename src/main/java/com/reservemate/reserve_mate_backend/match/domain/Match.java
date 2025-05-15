@@ -188,6 +188,10 @@ public class Match extends BaseEntity {
         }
     }
 
+    public void chgMatchOngoin() {
+        this.matchStatus = MatchStatus.ONGOING;
+    }
+
     public void chgEndMatch() {  // 매치 시작 시간이 지난 경우 매치상태 END로 수정
         this.matchStatus = MatchStatus.END;
     }
@@ -213,6 +217,32 @@ public class Match extends BaseEntity {
         this.matchName = matchName;
         this.teamCapacity = teamCapacity;
         this.description = description;
+    }
+
+    // 매치 과반수에 따른 상태 변경
+    public void matchStatChangeSchedule(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        if (playerCnt >= majority) { // 과반수와 같거나 넘긴 경우 진행중
+            chgMatchOngoin();
+        } else if (playerCnt < majority) { // 과반수를 넘기지 못하면 그대로 종료
+            chgEndMatch();
+        }
+    }
+
+    // 매치 삭제 가능 상태 검증
+    public void isDeletable() {
+        List<MatchStatus> status = List.of(MatchStatus.FINISH, MatchStatus.ONGOING, MatchStatus.END,
+            MatchStatus.CANCELLED);
+
+        if (status.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.NON_DELETABLE);
+        }
+    }
+
+    // 매치 취소
+    public void matchCancel() {
+        this.matchStatus = MatchStatus.CANCELLED;
     }
 
 }

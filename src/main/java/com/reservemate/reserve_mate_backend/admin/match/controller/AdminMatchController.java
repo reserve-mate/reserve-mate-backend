@@ -25,6 +25,12 @@ public class AdminMatchController {
 
     private final AdminMatchService adminMatchService;
 
+    @PostMapping("/delete/{matchId}")
+    public ResponseEntity<Void> adminDeleteMatch(@PathVariable("matchId") Long matchId) {
+        adminMatchService.deleteMatch(matchId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{matchId}")
     public ResponseEntity<AdminMatchDetailResponse> getMethodName(@PathVariable("matchId") Long matchId) {
         return ResponseEntity.ok(adminMatchService.getAdminMatchDetail(matchId));

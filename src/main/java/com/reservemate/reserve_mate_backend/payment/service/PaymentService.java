@@ -3,7 +3,6 @@ package com.reservemate.reserve_mate_backend.payment.service;
 import java.net.http.HttpResponse;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
-import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
@@ -57,6 +55,39 @@ public class PaymentService {
     private final ApplicationEventPublisher eventPublisher;
     private final PayClient payClient;
     private final JwtUtil jwtUtil;
+
+    /* 매치 삭제 후 각 플레이어 환불 */
+    @Transactional
+    public void matchCancelPayment(List<MatchPlayer> players) {
+
+        for (MatchPlayer matchPlayer : players) {
+            Payment payment = paymentRepository.findByMatchAndUserAndStatus(matchPlayer.getMatch(), matchPlayer
+                .getUser(), PaymentStatus.PAID)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
+
+            try {
+                String cancelReason = "매치 취소에 따른 환불 처리";
+                int refundAmount = payment.getAmount();
+                HttpResponse response = payClient.requestCancelPay(payment.getMerchantUid(), cancelReason,
+                    refundAmount);
+                if (response.statusCode() == 200) {
+                    payment.refund(cancelReason);
+                    matchPlayer.chgMatchRemoved();
+                } else {
+                    JSONObject errorResponse = Utils.stringToJson(response.body().toString());
+                    String message = errorResponse.get("message") != null ? errorResponse.get("message").toString()
+                        : "처리 중 에러가 발생하였습니다.";
+
+                    throw new IllegalArgumentException(message);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new ApiException(ErrorCode.PAYMETN_CANCEL_ERROR);
+            }
+
+        }
+
+    }
 
     /* 매치 삭제 시 일괄 삭제 */
     @Transactional
