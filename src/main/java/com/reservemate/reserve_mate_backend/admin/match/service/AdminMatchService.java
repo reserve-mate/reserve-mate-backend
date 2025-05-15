@@ -54,6 +54,7 @@ public class AdminMatchService {
             if (matchStatus == MatchStatus.ONGOING) {
                 match.isOngoinChk();
                 match.isNotFinishOrClose(playerCnt);
+                match.validateOngoingTransitionByTime();
             } else if (matchStatus == MatchStatus.FINISH) {
                 match.isFinish();
                 match.isNotCloseToDeadLine(playerCnt);

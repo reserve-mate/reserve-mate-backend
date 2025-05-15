@@ -275,4 +275,16 @@ public class Match extends BaseEntity {
         }
     }
 
+    // 현재 날짜와 시간이 지났는지 체크
+    public void validateOngoingTransitionByTime() {
+        LocalDateTime today = LocalDateTime.now();
+
+        LocalTime startTime = LocalTime.of(this.matchTime, 00);
+        LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, startTime);
+
+        if (today.isBefore(matchDateTime)) {
+            throw new ApiException(ErrorCode.MATCH_NOT_STARTED_YET);
+        }
+    }
+
 }
