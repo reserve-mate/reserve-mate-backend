@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestCreateFacility;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.Column;
