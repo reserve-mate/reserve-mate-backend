@@ -113,7 +113,8 @@ public class MatchService {
 
         List<MatchStatus> status = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH);
 
-        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(), 18, status);
+        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(), (Utils
+            .getNowTime()), status);
 
         if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i += batchSize) {
