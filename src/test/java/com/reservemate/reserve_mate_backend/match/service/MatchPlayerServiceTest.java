@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.match.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -83,17 +84,24 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 취소 리팩토링 테스트")
     void testCancelMatch() {
         /* given */
-        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(user.getId(), match.getMatchId(), 11000,
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String fakeAccessToken = "mock.access.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+
+        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(match.getMatchId(), UUID.randomUUID().toString(),
             "단순 변심");
 
-        given(userRepository.findById(cancelMatchRequest.getUserId())).willReturn(Optional.of(user));
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
         MatchPlayer matchPlayer = getMatchPlayer();
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
+        given(matchPlayerRepository.findByUserAndMatchAndStatus(user, match, PlayerStatus.READY)).willReturn(Optional
+            .of(matchPlayer));
         given(matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY)).willReturn(3);
 
         /* when */
-        matchPlayerService.cancelMatch(cancelMatchRequest);
+        matchPlayerService.cancelMatch(request, cancelMatchRequest);
 
         /* then */
         assertThat(matchPlayer.getStatus()).isEqualTo(PlayerStatus.CANCEL);
@@ -104,17 +112,24 @@ public class MatchPlayerServiceTest {
     @DisplayName("매치 취소 리팩토링 테스트[Exception: 준비가 되었던 플레이어인지 검증]")
     void testCancelMatchException() {
         /* given */
-        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(user.getId(), match.getMatchId(), 11000,
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String fakeAccessToken = "mock.access.token";
+
+        given(request.getHeader("access")).willReturn(fakeAccessToken);
+        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+
+        CancelMatchRequest cancelMatchRequest = new CancelMatchRequest(match.getMatchId(), UUID.randomUUID().toString(),
             "단순 변심");
 
-        given(userRepository.findById(cancelMatchRequest.getUserId())).willReturn(Optional.of(user));
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
         MatchPlayer matchPlayer = getMatchPlayer();
-        given(matchPlayerRepository.findByUserAndMatch(user, match)).willReturn(Optional.of(matchPlayer));
+        given(matchPlayerRepository.findByUserAndMatchAndStatus(user, match, PlayerStatus.READY)).willReturn(Optional
+            .of(matchPlayer));
         matchPlayer.chgStatusCancel();
 
         /* then */
-        assertThatThrownBy(() -> matchPlayerService.cancelMatch(cancelMatchRequest))
+        assertThatThrownBy(() -> matchPlayerService.cancelMatch(request, cancelMatchRequest))
             .isInstanceOf(ApiException.class)
             .hasMessage("이미 취소된 매치입니다.");
     }

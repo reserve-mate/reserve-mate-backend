@@ -32,9 +32,9 @@ public class MatchPlayerController {
     }
 
     @PutMapping("/cancelMatch")
-    public ResponseEntity<Void> cancelMatch(@RequestBody CancelMatchRequest cancelMatchRequest) {
-        matchPlayerService.cancelMatch(cancelMatchRequest);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> cancelMatch(HttpServletRequest request,
+        @RequestBody CancelMatchRequest cancelMatchRequest) {
+        return ResponseEntity.ok(matchPlayerService.cancelMatch(request, cancelMatchRequest));
     }
 
     @GetMapping("/verifyMatch")

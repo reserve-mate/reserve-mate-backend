@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.user.domain.User;
 
 public interface FacilityManagerRepository extends JpaRepository<FacilityManager, Long> {
 
@@ -15,5 +16,7 @@ public interface FacilityManagerRepository extends JpaRepository<FacilityManager
     List<FacilityManager> findByUserId(@Param("userId") Long userId);
 
     List<FacilityManager> findByFacility(Facility facility);
+
+    List<FacilityManager> findByUser(User user);
 
 }

@@ -1,39 +1,93 @@
-package com.reservemate.reserve_mate_backend.facility.service;
+package com.reservemate.reserve_mate_backend.admin.facilities.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityNameResponseDto;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @Transactional
-public class FacilityServiceTest {
+public class AdminFacilityServiceTest {
 
     @Mock
     private FacilityManagerRepository facilityManagerRepository;
 
     @Mock
+    private FacilityRepository facilityRepository;
+
+    @Mock
+    private CourtRepository courtRepository;
+
+    @Mock
     private OperationHourRepository operationHourRepository;
 
+    @Mock
+    private FileService fileService;
+
+    @Mock
+    private FacilityImageRepository facilityImageRepository;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
     @InjectMocks
-    private FacilityService facilityService;
+    private AdminFacilityService adminFacilityService;
+
+    @Test
+    @DisplayName("매치 등록 시 시설 조회")
+    void testGetMatchFacilityNames() {
+        /* given */
+        List<FacilityManager> facilityManagers = getFacilityManagers();
+        List<OperatingHour> hours = getOperationHours(facilityManagers);
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String mockAccessToken = "mock.access.token";
+
+        given(request.getHeader("access")).willReturn(mockAccessToken);
+        given(jwtUtil.getId(mockAccessToken)).willReturn(1L);
+        given(facilityManagerRepository.findByUserId(1L)).willReturn(facilityManagers);
+        given(operationHourRepository.findByFacilityInAndDayOfWeek(FacilityManager.getFacilityIds(facilityManagers),
+            Utils.getDayOfWeek()))
+            .willReturn(hours);
+
+        /* when */
+        List<FacilityNameResponseDto> responseDtos = adminFacilityService.getMatchFacilityNames(request,
+            SportType.FUTSAL);
+
+        /* then */
+        assertThat(responseDtos.size()).isEqualTo(2);
+        assertThat(responseDtos.get(0).getFacilityName()).isEqualTo("시설1");
+    }
 
     private List<OperatingHour> getOperationHours(List<FacilityManager> facilityManagers) {
 
@@ -94,5 +148,4 @@ public class FacilityServiceTest {
             .build();
         return facility;
     }
-
 }

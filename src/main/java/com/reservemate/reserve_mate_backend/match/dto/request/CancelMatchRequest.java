@@ -13,9 +13,8 @@ import lombok.Setter;
 @Setter
 public class CancelMatchRequest {
 
-    private Long userId;
     private Long matchId;
-    private Integer amount;
+    private String orderId;
     private String cancelReason;
 
 }

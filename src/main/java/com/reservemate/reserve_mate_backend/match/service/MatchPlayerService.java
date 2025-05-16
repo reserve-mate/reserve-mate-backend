@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -42,26 +44,47 @@ public class MatchPlayerService {
     private final ApplicationEventPublisher eventPublisher;
     private final JwtUtil jwtUtil;
 
+    /* 매치 플레이어 진행중으로 상태 변경 */
+    @Transactional
+    public void changePlayerOngoing(List<MatchPlayer> matchPlayers) {
+        List<Long> playerIds = matchPlayers.stream()
+            .map((player) -> player.getPlayerId()).toList();
+
+        // 매치 플레이어 상태값 변경
+        matchPlayerRepository.updateOngoinPlayer(playerIds);
+    }
+
     /* 매치 취소 */
     @Transactional
-    public void cancelMatch(CancelMatchRequest cancelMatchRequest) {
-        User user = userRepository.findById(cancelMatchRequest.getUserId())
+    public String cancelMatch(HttpServletRequest request, CancelMatchRequest cancelMatchRequest) {
+
+        String accessToken = request.getHeader("access");
+        if (accessToken == null) {
+            throw new ApiException(ErrorCode.UNAUTHORIZED_CODE);
+        }
+
+        Long userId = jwtUtil.getId(accessToken);
+
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         Match match = matchRepository.findById(cancelMatchRequest.getMatchId())
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isEndMatch();
 
-        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(user, match)
+        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatchAndStatus(user, match, PlayerStatus.READY)
             .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PLAYER));
         matchPlayer.isCanCancel();
 
-        eventPublisher.publishEvent(new CancelPaymentDto(matchPlayer, cancelMatchRequest.getCancelReason()));
+        eventPublisher.publishEvent(new CancelPaymentDto(cancelMatchRequest.getOrderId(), cancelMatchRequest
+            .getCancelReason()));
 
         matchPlayer.chgStatusCancel();
 
         int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
         match.chgMatchStatus(playerCnt);
+
+        return cancelMatchRequest.getOrderId();
     }
 
     /* 매치 신청 요청 */

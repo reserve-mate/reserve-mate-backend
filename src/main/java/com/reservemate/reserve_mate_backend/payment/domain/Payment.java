@@ -132,6 +132,12 @@ public class Payment extends BaseEntity {
         return matchPrice;
     }
 
+    public void isCancel() {
+        if (this.status != PaymentStatus.CANCELED) {
+            throw new ApiException(ErrorCode.NOT_CANCEL_PAYMENT);
+        }
+    }
+
     // 가격 검증
     public void verifyPayment(int amount) {
         if (this.amount != amount) {

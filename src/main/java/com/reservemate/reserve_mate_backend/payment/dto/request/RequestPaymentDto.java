@@ -5,7 +5,6 @@ import java.util.UUID;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import lombok.AllArgsConstructor;

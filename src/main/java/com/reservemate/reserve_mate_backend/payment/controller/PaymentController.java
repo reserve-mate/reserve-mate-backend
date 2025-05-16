@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/payment")
@@ -26,6 +27,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    @GetMapping("/cancelStatus")
+    public ResponseEntity<PaymentResponse> getMethodName(@RequestParam("orderId") String orderId) {
+        return ResponseEntity.ok(paymentService.checkCancelStatus(orderId));
+    }
 
     /* 결제 이력 조회 */
     @GetMapping("/payHist")
