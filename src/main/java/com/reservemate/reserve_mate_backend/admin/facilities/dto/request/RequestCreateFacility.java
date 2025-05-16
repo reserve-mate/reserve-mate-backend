@@ -1,4 +1,4 @@
-package com.reservemate.reserve_mate_backend.admin.facilities.dto;
+package com.reservemate.reserve_mate_backend.admin.facilities.dto.request;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
@@ -11,7 +11,6 @@ public class RequestCreateFacility {
     private String name;
     private SportType sportType;
     private Address address;
-    private String detailAddress;
     private String description;
 
     private boolean hasParking;

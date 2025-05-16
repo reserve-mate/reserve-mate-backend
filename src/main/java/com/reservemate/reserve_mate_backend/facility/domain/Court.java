@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.RequestCreateCourt;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -23,10 +23,6 @@ public class Court extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
-
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private CourtMainType courtMainType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

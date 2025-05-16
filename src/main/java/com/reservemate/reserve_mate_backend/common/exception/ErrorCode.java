@@ -39,7 +39,8 @@ public enum ErrorCode {
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,
         "매치 신청이력이 존재하지 않습니다."), ALREADY_CANCEL_PLAYER(BAD_REQUEST, "이미 취소된 매치입니다."), ALREADY_COMPLETE_PLAYER(
-            BAD_REQUEST, "이미 참여했던 이력이 있는 매치입니다."), MATCH_HAS_PARTICIPANTS(BAD_REQUEST, "이미 참가자가 존재하여 이 매치를 삭제할 수 없습니다.")
+            BAD_REQUEST, "이미 참여했던 이력이 있는 매치입니다."), MATCH_HAS_PARTICIPANTS(BAD_REQUEST,
+                "이미 참가자가 존재하여 이 매치를 삭제할 수 없습니다."), NOT_ONGOING_PLAYER(BAD_REQUEST, "현재 진행중인 플레이어가 아닙니다.")
 
     // 결제 관련 에러
     , PAYMETN_ERROR(INTERNAL_SERVER_ERROR, "결제처리가 정상적으로 처리되지 않았습니다."), PAYMENT_FAILED(BAD_REQUEST,

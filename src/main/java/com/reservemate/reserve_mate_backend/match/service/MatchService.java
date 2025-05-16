@@ -35,6 +35,7 @@ import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
@@ -112,8 +113,7 @@ public class MatchService {
 
         List<MatchStatus> status = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH);
 
-        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(), (Utils
-            .getNowTime()), status);
+        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(), 18, status);
 
         if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i += batchSize) {
@@ -132,6 +132,7 @@ public class MatchService {
 
                 if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
                     match.matchStatChangeSchedule(matchPlayers.size());
+                    eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers));
                 } else if (matchStatus == MatchStatus.APPLICABLE) {
                     match.chgEndMatch();
                 }

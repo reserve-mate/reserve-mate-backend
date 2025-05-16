@@ -42,6 +42,10 @@ public class MatchPlayer extends BaseEntity {
     private Long playerId;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "removal_reason", updatable = false)
+    private EjectionReason removalReason;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private PlayerStatus status;
 
@@ -83,6 +87,19 @@ public class MatchPlayer extends BaseEntity {
     // 매치 신청 상태 취소로 수정
     public void chgStatusCancel() {
         this.status = PlayerStatus.CANCEL;
+    }
+
+    // 현재 진행중인 참가자인지 검증
+    public void isOngoingPlayer() {
+        if (this.status == PlayerStatus.ONGOING) {
+            throw new ApiException(ErrorCode.NOT_ONGOING_PLAYER);
+        }
+    }
+
+    // 참가자 강퇴 상태 변경
+    public void removePlayer(EjectionReason ejectionReason) {
+        this.removalReason = ejectionReason;
+        this.status = PlayerStatus.KICKED;
     }
 
 }

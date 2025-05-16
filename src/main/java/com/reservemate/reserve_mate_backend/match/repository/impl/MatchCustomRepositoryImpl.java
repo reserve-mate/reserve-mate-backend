@@ -93,12 +93,16 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             : null;
     }
 
+    /* 사용자입장 매치 목록 조회 */
     @Override
     public Slice<MatchesDto> getMatches(Pageable pageable, MatchSearchDto matchSearchDto) {
 
         QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
         QCourt court = QCourt.court;
         QFacility facility = QFacility.facility;
+
+        List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
+            PlayerStatus.COMPLETED);
 
         List<MatchesDto> matches = query.select(
             Projections.fields(MatchesDto.class,
@@ -117,7 +121,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .join(court).on(court.eq(match.court))
             //.join(facility).on(facility.eq(court.facility))
             .leftJoin(matchPlayer).on(
-                matchPlayer.match.eq(match), matchPlayer.status.eq(PlayerStatus.READY)
+                matchPlayer.match.eq(match), matchPlayer.status.in(playerStatus)
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
@@ -156,6 +160,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         QFacility facility = QFacility.facility;
 
         List<UserRole> roles = Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_FACILITY_MANAGER);
+        List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
+            PlayerStatus.COMPLETED);
 
         List<AdminMatchesResponse> matchesResponses = query.select(
             Projections.fields(AdminMatchesResponse.class,
@@ -172,7 +178,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .join(court).on(facility.id.eq(court.facility.id))
             .join(match).on(match.court.id.eq(court.id))
             .leftJoin(matchPlayer).on(
-                matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.eq(PlayerStatus.READY)
+                matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.in(playerStatus)
             )
             .where(
                 facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue()), sportTypeEq(

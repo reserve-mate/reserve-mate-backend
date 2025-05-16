@@ -131,7 +131,9 @@ public class AdminMatchServiceTest {
         field.set(matchPlayer, LocalDateTime.now());
 
         matchPlayers.add(matchPlayer);
-        given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY)).willReturn(matchPlayers);
+        List<PlayerStatus> playerStatus = List.of(PlayerStatus.KICKED, PlayerStatus.READY, PlayerStatus.ONGOING,
+            PlayerStatus.COMPLETED);
+        given(matchPlayerRepository.findByMatchAndStatusIn(match, playerStatus)).willReturn(matchPlayers);
 
         /* when */
         AdminMatchDetailResponse detailResponse = adminMatchService.getAdminMatchDetail(match.getMatchId());

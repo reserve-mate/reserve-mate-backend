@@ -18,6 +18,7 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
@@ -49,12 +50,15 @@ public class AdminMatchService {
             match.isEndMatch();
             match.isNotOngoinChk();
         } else if (matchStatus == MatchStatus.ONGOING || matchStatus == MatchStatus.FINISH) {
-            int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY) + 1;
+            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
+            int playerCnt = matchPlayers.size() + 1;
 
             if (matchStatus == MatchStatus.ONGOING) {
                 match.isOngoinChk();
                 match.isNotFinishOrClose(playerCnt);
                 match.validateOngoingTransitionByTime();
+
+                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers));
             } else if (matchStatus == MatchStatus.FINISH) {
                 match.isFinish();
                 match.isNotCloseToDeadLine(playerCnt);
@@ -86,7 +90,9 @@ public class AdminMatchService {
     public AdminMatchDetailResponse getAdminMatchDetail(Long matchId) {
         Match match = matchRepository.findById(matchId).orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
 
-        List<MatchPlayer> players = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
+        List<PlayerStatus> playerStatus = List.of(PlayerStatus.KICKED, PlayerStatus.READY, PlayerStatus.ONGOING,
+            PlayerStatus.COMPLETED);
+        List<MatchPlayer> players = matchPlayerRepository.findByMatchAndStatusIn(match, playerStatus);
 
         return AdminMatchDetailResponse.getAdminMatchDetailResponse(match, players);
     }

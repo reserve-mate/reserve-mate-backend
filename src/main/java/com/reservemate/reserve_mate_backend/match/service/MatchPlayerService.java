@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,16 @@ public class MatchPlayerService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final JwtUtil jwtUtil;
+
+    /* 매치 플레이어 진행중으로 상태 변경 */
+    @Transactional
+    public void changePlayerOngoing(List<MatchPlayer> matchPlayers) {
+        List<Long> playerIds = matchPlayers.stream()
+            .map((player) -> player.getPlayerId()).toList();
+
+        // 매치 플레이어 상태값 변경
+        matchPlayerRepository.updateOngoinPlayer(playerIds);
+    }
 
     /* 매치 취소 */
     @Transactional
