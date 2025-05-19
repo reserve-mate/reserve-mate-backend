@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -285,6 +286,24 @@ public class Match extends BaseEntity {
         if (today.isBefore(matchDateTime)) {
             throw new ApiException(ErrorCode.MATCH_NOT_STARTED_YET);
         }
+    }
+
+    // 해당 매치가 수정 가능한 상태인지 검증
+    public void isModifiable() {
+        List<MatchStatus> matchStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
+            MatchStatus.FINISH);
+        if (!matchStatus.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.UPDATE_NOT_ALLOWED_MATCH);
+        }
+    }
+
+    // 매치 데이터 수정
+    public void matchModify(AdminMatchModifyRequest modifyRequest, Court court, FacilityManager manager) {
+        this.matchName = modifyRequest.getMatchTitle();
+        this.teamCapacity = modifyRequest.getTeamCapacity();
+        this.description = modifyRequest.getDescription();
+        this.court = court;
+        this.facilityManager = manager;
     }
 
 }

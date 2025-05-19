@@ -8,12 +8,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -35,8 +40,47 @@ public class AdminMatchService {
     private final MatchCustomRepository matchCustomRepository;
     private final MatchRepository matchRepository;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final CourtRepository courtRepository;
+    private final FacilityManagerRepository facilityManagerRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final JwtUtil jwtUtil;
+
+    /* 매치 정보 수정 */
+    @Transactional
+    public void adminMatchModify(Long matchId, AdminMatchModifyRequest modifyRequest) {
+
+        Match match = matchRepository.findById(matchId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
+        match.isModifiable();
+
+        int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
+        modifyRequest.isTeamCapacityOver(playerCnt);
+        match.chgMatchStatus(playerCnt);
+
+        Court court = courtRepository.findById(modifyRequest.getFacilityCourtId())
+            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+
+        FacilityManager manager = facilityManagerRepository.findById(modifyRequest.getManagerId())
+            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+
+        // 해당 시간대에 겹치는 코트가 있는지 검증
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
+        List<Match> matches = matchRepository.findByMatchDateAndCourtAndMatchStatusNotInAndMatchIdNot(modifyRequest
+            .getMatchDate(), court, matchStatus, matchId);
+        Match.isTimeConfilict(matches, modifyRequest.getMatchTime(), modifyRequest.getEndTime());
+
+        // 해당 매니저가 다른 매치에도 배정되어있는지 검증
+        boolean isDupleMatchManager = matchRepository.existsConflictManagerAnotherMatch(modifyRequest.getMatchDate(),
+            manager.getId(), court.getId(), modifyRequest.getMatchTime(), modifyRequest.getEndTime(), matchId);
+
+        if (isDupleMatchManager) {
+            throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);
+        }
+
+        match.matchModify(modifyRequest, court, manager);
+
+        // 알림 기능 구현??
+    }
 
     /* 매치 상태 변경 */
     @Transactional

@@ -35,6 +35,8 @@ import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -59,6 +61,12 @@ public class AdminMatchServiceTest {
 
     @Mock
     private MatchPlayerRepository matchPlayerRepository;
+
+    @Mock
+    private CourtRepository courtRepository;
+
+    @Mock
+    private FacilityManagerRepository facilityManagerRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
