@@ -134,8 +134,29 @@ public class Match extends BaseEntity {
         }
     }
 
+    // 매치 참가지 변동 시 상태 변경
     public void chgMatchStatus(int playerCnt) {
         int teamCapacityHalf = (this.teamCapacity / 2);
+
+        if (this.matchStatus == MatchStatus.APPLICABLE) { // 참가자가 반이 넘은 경우
+            if (playerCnt >= teamCapacityHalf) {
+                this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+            }
+        } else if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
+            if (playerCnt >= this.teamCapacity) {
+                this.matchStatus = MatchStatus.FINISH;
+            }
+
+            if (playerCnt < teamCapacityHalf) {
+                this.matchStatus = MatchStatus.APPLICABLE;
+            }
+        } else if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
+            this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+        }
+    }
+
+    public void chgModifyMatchStat(int playerCnt, int capacity) {
+        int teamCapacityHalf = (capacity / 2);
 
         if (this.matchStatus == MatchStatus.APPLICABLE) { // 참가자가 반이 넘은 경우
             if (playerCnt >= teamCapacityHalf) {

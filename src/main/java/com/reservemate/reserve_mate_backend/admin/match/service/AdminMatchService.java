@@ -55,7 +55,7 @@ public class AdminMatchService {
 
         int playerCnt = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY);
         modifyRequest.isTeamCapacityOver(playerCnt);
-        match.chgMatchStatus(playerCnt);
+        match.chgModifyMatchStat(playerCnt, modifyRequest.getTeamCapacity());
 
         Court court = courtRepository.findById(modifyRequest.getFacilityCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
