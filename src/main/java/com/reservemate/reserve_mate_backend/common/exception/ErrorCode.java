@@ -34,7 +34,10 @@ public enum ErrorCode {
                                         BAD_REQUEST,
                                         "마감 임박 상태의 참가인원 과반수가 넘은 매치만 모집 마감 처리할 수 있습니다."), NOT_AVAILABLE_STAT_CHG(
                                             BAD_REQUEST, "해당 상태에서는 상태를 변경할 수 없습니다."), MATCH_NOT_STARTED_YET(BAD_REQUEST,
-                                                "아직 매치 시작 시간이 되지 않아 상태를 변경할 수 없습니다.")
+                                                "아직 매치 시작 시간이 되지 않아 상태를 변경할 수 없습니다."), MAX_TEAM_SIZE_CONFLICT(CONFLICT,
+                                                    "현재 참가 인원보다 작은 최대 팀원 수로 변경할 수 없습니다."), UPDATE_NOT_ALLOWED_MATCH(
+                                                        CONFLICT, "수정이 불가능한 상태의 매치입니다."), MATCH_NOT_MANAGER(BAD_REQUEST,
+                                                            "매치의 매니저만 수행할 수 있는 작업입니다.")
 
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,

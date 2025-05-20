@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.admin.match.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.MatchStatusUpdateRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class AdminMatchController {
 
     private final AdminMatchService adminMatchService;
+
+    @PutMapping("/edit/{matchId}")
+    public ResponseEntity<Void> postMethodName(@PathVariable("matchId") Long matchId,
+        @RequestBody AdminMatchModifyRequest modifyRequest) {
+        adminMatchService.adminMatchModify(matchId, modifyRequest);
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/status/{matchId}")
     public ResponseEntity<Void> updateMatchStat(@PathVariable("matchId") Long matchId,

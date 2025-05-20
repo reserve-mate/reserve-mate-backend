@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,8 +10,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -74,11 +73,10 @@ public class MatchService {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
-    /* 시간이 지난 날짜 종료 처리 */
-    @Scheduled(cron = "0 0 6-23 * * *") // 5초마다 실행
+    // /* 시간이 지난 날짜 종료 처리 */
     @Transactional
     public void endBeforeMatch() {
-        log.info("---------" + LocalTime.now().getHour() + "시 ---------");
+        log.info("is transaction active: {}", TransactionSynchronizationManager.isActualTransactionActive());
         matchTimeOngoing(); // 현재 시간이 매치 시간에 도달한 경우
         expireIfEndTimeReached(); // 현재 시간이 매치 종료 시간에 도달한 경우
     }
@@ -87,8 +85,9 @@ public class MatchService {
     private void expireIfEndTimeReached() {
         int batchSize = 1000;
 
-        List<Match> matches = matchRepository.findByMatchDateAndEndTimeAndMatchStatus(LocalDate.now(), (Utils
-            .getNowTime()), MatchStatus.ONGOING);
+        List<Match> matches = matchRepository.findByMatchDateAndEndTimeAndMatchStatus(LocalDate.now(), Utils
+            .getNowTime(),
+            MatchStatus.ONGOING);
 
         if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i += batchSize) {
@@ -102,7 +101,10 @@ public class MatchService {
     // 진행중인 매치 종료 시간되면 종료 상태로 change
     private void endTimeBatchProcess(List<Match> goingMatches) {
         for (Match match : goingMatches) {
+            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.ONGOING);
             match.chgEndMatch();
+            eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.COMPLETED));
+            matchRepository.save(match);
         }
     }
 
@@ -113,8 +115,8 @@ public class MatchService {
 
         List<MatchStatus> status = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH);
 
-        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(), (Utils
-            .getNowTime()), status);
+        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(),
+            (Utils.getNowTime()), status);
 
         if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i += batchSize) {
@@ -127,23 +129,29 @@ public class MatchService {
     // 매치 진행 중 or 종료 처리
     private void processBatch(List<Match> batchMatch) {
         for (Match match : batchMatch) {
+            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
             MatchStatus matchStatus = match.getMatchStatus();
             if (matchStatus == MatchStatus.APPLICABLE || matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
-                List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
                 if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
                     match.matchStatChangeSchedule(matchPlayers.size());
-                    eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers));
                 } else if (matchStatus == MatchStatus.APPLICABLE) {
                     match.chgEndMatch();
                 }
 
                 if (match.getMatchStatus() == MatchStatus.END) { // 매치 종료 될 시 환불 처리
                     eventPublisher.publishEvent(new MatchCancelPaymentRequest(matchPlayers));
+                } else if (match.getMatchStatus() == MatchStatus.ONGOING) {   // 매치 진행 중 처리 시 참가자 상태 변경
+                    eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
                 }
             } else if (matchStatus == MatchStatus.FINISH) {
+                log.info("Before status: {}", match.getMatchStatus());
                 match.chgMatchOngoin();
+                log.info("After status: {}", match.getMatchStatus());
+                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
             }
+
+            matchRepository.save(match);
         }
     }
 

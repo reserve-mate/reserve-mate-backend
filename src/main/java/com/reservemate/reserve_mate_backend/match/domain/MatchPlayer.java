@@ -42,7 +42,7 @@ public class MatchPlayer extends BaseEntity {
     private Long playerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "removal_reason", updatable = false)
+    @Column(name = "removal_reason")
     private EjectionReason removalReason;
 
     @Enumerated(EnumType.STRING)
@@ -92,6 +92,12 @@ public class MatchPlayer extends BaseEntity {
     // 현재 진행중인 참가자인지 검증
     public void isOngoingPlayer() {
         if (this.status == PlayerStatus.ONGOING) {
+            throw new ApiException(ErrorCode.EXIST_MATCH_PLAYER_ERROR);
+        }
+    }
+
+    public void isNotOngoingPlayer() {
+        if (this.status != PlayerStatus.ONGOING) {
             throw new ApiException(ErrorCode.NOT_ONGOING_PLAYER);
         }
     }

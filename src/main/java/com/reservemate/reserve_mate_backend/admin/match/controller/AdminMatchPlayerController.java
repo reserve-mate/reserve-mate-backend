@@ -6,11 +6,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.PlayerEjectRequest;
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchPlayerService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -20,10 +21,10 @@ public class AdminMatchPlayerController {
 
     private final AdminMatchPlayerService adminMatchPlayerService;
 
-    @PostMapping("/eject/{playerId}")
-    public ResponseEntity<Void> postMethodName(@PathVariable("playerId") Long playerId,
+    @PutMapping("/eject/{playerId}")
+    public ResponseEntity<Void> postMethodName(HttpServletRequest request, @PathVariable("playerId") Long playerId,
         @RequestBody PlayerEjectRequest ejectRequest) {
-        adminMatchPlayerService.removePlayerFromMatch(playerId, ejectRequest.getEjectionReason());
+        adminMatchPlayerService.removePlayerFromMatch(request, playerId, ejectRequest);
         return ResponseEntity.ok().build();
     }
 

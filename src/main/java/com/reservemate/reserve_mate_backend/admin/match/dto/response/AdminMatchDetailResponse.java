@@ -27,7 +27,9 @@ public class AdminMatchDetailResponse {
     private String matchTitle;          // 매치 제목
     private SportType sportType;        // 매치 종목
     private MatchStatus matchStatus;    // 매치 상태
+    private Long facilityId;            // 매치 시설 일련번호
     private String facilityName;        // 매치 시설
+    private Long facilityCourtId;       // 매치 코트 번호
     private String facilityCourt;       // 매치 코트
     private String address;             // 매치 주소
     private LocalDate matchDate;        // 매치 날짜
@@ -35,8 +37,10 @@ public class AdminMatchDetailResponse {
     private int endTime;                // 매치 끝 시간
     private int teamCapacity;           // 매치 총원
     private int matchPrice;             // 매치 가격
+    private Long managerId;             // 매치 매니저 일련번호
+    private String managerName;         // 매치 매니저 이름
     private String description;         // 매치 설명
-    private List<AdminPlayer> adminPlayers;
+    private List<AdminPlayer> adminPlayers; // 매치 참가자
 
     public static AdminMatchDetailResponse getAdminMatchDetailResponse(Match match, List<MatchPlayer> players) {
 
@@ -45,7 +49,9 @@ public class AdminMatchDetailResponse {
             .matchTitle(match.getMatchName())
             .sportType(match.getFacility().getSportType())
             .matchStatus(match.getMatchStatus())
+            .facilityId(match.getFacility().getId())
             .facilityName(match.getFacility().getName())
+            .facilityCourtId(match.getCourt().getId())
             .facilityCourt(match.getCourt().getName())
             .address(match.getFacility().getAddress().getFullAddress())
             .matchDate(match.getMatchDate())
@@ -53,6 +59,8 @@ public class AdminMatchDetailResponse {
             .endTime(match.getEndTime())
             .teamCapacity(match.getTeamCapacity())
             .matchPrice(match.getMatchPrice())
+            .managerId(match.getFacilityManager().getId())
+            .managerName(match.getFacilityManager().getUser().getName())
             .description(match.getDescription())
             .adminPlayers(AdminPlayer.getAdminPlayers(players))
             .build();

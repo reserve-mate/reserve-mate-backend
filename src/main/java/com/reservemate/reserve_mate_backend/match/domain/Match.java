@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -133,8 +134,29 @@ public class Match extends BaseEntity {
         }
     }
 
+    // 매치 참가지 변동 시 상태 변경
     public void chgMatchStatus(int playerCnt) {
         int teamCapacityHalf = (this.teamCapacity / 2);
+
+        if (this.matchStatus == MatchStatus.APPLICABLE) { // 참가자가 반이 넘은 경우
+            if (playerCnt >= teamCapacityHalf) {
+                this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+            }
+        } else if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
+            if (playerCnt >= this.teamCapacity) {
+                this.matchStatus = MatchStatus.FINISH;
+            }
+
+            if (playerCnt < teamCapacityHalf) {
+                this.matchStatus = MatchStatus.APPLICABLE;
+            }
+        } else if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
+            this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+        }
+    }
+
+    public void chgModifyMatchStat(int playerCnt, int capacity) {
+        int teamCapacityHalf = (capacity / 2);
 
         if (this.matchStatus == MatchStatus.APPLICABLE) { // 참가자가 반이 넘은 경우
             if (playerCnt >= teamCapacityHalf) {
@@ -284,6 +306,30 @@ public class Match extends BaseEntity {
 
         if (today.isBefore(matchDateTime)) {
             throw new ApiException(ErrorCode.MATCH_NOT_STARTED_YET);
+        }
+    }
+
+    // 해당 매치가 수정 가능한 상태인지 검증
+    public void isModifiable() {
+        List<MatchStatus> matchStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
+            MatchStatus.FINISH);
+        if (!matchStatus.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.UPDATE_NOT_ALLOWED_MATCH);
+        }
+    }
+
+    // 매치 데이터 수정
+    public void matchModify(AdminMatchModifyRequest modifyRequest, Court court, FacilityManager manager) {
+        this.matchName = modifyRequest.getMatchTitle();
+        this.teamCapacity = modifyRequest.getTeamCapacity();
+        this.description = modifyRequest.getDescription();
+        this.court = court;
+        this.facilityManager = manager;
+    }
+
+    public void validateManager(Long managerId) {
+        if (this.facilityManager.getId() != managerId) {
+            throw new ApiException(ErrorCode.MATCH_NOT_MANAGER);
         }
     }
 
