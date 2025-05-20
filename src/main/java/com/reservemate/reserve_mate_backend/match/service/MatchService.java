@@ -85,7 +85,8 @@ public class MatchService {
     private void expireIfEndTimeReached() {
         int batchSize = 1000;
 
-        List<Match> matches = matchRepository.findByMatchDateAndEndTimeAndMatchStatus(LocalDate.now(), 22,
+        List<Match> matches = matchRepository.findByMatchDateAndEndTimeAndMatchStatus(LocalDate.now(), Utils
+            .getNowTime(),
             MatchStatus.ONGOING);
 
         if (!matches.isEmpty()) {
@@ -102,8 +103,8 @@ public class MatchService {
         for (Match match : goingMatches) {
             List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.ONGOING);
             match.chgEndMatch();
-            matchRepository.save(match);
             eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.COMPLETED));
+            matchRepository.save(match);
         }
     }
 
@@ -114,8 +115,8 @@ public class MatchService {
 
         List<MatchStatus> status = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH);
 
-        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.of(2025, 05, 19),
-            22, status);
+        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(),
+            (Utils.getNowTime()), status);
 
         if (!matches.isEmpty()) {
             for (int i = 0; i < matches.size(); i += batchSize) {

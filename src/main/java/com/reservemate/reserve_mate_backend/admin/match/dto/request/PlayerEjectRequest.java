@@ -16,5 +16,6 @@ import lombok.Setter;
 public class PlayerEjectRequest {
 
     private EjectionReason ejectionReason;
+    private Long facilityId;
 
 }

@@ -327,4 +327,10 @@ public class Match extends BaseEntity {
         this.facilityManager = manager;
     }
 
+    public void validateManager(Long managerId) {
+        if (this.facilityManager.getId() != managerId) {
+            throw new ApiException(ErrorCode.MATCH_NOT_MANAGER);
+        }
+    }
+
 }
