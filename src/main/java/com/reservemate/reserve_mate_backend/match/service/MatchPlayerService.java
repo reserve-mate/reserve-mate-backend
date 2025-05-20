@@ -46,12 +46,12 @@ public class MatchPlayerService {
 
     /* 매치 플레이어 진행중으로 상태 변경 */
     @Transactional
-    public void changePlayerOngoing(List<MatchPlayer> matchPlayers) {
+    public void changePlayerOngoing(List<MatchPlayer> matchPlayers, PlayerStatus playerStatus) {
         List<Long> playerIds = matchPlayers.stream()
             .map((player) -> player.getPlayerId()).toList();
 
         // 매치 플레이어 상태값 변경
-        matchPlayerRepository.updateOngoinPlayer(playerIds);
+        matchPlayerRepository.updateOngoinPlayer(playerIds, playerStatus);
     }
 
     /* 매치 취소 */

@@ -43,8 +43,8 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
 
     // 매치 플레이어 진행중으로 상태 변경
     @Modifying(clearAutomatically = true)
-    @Query("update MatchPlayer mp set mp.status = 'ONGOING' where mp.playerId in (:playerIds)")
-    void updateOngoinPlayer(@Param("playerIds") List<Long> playerIds);
+    @Query("update MatchPlayer mp set mp.status = :playerStatus where mp.playerId in (:playerIds)")
+    void updateOngoinPlayer(@Param("playerIds") List<Long> playerIds, @Param("playerStatus") PlayerStatus playerStatus);
 
     // 매치 플레이어 참가자 및 퇴장자 조회
     List<MatchPlayer> findByMatchAndStatusIn(Match match, List<PlayerStatus> playerStatus);

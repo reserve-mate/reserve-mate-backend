@@ -102,7 +102,7 @@ public class AdminMatchService {
                 match.isNotFinishOrClose(playerCnt);
                 match.validateOngoingTransitionByTime();
 
-                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers));
+                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
             } else if (matchStatus == MatchStatus.FINISH) {
                 match.isFinish();
                 match.isNotCloseToDeadLine(playerCnt);
