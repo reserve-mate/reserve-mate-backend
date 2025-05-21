@@ -12,12 +12,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "facility_managers")
 @SQLDelete(sql = "UPDATE facility_managers SET deleted = true WHERE facility_manager_id = ?")
+@SQLRestriction("deleted = false")
 public class FacilityManager extends BaseEntity {
 
     @Id
@@ -54,7 +56,7 @@ public class FacilityManager extends BaseEntity {
     public static List<Long> getFacilityIds(List<FacilityManager> facilityManagers) {
         List<Long> ids = new ArrayList<>();
         facilityManagers.forEach(facilityManager -> {
-            ids.add(facilityManager.getId());
+            ids.add(facilityManager.facility.getId());
         });
         return ids;
     }

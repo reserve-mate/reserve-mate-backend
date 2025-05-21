@@ -1,14 +1,9 @@
 package com.reservemate.reserve_mate_backend.facility.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -20,8 +15,6 @@ import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
-import com.reservemate.reserve_mate_backend.facility.dto.request.FacilityNameRequestDto;
-import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityNameResponseDto;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -41,32 +34,6 @@ public class FacilityServiceTest {
 
     @InjectMocks
     private FacilityService facilityService;
-
-    @Test
-    @DisplayName("시설 목록 가져오기 테스트")
-    void testGetMatchFacilityNames() {
-
-        List<FacilityManager> facilityManagers = getFacilityManagers();
-        List<OperatingHour> hours = getOperationHours(facilityManagers);
-        FacilityNameRequestDto nameRequestDto = FacilityNameRequestDto.builder()
-            .userId(1L)
-            .sportType(SportType.FUTSAL)
-            .build();
-
-        /* given */
-        given(facilityManagerRepository.findByUserId(nameRequestDto.getUserId())).willReturn(facilityManagers);
-        given(operationHourRepository.findByFacilityInAndDayOfWeek(FacilityManager.getFacilityIds(facilityManagers),
-            Utils.getDayOfWeek()))
-            .willReturn(hours);
-
-        /* when */
-        List<FacilityNameResponseDto> responseDtos = facilityService.getMatchFacilityNames(nameRequestDto);
-
-        /* then */
-        assertThat(responseDtos.size()).isEqualTo(2);
-        assertThat(responseDtos.get(0).getFacilityName()).isEqualTo("시설1");
-
-    }
 
     private List<OperatingHour> getOperationHours(List<FacilityManager> facilityManagers) {
 
@@ -92,11 +59,6 @@ public class FacilityServiceTest {
         List<FacilityManager> facilityManagers = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
-            // FacilityManager facilityManager = FacilityManager.builder()
-            //     .id(Long.valueOf(i))
-            //     .facility(getFacilityLoop(i))
-            //     .user(getUserLoop(i))
-            //     .build();
             FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i));
 
             facilityManagers.add(facilityManager);

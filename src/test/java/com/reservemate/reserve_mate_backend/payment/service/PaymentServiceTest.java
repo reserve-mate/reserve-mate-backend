@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -21,10 +22,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -40,6 +43,7 @@ import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -47,6 +51,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
@@ -120,7 +125,7 @@ public class PaymentServiceTest {
     private String failBody;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp(TestInfo testInfo) throws IOException {
         user = getUser();
         facility = getFacility();
         court = getCourt(facility);
@@ -128,6 +133,10 @@ public class PaymentServiceTest {
         match = getMatch(court, facilityManager);
 
         tossClient = new PayClientImpl();
+
+        if (testInfo.getDisplayName().equals("결제 취소 상태 체크")) { // 해당 테스트 아래 로직 건너뛰기
+            return;
+        }
 
         mockWebServer = new MockWebServer();
         mockWebServer.start();
@@ -201,8 +210,70 @@ public class PaymentServiceTest {
     }
 
     @AfterEach
-    void terminate() throws IOException {
+    void terminate(TestInfo testInfo) throws IOException {
+        if (testInfo.getDisplayName().equals("결제 취소 상태 체크")) { // 해당 테스트 아래 로직 건너뛰기
+            return;
+        }
         mockWebServer.shutdown();
+    }
+
+    @Test
+    @DisplayName("매치 삭제 후 각 플레이어 환불")
+    void testMatchCancelPayment() throws Exception {
+        /* given */
+        Payment payment = getPayment();
+        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
+        List<MatchPlayer> players = List.of(matchPlayer);
+
+        payment.markAsPaid("결제완료일련번호");
+
+        for (MatchPlayer player : players) {
+            given(paymentRepository.findByMatchAndUserAndStatus(eq(player.getMatch()), eq(player.getUser()), eq(
+                PaymentStatus.PAID))).willReturn(Optional.of(payment));
+            String cancelReason = "매치 취소에 따른 환불 처리";
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.statusCode()).thenReturn(200);
+            when(payClient.requestCancelPay(payment.getMerchantUid(), cancelReason, payment.getAmount())).thenReturn(
+                response);
+        }
+
+        /* when */
+        paymentService.matchCancelPayment(players);
+
+        /* then */
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(players.get(0).getStatus()).isEqualTo(PlayerStatus.MATCH_CANCELLED);
+    }
+
+    @Test
+    @DisplayName("결제 취소 상태 체크")
+    void testCheckCancelStatus() {
+        /* given */
+        Payment payment = Payment.builder()
+            .id(2L)
+            .impUid(UUID.randomUUID().toString())
+            .amount(11000)
+            .user(user)
+            .match(match)
+            .build();
+        payment.cancel("단순 변심", 11000);
+
+        MatchPlayer player = getMatchPlayer(user, match);
+        player.chgStatusCancel();
+
+        List<MatchPlayer> matchPlayers = new ArrayList<>();
+        matchPlayers.add(player);
+
+        String orderId = "asd123";
+
+        given(paymentRepository.findByImpUid(orderId)).willReturn(Optional.of(payment));
+        given(matchPlayerRepository.findByMatchAndUser(payment.getMatch(), payment.getUser())).willReturn(matchPlayers);
+
+        /* when */
+        PaymentResponse response = paymentService.checkCancelStatus(orderId);
+
+        /* then */
+        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
     }
 
     @Test
@@ -211,10 +282,9 @@ public class PaymentServiceTest {
         /* given */
         Payment payment = getPayment();
         payment.markAsPaid("결제완료일련번호");
-        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
 
-        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
-        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(payment.getImpUid(), "단순 변심");
+        given(paymentRepository.findByImpUid(cancelPaymentDto.getOrderId())).willReturn(Optional
             .of(payment));
         int refundAmount = payment.refundAmount();
 
@@ -238,10 +308,9 @@ public class PaymentServiceTest {
         /* given */
         Payment payment = getPayment();
         payment.markAsPaid("결제완료일련번호");
-        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
 
-        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
-        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(payment.getImpUid(), "단순 변심");
+        given(paymentRepository.findByImpUid(cancelPaymentDto.getOrderId())).willReturn(Optional
             .of(payment));
         int refundAmount = payment.refundAmount();
 
@@ -253,7 +322,7 @@ public class PaymentServiceTest {
 
         /* then */
         assertThatThrownBy(() -> paymentService.cancelPayment(cancelPaymentDto))
-            .isInstanceOf(TossApiException.class)
+            .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("결제 취소 실패");
 
     }
@@ -263,10 +332,9 @@ public class PaymentServiceTest {
     void testCancelPaymentException() {
         /* given */
         Payment payment = getPayment();
-        MatchPlayer matchPlayer = getMatchPlayer(payment.getUser(), payment.getMatch());
 
-        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(matchPlayer, "단순 변심");
-        given(paymentRepository.findByMatchAndUser(matchPlayer.getMatch(), matchPlayer.getUser())).willReturn(Optional
+        CancelPaymentDto cancelPaymentDto = new CancelPaymentDto(payment.getImpUid(), "단순 변심");
+        given(paymentRepository.findByImpUid(cancelPaymentDto.getOrderId())).willReturn(Optional
             .of(payment));
 
         payment.markAsFailed(); // 실패로 상태 변경
@@ -287,14 +355,14 @@ public class PaymentServiceTest {
         CancelPayRequestDto cancelPayRequestDto = CancelPayRequestDto.builder()
             .paymentKey("tviva20250410231140WtiG4")
             .cancelReason("단순 변심")
-            .cancelAmount(11000)
             .build();
 
         payment.markAsPaid(cancelPayRequestDto.getPaymentKey());
         given(paymentRepository.findByMerchantUid(cancelPayRequestDto.getPaymentKey())).willReturn(Optional.of(
             payment));
-        given(matchPlayerRepository.findByUserAndMatch(payment.getUser(), payment.getMatch())).willReturn(Optional.of(
-            matchPlayer));
+        given(matchPlayerRepository.findByUserAndMatchAndStatus(payment.getUser(), payment.getMatch(),
+            PlayerStatus.READY)).willReturn(Optional.of(
+                matchPlayer));
 
         int refundAmount = payment.refundAmount();
 
@@ -322,14 +390,14 @@ public class PaymentServiceTest {
         CancelPayRequestDto cancelPayRequestDto = CancelPayRequestDto.builder()
             .paymentKey("tviva20250410231140WtiG4")
             .cancelReason("단순 변심")
-            .cancelAmount(11000)
             .build();
 
         payment.markAsPaid(cancelPayRequestDto.getPaymentKey());
         given(paymentRepository.findByMerchantUid(cancelPayRequestDto.getPaymentKey())).willReturn(Optional.of(
             payment));
-        given(matchPlayerRepository.findByUserAndMatch(payment.getUser(), payment.getMatch())).willReturn(Optional.of(
-            matchPlayer));
+        given(matchPlayerRepository.findByUserAndMatchAndStatus(payment.getUser(), payment.getMatch(),
+            PlayerStatus.READY)).willReturn(Optional.of(
+                matchPlayer));
 
         int refundAmount = payment.refundAmount();
 

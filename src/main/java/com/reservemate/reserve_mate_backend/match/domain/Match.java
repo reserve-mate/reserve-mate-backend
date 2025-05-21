@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -83,9 +84,11 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "court_id")
     private Court court;
 
-    public Match(int start, int end) {
+    public Match(int start, int end, FacilityManager facilityManager, Court court) {
         this.matchTime = start;
         this.endTime = end;
+        this.facilityManager = facilityManager;
+        this.court = court;
     }
 
     public void validatePrice(Integer amount) {
@@ -117,6 +120,7 @@ public class Match extends BaseEntity {
                 if (Utils.isTimeConflict(existStarTime, existEndTime, newStartTime, newEndTime)) {
                     throw new ApiException(ErrorCode.EXIST_MATCH_TIME_ERROR);
                 }
+
             }
         }
     }
@@ -130,6 +134,7 @@ public class Match extends BaseEntity {
         }
     }
 
+    // 매치 참가지 변동 시 상태 변경
     public void chgMatchStatus(int playerCnt) {
         int teamCapacityHalf = (this.teamCapacity / 2);
 
@@ -137,19 +142,35 @@ public class Match extends BaseEntity {
             if (playerCnt >= teamCapacityHalf) {
                 this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
             }
-        }
-
-        if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
-            if (playerCnt == this.teamCapacity) {
+        } else if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
+            if (playerCnt >= this.teamCapacity) {
                 this.matchStatus = MatchStatus.FINISH;
             }
 
             if (playerCnt < teamCapacityHalf) {
                 this.matchStatus = MatchStatus.APPLICABLE;
             }
+        } else if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
+            this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
         }
+    }
 
-        if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
+    public void chgModifyMatchStat(int playerCnt, int capacity) {
+        int teamCapacityHalf = (capacity / 2);
+
+        if (this.matchStatus == MatchStatus.APPLICABLE) { // 참가자가 반이 넘은 경우
+            if (playerCnt >= teamCapacityHalf) {
+                this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
+            }
+        } else if (this.matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {  // 참가자가 다 찬 경우
+            if (playerCnt >= this.teamCapacity) {
+                this.matchStatus = MatchStatus.FINISH;
+            }
+
+            if (playerCnt < teamCapacityHalf) {
+                this.matchStatus = MatchStatus.APPLICABLE;
+            }
+        } else if (this.matchStatus == MatchStatus.FINISH) { // 인원이 마감된 매치에 매치를 이탈한 인원이 있는 경우
             this.matchStatus = MatchStatus.CLOSE_TO_DEADLINE;
         }
     }
@@ -170,6 +191,10 @@ public class Match extends BaseEntity {
         if (this.matchStatus != MatchStatus.FINISH) {
             throw new ApiException(ErrorCode.FINISH_MATCH_ERROR);
         }
+    }
+
+    public void chgMatchOngoin() {
+        this.matchStatus = MatchStatus.ONGOING;
     }
 
     public void chgEndMatch() {  // 매치 시작 시간이 지난 경우 매치상태 END로 수정
@@ -197,6 +222,115 @@ public class Match extends BaseEntity {
         this.matchName = matchName;
         this.teamCapacity = teamCapacity;
         this.description = description;
+    }
+
+    // 매치 과반수에 따른 상태 변경
+    public void matchStatChangeSchedule(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        if (playerCnt >= majority) { // 과반수와 같거나 넘긴 경우 진행중
+            chgMatchOngoin();
+        } else if (playerCnt < majority) { // 과반수를 넘기지 못하면 그대로 종료
+            chgEndMatch();
+        }
+    }
+
+    // 매치 취소 가능 상태 검증
+    public void isDeletable() {
+        List<MatchStatus> status = List.of(MatchStatus.FINISH, MatchStatus.ONGOING, MatchStatus.END,
+            MatchStatus.CANCELLED);
+
+        if (status.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.NON_DELETABLE);
+        }
+    }
+
+    // 매치 취소
+    public void matchCancel() {
+        this.matchStatus = MatchStatus.CANCELLED;
+    }
+
+    // 원하는 상태로 상태 변경
+    public void matchStatusChange(MatchStatus matchStatus) {
+        this.matchStatus = matchStatus;
+    }
+
+    // 진행중인 매치가 아닌 경우
+    public void isNotOngoinChk() {
+        if (this.matchStatus != MatchStatus.ONGOING) {
+            throw new ApiException(ErrorCode.NOT_ONGOING_MATCH);
+        }
+    }
+
+    // 이미 진행중인 매치인 경우
+    public void isOngoinChk() {
+        if (this.matchStatus == MatchStatus.ONGOING) {
+            throw new ApiException(ErrorCode.ALREADY_ONGOING_MATCH);
+        }
+    }
+
+    // 마감 상태이거나 마감 임박 상태가 아닌경우
+    public void isNotFinishOrClose(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        List<MatchStatus> matchStatus = List.of(MatchStatus.FINISH, MatchStatus.CLOSE_TO_DEADLINE);
+        if (!matchStatus.contains(this.matchStatus) || (playerCnt <= majority)) {
+            throw new ApiException(ErrorCode.INVALID_MATCH_STATE_TRANSITION);
+        }
+    }
+
+    // 마감 임박 상태가 아니거나 참가인원 수가 과반수가 넘지 않은 경우
+    public void isNotCloseToDeadLine(int playerCnt) {
+        int majority = (this.teamCapacity / 2);
+
+        if (this.matchStatus != MatchStatus.CLOSE_TO_DEADLINE || (playerCnt <= majority)) {
+            throw new ApiException(ErrorCode.INVALID_MATCH_STATE_CLOSE_TO_DEADLINE);
+        }
+    }
+
+    // 상태 변경 가능 상태인지 검증
+    public void isAvailableStatChg() {
+        List<MatchStatus> matchStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CANCELLED);
+
+        if (matchStatus.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.NOT_AVAILABLE_STAT_CHG);
+        }
+    }
+
+    // 현재 날짜와 시간이 지났는지 체크
+    public void validateOngoingTransitionByTime() {
+        LocalDateTime today = LocalDateTime.now();
+
+        LocalTime startTime = LocalTime.of(this.matchTime, 00);
+        LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, startTime);
+
+        if (today.isBefore(matchDateTime)) {
+            throw new ApiException(ErrorCode.MATCH_NOT_STARTED_YET);
+        }
+    }
+
+    // 해당 매치가 수정 가능한 상태인지 검증
+    public void isModifiable() {
+        List<MatchStatus> matchStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
+            MatchStatus.FINISH);
+        if (!matchStatus.contains(this.matchStatus)) {
+            throw new ApiException(ErrorCode.UPDATE_NOT_ALLOWED_MATCH);
+        }
+    }
+
+    // 매치 데이터 수정
+    public void matchModify(AdminMatchModifyRequest modifyRequest, Court court, FacilityManager manager) {
+        this.matchName = modifyRequest.getMatchTitle();
+        this.teamCapacity = modifyRequest.getTeamCapacity();
+        this.description = modifyRequest.getDescription();
+        this.court = court;
+        this.facilityManager = manager;
+    }
+
+    public void validateManager(Long managerId) {
+        if (this.facilityManager.getId() != managerId) {
+            throw new ApiException(ErrorCode.MATCH_NOT_MANAGER);
+        }
     }
 
 }

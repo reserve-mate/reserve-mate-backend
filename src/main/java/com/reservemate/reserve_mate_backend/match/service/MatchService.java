@@ -2,16 +2,16 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -29,16 +29,21 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRep
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
+import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
+import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -59,6 +64,8 @@ public class MatchService {
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+    private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final JwtUtil jwtUtil;
 
     private final AmazonS3 amazonS3;
@@ -66,20 +73,89 @@ public class MatchService {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
-    /* 시간이 지난 날짜 종료 처리 */
-    @Scheduled(cron = "0 0 6-23 * * *") // 5초마다 실행
+    // /* 시간이 지난 날짜 종료 처리 */
     @Transactional
     public void endBeforeMatch() {
-        log.info("---------" + LocalTime.now().getHour() + "시 ---------");
-        List<Long> matchIds = matchRepository.findByMatchDateAndMatchTime(LocalDate.now(), (Utils.getNowTime()));
+        log.info("is transaction active: {}", TransactionSynchronizationManager.isActualTransactionActive());
+        matchTimeOngoing(); // 현재 시간이 매치 시간에 도달한 경우
+        expireIfEndTimeReached(); // 현재 시간이 매치 종료 시간에 도달한 경우
+    }
 
-        if (!matchIds.isEmpty()) {
-            matchRepository.updateBeforeMatchs(matchIds);
-            matchPlayerRepository.updateBeforeMatchs(matchIds);
+    // 현재 시간이 매치 종료 시간에 도달한 경우
+    private void expireIfEndTimeReached() {
+        int batchSize = 1000;
+
+        List<Match> matches = matchRepository.findByMatchDateAndEndTimeAndMatchStatus(LocalDate.now(), Utils
+            .getNowTime(),
+            MatchStatus.ONGOING);
+
+        if (!matches.isEmpty()) {
+            for (int i = 0; i < matches.size(); i += batchSize) {
+                List<Match> goingMatches = matches.subList(i, Math.min(i + batchSize, matches.size()));
+                endTimeBatchProcess(goingMatches);
+            }
         }
 
     }
 
+    // 진행중인 매치 종료 시간되면 종료 상태로 change
+    private void endTimeBatchProcess(List<Match> goingMatches) {
+        for (Match match : goingMatches) {
+            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.ONGOING);
+            match.chgEndMatch();
+            eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.COMPLETED));
+            matchRepository.save(match);
+        }
+    }
+
+    // 시간별 상태 변경 배치 처리
+    private void matchTimeOngoing() {
+
+        int batchSize = 1000;
+
+        List<MatchStatus> status = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE, MatchStatus.FINISH);
+
+        List<Match> matches = matchRepository.findByMatchDateAndMatchTimeAndMatchStatusIn(LocalDate.now(),
+            (Utils.getNowTime()), status);
+
+        if (!matches.isEmpty()) {
+            for (int i = 0; i < matches.size(); i += batchSize) {
+                List<Match> batchMatch = matches.subList(i, Math.min(i + batchSize, matches.size()));
+                processBatch(batchMatch);
+            }
+        }
+    }
+
+    // 매치 진행 중 or 종료 처리
+    private void processBatch(List<Match> batchMatch) {
+        for (Match match : batchMatch) {
+            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
+            MatchStatus matchStatus = match.getMatchStatus();
+            if (matchStatus == MatchStatus.APPLICABLE || matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
+
+                if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
+                    match.matchStatChangeSchedule(matchPlayers.size());
+                } else if (matchStatus == MatchStatus.APPLICABLE) {
+                    match.chgEndMatch();
+                }
+
+                if (match.getMatchStatus() == MatchStatus.END) { // 매치 종료 될 시 환불 처리
+                    eventPublisher.publishEvent(new MatchCancelPaymentRequest(matchPlayers));
+                } else if (match.getMatchStatus() == MatchStatus.ONGOING) {   // 매치 진행 중 처리 시 참가자 상태 변경
+                    eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
+                }
+            } else if (matchStatus == MatchStatus.FINISH) {
+                log.info("Before status: {}", match.getMatchStatus());
+                match.chgMatchOngoin();
+                log.info("After status: {}", match.getMatchStatus());
+                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
+            }
+
+            matchRepository.save(match);
+        }
+    }
+
+    // s3 파일 업로드 테스트
     public String uploadFile(MultipartFile multipartFile) throws IOException {
         String filename = UUID.randomUUID().toString();
 
@@ -110,7 +186,7 @@ public class MatchService {
         List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
         if (!matchPlayers.isEmpty()) {
-            matchPlayerRepository.updatePlayersMatchRemoved(matchId, PlayerStatus.MATCH_REMOVED);
+            matchPlayerRepository.updatePlayersMatchRemoved(matchId, PlayerStatus.MATCH_CANCELLED);
         }
 
         // 환불 로직
@@ -194,12 +270,15 @@ public class MatchService {
     public MatchDetailDto getMatch(HttpServletRequest request, Long matchId) {
 
         User user = null;
+        Payment payment = null;
 
         String accessToken = request.getHeader("access");
         if (accessToken != null) {
             Long userId = jwtUtil.getId(accessToken);
             user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+            payment = paymentRepository.findByMatchIdAndUserId(matchId, userId).orElse(payment);
         }
 
         Match match = matchRepository.findById(matchId)
@@ -209,7 +288,7 @@ public class MatchService {
 
         List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
 
-        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images);
+        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images, payment);
     }
 
     /*
@@ -221,17 +300,21 @@ public class MatchService {
         Court court = courtRepository.findById(createMatchDto.getCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        List<Match> matches = matchRepository.findByMatchDateAndCourt(createMatchDto.getMatchDate(), court);
-        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
+        List<Match> matches = matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(),
+            court, matchStatus);
+        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());    // 매치 시간대 검증
 
         FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        boolean isExistMatch = matchRepository
-            .existsByMatchDateAndMatchTimeAndCourt(createMatchDto.getMatchDate(), createMatchDto.getMatchTime(), court);
+        // 해당 매니저가 다른 매치에도 배정되어있는지 검증
+        boolean isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
+            facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
 
-        if (isExistMatch)
-            throw new ApiException(ErrorCode.EXIST_MATCH_ERROR);
+        if (isDupleMatchManager) {
+            throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);
+        }
 
         Match match = createMatchDto.toEntity(createMatchDto, court, facilityManager);
         matchRepository.save(match);

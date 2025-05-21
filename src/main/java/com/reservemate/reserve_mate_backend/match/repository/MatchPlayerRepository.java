@@ -19,7 +19,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
 
     boolean existsByUserAndMatch(User user, Match match);
 
-    Optional<MatchPlayer> findByUserAndMatch(User user, Match match);
+    Optional<MatchPlayer> findByUserAndMatchAndStatus(User user, Match match, PlayerStatus status);
 
     boolean existsByUserAndMatchAndStatusNot(User user, Match match, PlayerStatus cancel);
 
@@ -34,5 +34,19 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     @Modifying(clearAutomatically = true)
     @Query("update MatchPlayer mp set mp.status = 'COMPLETED', mp.updatedAt = now() where mp.match.matchId in (:matchIds)")
     void updateBeforeMatchs(@Param("matchIds") List<Long> matchIds);
+
+    // 해당 매치와 관련된 유저의 신청 정보 조회
+    List<MatchPlayer> findByMatchAndUser(Match match, User user);
+
+    // 매치에 참가자가 있는지 검증
+    boolean existsByMatchAndStatus(Match match, PlayerStatus ready);
+
+    // 매치 플레이어 진행중으로 상태 변경
+    @Modifying(clearAutomatically = true)
+    @Query("update MatchPlayer mp set mp.status = :playerStatus where mp.playerId in (:playerIds)")
+    void updateOngoinPlayer(@Param("playerIds") List<Long> playerIds, @Param("playerStatus") PlayerStatus playerStatus);
+
+    // 매치 플레이어 참가자 및 퇴장자 조회
+    List<MatchPlayer> findByMatchAndStatusIn(Match match, List<PlayerStatus> playerStatus);
 
 }

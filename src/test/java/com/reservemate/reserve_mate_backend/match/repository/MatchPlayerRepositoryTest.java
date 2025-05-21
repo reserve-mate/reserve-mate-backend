@@ -127,12 +127,13 @@ public class MatchPlayerRepositoryTest {
         MatchPlayer savePlayer = matchPlayerRepository.save(matchPlayer);
 
         /* when */
-        matchPlayerRepository.updatePlayersMatchRemoved(savePlayer.getMatch().getMatchId(), PlayerStatus.MATCH_REMOVED);
+        matchPlayerRepository.updatePlayersMatchRemoved(savePlayer.getMatch().getMatchId(),
+            PlayerStatus.MATCH_CANCELLED);
 
         /* then */
         MatchPlayer selectPlayer = matchPlayerRepository.findById(savePlayer.getPlayerId())
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        assertThat(selectPlayer.getStatus()).isEqualTo(PlayerStatus.MATCH_REMOVED);
+        assertThat(selectPlayer.getStatus()).isEqualTo(PlayerStatus.MATCH_CANCELLED);
     }
 
     @Test

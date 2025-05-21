@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.payment.service;
 
 import java.net.http.HttpResponse;
+import java.util.List;
 
 import org.json.simple.JSONObject;
 import org.springframework.context.ApplicationEventPublisher;
@@ -12,16 +13,17 @@ import org.springframework.stereotype.Service;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
-import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.client.PayClient;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPayRequestDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
@@ -54,10 +56,65 @@ public class PaymentService {
     private final PayClient payClient;
     private final JwtUtil jwtUtil;
 
+    /* 매치 삭제 후 각 플레이어 환불 */
+    @Transactional
+    public void matchCancelPayment(List<MatchPlayer> players) {
+
+        for (MatchPlayer matchPlayer : players) {
+            Payment payment = paymentRepository.findByMatchAndUserAndStatus(matchPlayer.getMatch(), matchPlayer
+                .getUser(), PaymentStatus.PAID)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
+
+            try {
+                String cancelReason = "매치 취소에 따른 환불 처리";
+                int refundAmount = payment.getAmount();
+                HttpResponse response = payClient.requestCancelPay(payment.getMerchantUid(), cancelReason,
+                    refundAmount);
+                if (response.statusCode() == 200) {
+                    payment.refund(cancelReason);
+                    matchPlayer.chgMatchRemoved();
+                } else {
+                    JSONObject errorResponse = Utils.stringToJson(response.body().toString());
+                    String message = errorResponse.get("message") != null ? errorResponse.get("message").toString()
+                        : "처리 중 에러가 발생하였습니다.";
+
+                    throw new IllegalArgumentException(message);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new ApiException(ErrorCode.PAYMETN_CANCEL_ERROR);
+            }
+
+        }
+
+    }
+
     /* 매치 삭제 시 일괄 삭제 */
     @Transactional
     public void bulkPaymentCancel() {
 
+    }
+
+    /* 매치 결제 취소 상태 체크 */
+    public PaymentResponse checkCancelStatus(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            throw new ApiException(ErrorCode.MISSING_QUERY_PARAM);
+        }
+
+        Payment payment = paymentRepository.findByImpUid(orderId).orElseThrow(() -> new ApiException(
+            ErrorCode.NOT_FOUND_PAYMENT));
+        payment.isCancel();
+
+        List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndUser(payment.getMatch(), payment
+            .getUser());
+        if (matchPlayers.isEmpty()) {
+            throw new ApiException(ErrorCode.NOT_FOUND_PAYMENT);
+        } else if (matchPlayers.get(0).getStatus() != PlayerStatus.CANCEL) {
+            throw new ApiException(ErrorCode.NOT_CANCEL_PAYMENT);
+        }
+
+        PaymentResponse response = PaymentResponse.toPaymentCancel(payment.getImpUid(), payment.getCancelReason());
+        return response;
     }
 
     /* 매치 결제 내역 */
@@ -86,10 +143,7 @@ public class PaymentService {
     /* 매치 취소 검증 후 결제 취소 */
     @Transactional
     public void cancelPayment(CancelPaymentDto cancelPaymentDto) throws Exception {
-        User user = cancelPaymentDto.getUser();
-        Match match = cancelPaymentDto.getMatch();
-
-        Payment payment = paymentRepository.findByMatchAndUser(match, user)
+        Payment payment = paymentRepository.findByImpUid(cancelPaymentDto.getOrderId())
             .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
         payment.isPaid();
 
@@ -101,11 +155,10 @@ public class PaymentService {
             payment.cancel(cancelPaymentDto.getCancelReason(), refundAmount);
         } else {
             JSONObject errorResponse = Utils.stringToJson(response.body().toString());
-            String code = errorResponse.get("code") != null ? errorResponse.get("code").toString() : "400";
             String message = errorResponse.get("message") != null ? errorResponse.get("message").toString()
                 : "처리 중 에러가 발생하였습니다.";
 
-            throw new TossApiException(code, message);
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -117,7 +170,8 @@ public class PaymentService {
             .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
         payment.isPaid();
 
-        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatch(payment.getUser(), payment.getMatch())
+        MatchPlayer matchPlayer = matchPlayerRepository.findByUserAndMatchAndStatus(payment.getUser(), payment
+            .getMatch(), PlayerStatus.READY)
             .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PLAYER));
         matchPlayer.isFinish();
         matchPlayer.isCanCancel();

@@ -10,6 +10,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import lombok.AllArgsConstructor;
@@ -32,7 +33,7 @@ public class MatchDetailDto {
     private UserDataDto userDataDto;
 
     public static MatchDetailDto toMatchDetailDto(Match match, User user,
-        List<MatchPlayer> matchPlayers, List<FacilityImage> images) {
+        List<MatchPlayer> matchPlayers, List<FacilityImage> images, Payment payment) {
 
         MatchDetailDto detailDto = null;
 
@@ -49,7 +50,7 @@ public class MatchDetailDto {
                 .facilityDataDto(FacilityDataDto.toFacilityDataDto(match, images))
                 .playerCnt(matchPlayers.size())
                 .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
-                .userDataDto(UserDataDto.toUserDataDto(user, matchPlayers))
+                .userDataDto(UserDataDto.toUserDataDto(user, matchPlayers, payment))
                 .build();
         }
 
@@ -139,34 +140,31 @@ public class MatchDetailDto {
         private String userName;
         private String phone;
         private String userEmail;
+        private String orderId;
 
         @JsonProperty("isMatchApply")
         private boolean isMatchApply;
 
-        public static UserDataDto toUserDataDto(User user, List<MatchPlayer> matchPlayers) {
+        public static UserDataDto toUserDataDto(User user, List<MatchPlayer> matchPlayers, Payment payment) {
 
             UserDataDto userDto = UserDataDto.builder()
                 .userName(user.getName())
                 .phone(user.getPhone())
                 .userEmail(user.getEmail())
-                .isMatchApply(isMatchApply(matchPlayers, user.getId()))
+                .isMatchApply(false)
                 .build();
 
-            return userDto;
-        }
-
-        private static boolean isMatchApply(List<MatchPlayer> matchPlayers, Long userId) {
-
-            boolean isMatch = false;
-
-            for (MatchPlayer matchPlayer : matchPlayers) {
-                if (matchPlayer.getUser().getId() == userId) {
-                    isMatch = true;
-                    break;
-                }
+            if (payment != null) {
+                userDto = UserDataDto.builder()
+                    .userName(user.getName())
+                    .phone(user.getPhone())
+                    .userEmail(user.getEmail())
+                    .isMatchApply(true)
+                    .orderId(payment.getImpUid())
+                    .build();
             }
 
-            return isMatch;
+            return userDto;
         }
 
     }

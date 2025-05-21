@@ -3,9 +3,10 @@ package com.reservemate.reserve_mate_backend.match.util;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.reservemate.reserve_mate_backend.common.exception.ApiException;
-import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
+import com.reservemate.reserve_mate_backend.match.service.MatchPlayerService;
 import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto;
+import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.service.PaymentService;
 
@@ -22,6 +23,20 @@ import lombok.extern.log4j.Log4j2;
 public class MatchEventListner {
 
     private final PaymentService paymentService;
+    private final MatchPlayerService matchPlayerService;
+
+    /* 매치 상태 변경 후 매치 플레이어도 상태 변경 */
+    @EventListener
+    public void changePlayerOngoing(PlayerOngingRequest ongingRequest) {
+        matchPlayerService.changePlayerOngoing(ongingRequest.getMatchPlayers(), ongingRequest.getPlayerStatus());
+    }
+
+    /* 매치 삭제 후 취소 */
+    @EventListener
+    public void deleteMatchCancel(MatchCancelPaymentRequest request) {
+        log.info("매치 삭제 후 환불");
+        paymentService.matchCancelPayment(request.getPlayers());
+    }
 
     /* 매치 검증 후 결제 요청 */
     @EventListener
@@ -37,7 +52,7 @@ public class MatchEventListner {
             paymentService.cancelPayment(cancelPaymentDto);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ApiException(ErrorCode.SERVER_ERROR);
+            throw new IllegalArgumentException("결제 처리 중 에러가 발생하였습니다.");
         }
     }
 
