@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.facility.repository.impl;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
@@ -41,21 +42,31 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
                     .concat(" ")
                     .concat(facility.address.detailAddress.stringValue())
                     .as("address"),
-                court.id.countDistinct(),
-                reservation.id.countDistinct()
+                JPAExpressions
+                    .select(court.countDistinct())
+                    .from(court)
+                    .where(court.facility.eq(facility)),
+                JPAExpressions
+                    .select(reservation.countDistinct())
+                    .from(reservation)
+                    .join(reservation.court, court)
+                    .where(court.facility.eq(facility))
+//                court.id.countDistinct(),
+//                reservation.id.countDistinct()
             ))
             .from(facility)
-            .leftJoin(court).on(court.facility.eq(facility))
-            .leftJoin(reservation).on(reservation.court.eq(court))
+//            .leftJoin(court).on(court.facility.eq(facility))
+//            .leftJoin(reservation).on(reservation.court.eq(court))
             .where(
                 eqLastId(requestFacilitySearchDto.getLastId()),
                 keywordContains(requestFacilitySearchDto.getKeyword())
             )
-            .groupBy(facility.id)
+//            .groupBy(facility.id)
             .orderBy(facility.id.desc())
             .limit(requestFacilitySearchDto.getSize() + 1)  //불러올 글 갯수보다 1개 더 가져온다.
             .fetch();
 
+//        System.out.println(requestFacilitySearchDto.getSize());
         boolean hasNext = results.size() > pageable.getPageSize();
 
         if (hasNext) {

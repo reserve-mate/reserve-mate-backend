@@ -30,7 +30,6 @@ public class AdminFacilityController {
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
     public ResponseEntity<Slice<FacilityDto>> getAdminFacilities(@RequestParam(required = false) String keyword,
         @RequestParam(required = false, defaultValue = "0") long lastId, Pageable pageable) {
-
         return adminFacilityService.getAdminFacilityList(keyword, lastId, pageable);
     }
 
