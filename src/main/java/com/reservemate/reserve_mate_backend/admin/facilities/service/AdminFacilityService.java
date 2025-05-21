@@ -125,6 +125,7 @@ public class AdminFacilityService {
         RequestFacilitySearchDto facilitySearchDto = RequestFacilitySearchDto.builder()
             .keyword(keyword)
             .lastId(lastId == 0 ? null : lastId)
+            .size(pageable.getPageSize())
             .build();
 
         Slice<FacilityDto> facilityList = facilityRepository.findAllByCursor(facilitySearchDto, pageable);
