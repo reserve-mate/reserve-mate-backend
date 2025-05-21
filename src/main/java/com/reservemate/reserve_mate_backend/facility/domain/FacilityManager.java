@@ -2,6 +2,8 @@ package com.reservemate.reserve_mate_backend.facility.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.domain.UserRole;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,6 +52,24 @@ public class FacilityManager extends BaseEntity {
         this.assignedAt = LocalDateTime.now();
         this.facility = facility;
         this.user = user;
+    }
+
+    // 매니저 등급 가져오기
+    public boolean chkManagerRole() {
+
+        boolean result = true;
+
+        if (this.user.getRole() == UserRole.ROLE_FACILITY_MANAGER) {
+            result = false;
+        } else if (this.user.getRole() == UserRole.ROLE_ADMIN) {
+            result = true;
+        }
+
+        return result;
+    }
+
+    public Long getUserId() {
+        return this.user.getId();
     }
 
     // 시설 id 목록 가져오기

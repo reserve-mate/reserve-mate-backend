@@ -296,6 +296,7 @@ public class MatchService {
      */
     @Transactional
     public void registMatch(CreateMatchDto createMatchDto) {
+        createMatchDto.isOverMatchTime();
 
         Court court = courtRepository.findById(createMatchDto.getCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
@@ -309,8 +310,17 @@ public class MatchService {
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
         // 해당 매니저가 다른 매치에도 배정되어있는지 검증
-        boolean isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
-            facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());
+        boolean isDupleMatchManager = false;
+
+        if (facilityManager.chkManagerRole()) {
+            isDupleMatchManager = matchCustomRepository.existConfilictMatch(createMatchDto.getMatchDate(),
+                facilityManager.getUserId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
+                    .getMatchEndTime());
+        } else {
+            isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
+                facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
+                    .getMatchEndTime());
+        }
 
         if (isDupleMatchManager) {
             throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);

@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +44,6 @@ import org.springframework.data.domain.Slice;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
-import com.reservemate.reserve_mate_backend.common.exception.TossApiException;
-import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
@@ -511,7 +511,7 @@ public class PaymentServiceTest {
             .paymentKey("tviva20250409200902SF275")
             .build();
 
-        given(matchRepository.findById(amountRequest.getMatchId())).willReturn(Optional.of(match));
+        given(matchRepository.findByIdWithLock(amountRequest.getMatchId())).willReturn(Optional.of(match));
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         String fakeAccessToken = "mocked.jwt.token";
@@ -552,7 +552,7 @@ public class PaymentServiceTest {
             .matchId(match.getMatchId())
             .build();
 
-        given(matchRepository.findById(amountRequest.getMatchId())).willReturn(Optional.of(match));
+        given(matchRepository.findByIdWithLock(amountRequest.getMatchId())).willReturn(Optional.of(match));
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         String fakeAccessToken = "mocked.jwt.token";

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
@@ -38,6 +39,31 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
     private final JPAQueryFactory query;
 
     private QMatch match = QMatch.match;
+
+    @Override
+    public boolean existConfilictMatch(LocalDate matchDate, Long userId, Long courtId, int matchTime, int endTime) {
+
+        QFacilityManager facilityManager = QFacilityManager.facilityManager;
+
+        long result = query.select(match.count())
+            .from(match)
+            .join(facilityManager)
+            .on(match.facilityManager.id.eq(facilityManager.id))
+            .where(
+                matchDateEq(matchDate), facilityManager.user.id.eq(userId), match.court.id.ne(courtId), match.matchTime
+                    .lt(endTime), match.endTime.gt(matchTime)
+            )
+            .fetchOne();
+
+        return result > 0;
+    }
+
+    private BooleanExpression hasConflict() {
+        return new CaseBuilder()
+            .when(match.count().gt(0))
+            .then(true)
+            .otherwise(false);
+    }
 
     /* 날짜별 매치 Count */
     @Override

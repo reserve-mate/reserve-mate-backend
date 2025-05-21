@@ -37,13 +37,15 @@ public enum ErrorCode {
                                                 "아직 매치 시작 시간이 되지 않아 상태를 변경할 수 없습니다."), MAX_TEAM_SIZE_CONFLICT(CONFLICT,
                                                     "현재 참가 인원보다 작은 최대 팀원 수로 변경할 수 없습니다."), UPDATE_NOT_ALLOWED_MATCH(
                                                         CONFLICT, "수정이 불가능한 상태의 매치입니다."), MATCH_NOT_MANAGER(BAD_REQUEST,
-                                                            "매치의 매니저만 수행할 수 있는 작업입니다.")
+                                                            "매치의 매니저만 수행할 수 있는 작업입니다."), MATCH_TIME_ALREADY_PASSED(
+                                                                BAD_REQUEST, "이미 지난 시간의 매치는 등록할 수 없습니다.")
 
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,
         "매치 신청이력이 존재하지 않습니다."), ALREADY_CANCEL_PLAYER(BAD_REQUEST, "이미 취소된 매치입니다."), ALREADY_COMPLETE_PLAYER(
-            BAD_REQUEST, "이미 참여했던 이력이 있는 매치입니다."), MATCH_HAS_PARTICIPANTS(BAD_REQUEST,
-                "이미 참가자가 존재하여 이 매치를 삭제할 수 없습니다."), NOT_ONGOING_PLAYER(BAD_REQUEST, "현재 진행중인 플레이어가 아닙니다.")
+            BAD_REQUEST, "이미 참여했던 이력이 있는 매치입니다."), ALREADY_ONGOING_PLAYER(BAD_REQUEST,
+                "이미 진행중인 매치입니다."), MATCH_HAS_PARTICIPANTS(BAD_REQUEST,
+                    "이미 참가자가 존재하여 이 매치를 삭제할 수 없습니다."), NOT_ONGOING_PLAYER(BAD_REQUEST, "현재 진행중인 플레이어가 아닙니다.")
 
     // 결제 관련 에러
     , PAYMETN_ERROR(INTERNAL_SERVER_ERROR, "결제처리가 정상적으로 처리되지 않았습니다."), PAYMENT_FAILED(BAD_REQUEST,

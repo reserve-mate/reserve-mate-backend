@@ -1,7 +1,5 @@
 package com.reservemate.reserve_mate_backend.match.domain;
 
-import java.util.List;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -76,6 +74,8 @@ public class MatchPlayer extends BaseEntity {
             throw new ApiException(ErrorCode.ALREADY_CANCEL_PLAYER);
         } else if (this.status == PlayerStatus.COMPLETED) {
             throw new ApiException(ErrorCode.ALREADY_COMPLETE_PLAYER);
+        } else if (this.status == PlayerStatus.ONGOING) {
+            throw new ApiException(ErrorCode.ALREADY_ONGOING_PLAYER);
         }
     }
 
@@ -92,7 +92,7 @@ public class MatchPlayer extends BaseEntity {
     // 현재 진행중인 참가자인지 검증
     public void isOngoingPlayer() {
         if (this.status == PlayerStatus.ONGOING) {
-            throw new ApiException(ErrorCode.EXIST_MATCH_PLAYER_ERROR);
+            throw new ApiException(ErrorCode.ALREADY_ONGOING_PLAYER);
         }
     }
 

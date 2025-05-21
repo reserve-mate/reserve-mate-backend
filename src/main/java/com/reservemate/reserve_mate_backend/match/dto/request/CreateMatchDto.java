@@ -1,14 +1,16 @@
 package com.reservemate.reserve_mate_backend.match.dto.request;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -63,6 +65,15 @@ public class CreateMatchDto {
             .court(court)
             .facilityManager(facilityManager)
             .build();
+    }
+
+    public void isOverMatchTime() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, LocalTime.of(this.matchTime, 0));
+
+        if (matchDateTime.isBefore(nowDateTime)) {
+            throw new ApiException(ErrorCode.MATCH_TIME_ALREADY_PASSED);
+        }
     }
 
 }
