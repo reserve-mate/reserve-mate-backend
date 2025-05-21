@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -21,4 +22,5 @@ public interface MatchCustomRepository {
     Slice<AdminMatchesResponse> getAdminMatches(Long userId, AdminMatchesRequest adminMatchesRequest,
         Pageable pageable);
 
+    boolean existConfilictMatch(LocalDate matchDate, Long userId, Long courtId, int matchTime, int endTime);
 }

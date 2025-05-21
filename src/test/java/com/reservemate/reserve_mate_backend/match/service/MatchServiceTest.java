@@ -340,8 +340,8 @@ public class MatchServiceTest {
             .managerId(facilityManager.getId())
             .teamCapacity(15)
             .matchDate(LocalDate.now())
-            .matchTime(10)
-            .matchEndTime(12)
+            .matchTime(22)
+            .matchEndTime(23)
             .courtId(court.getId())
             .matchPrice(11000)
             .build();
@@ -382,6 +382,7 @@ public class MatchServiceTest {
             .email("email@email.com")
             .password("password")
             .phone("01000000000")
+            .role(UserRole.ROLE_FACILITY_MANAGER)
             .build();
 
         return user;
