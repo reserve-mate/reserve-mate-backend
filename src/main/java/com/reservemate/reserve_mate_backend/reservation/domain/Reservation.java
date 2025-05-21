@@ -4,18 +4,27 @@ import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "reservations")
 @SQLDelete(sql = "UPDATE reservations SET deleted = true WHERE reservation_id = ?")
+@SQLRestriction("deleted = false")
 public class Reservation extends BaseEntity {
 
     @Id
@@ -23,11 +32,14 @@ public class Reservation extends BaseEntity {
     @Column(name = "reservation_id", updatable = false)
     private Long id;
 
+    @Column(name = "reserve_date")
+    private LocalDate reserveDate;
+
     @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
+    private LocalTime endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -50,14 +62,14 @@ public class Reservation extends BaseEntity {
     @JoinColumn(name = "court_id", nullable = false)
     private Court court;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "waiting_list_id")
-    private WaitingList waitingList;
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "waiting_list_id")
+    // private WaitingList waitingList;
 
     @Builder
     public Reservation(
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        LocalTime startTime,
+        LocalTime endTime,
         Integer totalPrice,
         User user,
         Court court,
@@ -68,7 +80,7 @@ public class Reservation extends BaseEntity {
         this.totalPrice = totalPrice;
         this.user = user;
         this.court = court;
-        this.waitingList = waitingList;
+        //this.waitingList = waitingList;
     }
 
     public void confirm() {
@@ -88,7 +100,29 @@ public class Reservation extends BaseEntity {
         this.status = ReservationStatus.COMPLETED;
     }
 
-    public boolean isOverlapping(LocalDateTime start, LocalDateTime end) {
+    // 겹치는 시간대에 예약했는지 검증
+    public boolean isOverlapping(LocalTime start, LocalTime end) {
         return (start.isBefore(this.endTime) && end.isAfter(this.startTime));
     }
+
+    // 예약 불가능한 시간대 List
+    public static List<LocalTime> getUnavailableHours(List<Reservation> reservations) {
+
+        Set<LocalTime> hours = new HashSet<>();
+
+        for (Reservation reservation : reservations) {
+
+            LocalTime start = reservation.getStartTime();
+            LocalTime end = reservation.getEndTime();
+
+            while (start.isBefore(end)) {
+                hours.add(start);
+                start = start.plusHours(1);
+            }
+
+        }
+
+        return hours.stream().sorted().toList();
+    }
+
 }

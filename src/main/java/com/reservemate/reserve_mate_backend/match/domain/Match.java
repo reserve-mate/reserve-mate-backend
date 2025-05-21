@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.SQLDelete;
@@ -331,6 +333,23 @@ public class Match extends BaseEntity {
         if (this.facilityManager.getId() != managerId) {
             throw new ApiException(ErrorCode.MATCH_NOT_MANAGER);
         }
+    }
+
+    // 매치가 사용중인 시간대 List
+    public static List<LocalTime> getUnavailableHours(List<Match> matches) {
+        Set<LocalTime> hours = new HashSet<>();
+
+        for (Match match : matches) {
+            LocalTime time = LocalTime.of(match.getMatchTime(), 0);
+            LocalTime endTime = LocalTime.of(match.getEndTime(), 0);
+
+            while (time.isBefore(endTime)) {
+                hours.add(time);
+                time = time.plusHours(1);
+            }
+        }
+
+        return hours.stream().sorted().toList();
     }
 
 }

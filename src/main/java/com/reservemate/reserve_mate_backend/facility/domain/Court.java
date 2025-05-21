@@ -109,4 +109,8 @@ public class Court extends BaseEntity {
             .facility(facility)
             .build();
     }
+
+    public Long getFacilityId() {
+        return this.facility.getId();
+    }
 }
