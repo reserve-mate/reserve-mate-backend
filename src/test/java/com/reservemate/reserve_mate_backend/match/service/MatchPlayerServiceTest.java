@@ -94,7 +94,7 @@ public class MatchPlayerServiceTest {
             "단순 변심");
 
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
+        given(matchRepository.findByIdWithLock(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
         MatchPlayer matchPlayer = getMatchPlayer();
         given(matchPlayerRepository.findByUserAndMatchAndStatus(user, match, PlayerStatus.READY)).willReturn(Optional
             .of(matchPlayer));
@@ -122,7 +122,7 @@ public class MatchPlayerServiceTest {
             "단순 변심");
 
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-        given(matchRepository.findById(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
+        given(matchRepository.findByIdWithLock(cancelMatchRequest.getMatchId())).willReturn(Optional.of(match));
         MatchPlayer matchPlayer = getMatchPlayer();
         given(matchPlayerRepository.findByUserAndMatchAndStatus(user, match, PlayerStatus.READY)).willReturn(Optional
             .of(matchPlayer));

@@ -2,8 +2,10 @@ package com.reservemate.reserve_mate_backend.match.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +14,13 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
+import jakarta.persistence.LockModeType;
+
 public interface MatchRepository extends JpaRepository<Match, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)   // jpa 비관적 락
+    @Query("select m from Match m where m.matchId = :matchId")
+    Optional<Match> findByIdWithLock(@Param("matchId") Long matchId);
 
     boolean existsByMatchDateAndMatchTimeAndCourt(LocalDate matchDate, int matchTime, Court court);
 

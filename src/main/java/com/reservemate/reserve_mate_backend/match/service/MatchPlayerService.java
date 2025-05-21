@@ -68,7 +68,7 @@ public class MatchPlayerService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        Match match = matchRepository.findById(cancelMatchRequest.getMatchId())
+        Match match = matchRepository.findByIdWithLock(cancelMatchRequest.getMatchId())
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isEndMatch();
 

@@ -219,7 +219,7 @@ public class PaymentService {
         String accessToken = request.getHeader("access");
         Long userId = jwtUtil.getId(accessToken);
 
-        Match match = matchRepository.findById(amountRequest.getMatchId())
+        Match match = matchRepository.findByIdWithLock(amountRequest.getMatchId())
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.validatePrice(amountRequest.getAmount());
 
