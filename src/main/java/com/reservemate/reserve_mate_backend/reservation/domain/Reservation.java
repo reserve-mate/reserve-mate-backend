@@ -73,13 +73,15 @@ public class Reservation extends BaseEntity {
         Integer totalPrice,
         User user,
         Court court,
-        WaitingList waitingList) {
+        LocalDate reserveDate) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = ReservationStatus.PENDING;
         this.totalPrice = totalPrice;
         this.user = user;
         this.court = court;
+        this.reserveDate = reserveDate;
+        this.status = ReservationStatus.PENDING;
         //this.waitingList = waitingList;
     }
 

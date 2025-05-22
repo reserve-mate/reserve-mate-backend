@@ -83,4 +83,16 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         @Param("managerId") Long facilityManager, @Param("courtId") Long court, @Param("matchTime") Integer matchTime,
         @Param("matchEndTime") Integer endTime, @Param("matchId") Long matchId);
 
+    @Query("select case when count(m) > 0 then true else false end"
+        + " from Match m"
+        + " where m.matchDate = :matchDate"
+        + " and m.court.id = :courtId"
+        + " and m.matchTime < :endTime"
+        + " and m.endTime > :startTime"
+        + " and m.matchStatus not in (:matchStatus)"
+    )
+    boolean existsMatchReaserveDate(@Param("matchDate") LocalDate reserveDate, @Param("startTime") int startTime,
+        @Param("endTime") int endTime, @Param("matchStatus") List<MatchStatus> matchStatus,
+        @Param("courtId") Long courtId);
+
 }
