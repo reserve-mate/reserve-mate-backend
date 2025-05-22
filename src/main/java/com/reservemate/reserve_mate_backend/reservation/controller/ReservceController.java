@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.reservation.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
+import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveCUDService;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveService;
 
@@ -15,6 +16,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +30,13 @@ public class ReservceController {
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
 
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ReservationDetailResponse> getReservationDetail(
+        @PathVariable("reservationId") Long reservationId) {
+        return ResponseEntity.ok(reserveService.getReservationDetail(reservationId));
+    }
+
+    /* 예약(대기) 생성 */
     @PostMapping("/saveReservation")
     public ResponseEntity<Void> postMethodName(HttpServletRequest request,
         @RequestBody CreateReservation CreateReservation) {
@@ -35,6 +44,7 @@ public class ReservceController {
         return ResponseEntity.ok().build();
     }
 
+    /* 사용 가능한 시간대 조회 */
     @GetMapping("/reserveHours")
     public ResponseEntity<List<LocalTime>> getAvailableTimeSlots(@RequestParam("courtId") Long courtId,
         @RequestParam("reserveDate") LocalDate reserveDate) {

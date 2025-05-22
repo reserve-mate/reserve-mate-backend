@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.reservation.dto.request;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -40,6 +41,7 @@ public class CreateReservation {        // 예약(대기) 생성
     }
 
     public Reservation toEntity(User user, Court court) {
+        String reservationNumber = court.getSportType().getPrefix() + UUID.randomUUID().toString().substring(0, 8);
         Reservation reservation = Reservation.builder()
             .court(court)
             .user(user)
@@ -47,6 +49,7 @@ public class CreateReservation {        // 예약(대기) 생성
             .startTime(this.startTime)
             .endTime(this.endTime)
             .totalPrice(this.totalPrice)
+            .reservationNumber(reservationNumber)
             .build();
         return reservation;
     }

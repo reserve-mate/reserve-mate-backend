@@ -15,8 +15,11 @@ import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRep
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.payment.domain.Payment;
+import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
+import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +31,26 @@ public class ReserveService {
     private final MatchRepository matchRepository;
     private final CourtRepository courtRepository;
     private final OperationHourRepository operationHourRepository;
+    private final PaymentRepository paymentRepository;
+
+    /* 예약 상세 조회 */
+    public ReservationDetailResponse getReservationDetail(Long reservationId) {
+
+        Reservation reservation = reserveRepository.findById(reservationId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));
+
+        ReservationDetailResponse response = null;
+
+        if (reservation.getStatus() == ReservationStatus.PENDING) {  // 대기 상태인 경우
+            response = ReservationDetailResponse.toReservationDetailPending(reservation);
+        } else {
+            Payment payment = paymentRepository.findByReservation(reservation)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
+            response = ReservationDetailResponse.toReservationDetailResponse(reservation, payment);
+        }
+
+        return response;
+    }
 
     /* 예약 가능한 시간 조회 */
     public List<LocalTime> getAvailableTimeSlots(Long courtId, LocalDate reserveDate) {

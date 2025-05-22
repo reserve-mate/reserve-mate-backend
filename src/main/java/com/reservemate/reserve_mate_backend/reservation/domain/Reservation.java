@@ -45,6 +45,9 @@ public class Reservation extends BaseEntity {
     @Column(name = "status", nullable = false)
     private ReservationStatus status;
 
+    @Column(name = "reservation_number", nullable = false, unique = true)
+    private String reservationNumber;
+
     @Column(name = "cancel_reason")
     private String cancelReason;
 
@@ -73,7 +76,8 @@ public class Reservation extends BaseEntity {
         Integer totalPrice,
         User user,
         Court court,
-        LocalDate reserveDate) {
+        LocalDate reserveDate,
+        String reservationNumber) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = ReservationStatus.PENDING;
@@ -82,6 +86,7 @@ public class Reservation extends BaseEntity {
         this.court = court;
         this.reserveDate = reserveDate;
         this.status = ReservationStatus.PENDING;
+        this.reservationNumber = reservationNumber;
         //this.waitingList = waitingList;
     }
 
