@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,5 +35,14 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
     /* 중복된 대기 또는 확정 상태인 예약이 있는지 검증 */
     boolean existsByReserveDateAndStartTimeAndEndTimeAndStatusInAndUserAndCourt(LocalDate reserveDate,
         LocalTime startTime, LocalTime endTime, List<ReservationStatus> status, User user, Court court);
+
+    /* 사용자의 예약 목록 */
+    List<Reservation> findByUser(User user);
+
+    /* 상태에 따른 사용자의 예약 목록 조회 */
+    List<Reservation> findByUserAndStatusIn(User user, List<ReservationStatus> status);
+
+    /* 상태에 따른 사용자의 예약 목록 조회(무한 스크롤 페이징) */
+    Slice<Reservation> findByUserAndStatusIn(User user, List<ReservationStatus> status, Pageable pageable);
 
 }

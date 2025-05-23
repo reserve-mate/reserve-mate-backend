@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
+import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveCUDService;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveService;
 
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +31,12 @@ public class ReservceController {
 
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
+
+    @GetMapping("/reservations")
+    public ResponseEntity<Slice<ReservationsResponse>> getMethodName(HttpServletRequest request,
+        @RequestParam("type") String type, @RequestParam("pageNum") Integer pageNum) {
+        return ResponseEntity.ok(reserveService.getReservations(request, type, pageNum));
+    }
 
     @GetMapping("/{reservationId}")
     public ResponseEntity<ReservationDetailResponse> getReservationDetail(

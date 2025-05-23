@@ -60,7 +60,8 @@ public enum ErrorCode {
     , NO_AVAILABLE_TIME_ON_DAY(BAD_REQUEST, "선택하신 날짜에는 예약 가능한 시간이 존재하지 않습니다."), PAST_TIME_NOT_ALLOWED(BAD_REQUEST,
         "이미 지난 시간에는 예약할 수 없습니다."), DUPLICATE_RESERVATION(BAD_REQUEST,
             "이미 해당 시간에 예약이 존재합니다."), DUPLICATE_ACTIVE_RESERVATION(BAD_REQUEST,
-                "중복된 대기 또는 확정 예약이 존재합니다."), NOT_FOUND_RESERVATION(BAD_REQUEST, "예약 정보가 존재하지 않습니다.");
+                "중복된 대기 또는 확정 예약이 존재합니다."), NOT_FOUND_RESERVATION(BAD_REQUEST,
+                    "예약 정보가 존재하지 않습니다."), INVALID_RESERVATION_SCOPE(BAD_REQUEST, "유효하지 않은 예약 조회 타입입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
