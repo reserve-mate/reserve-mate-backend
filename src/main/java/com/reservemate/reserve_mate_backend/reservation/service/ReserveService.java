@@ -74,7 +74,7 @@ public class ReserveService {
             status = List.of(ReservationStatus.COMPLETED, ReservationStatus.CANCELED);
         }
 
-        Pageable pageable = PageRequest.of(pageNum, 1, Sort.by(
+        Pageable pageable = PageRequest.of(pageNum, 6, Sort.by(
             Sort.Order.desc("reserveDate"), Sort.Order.asc("startTime"), Sort.Order.desc("id")
         )
         );
