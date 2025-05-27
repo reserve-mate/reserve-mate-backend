@@ -31,4 +31,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /* 예약 결제 정보 조회 */
     Optional<Payment> findByReservation(Reservation reservation);
 
+    /* 예약 결제 정보 조회 */
+    @Query("select p from Payment p where p.reservation.id = :reservationId")
+    Optional<Payment> findByReservationId(@Param("reservationId") Long reservationId);
+
 }

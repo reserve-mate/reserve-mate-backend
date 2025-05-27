@@ -89,12 +89,6 @@ public class PaymentService {
 
     }
 
-    /* 매치 삭제 시 일괄 삭제 */
-    @Transactional
-    public void bulkPaymentCancel() {
-
-    }
-
     /* 매치 결제 취소 상태 체크 */
     public PaymentResponse checkCancelStatus(String orderId) {
         if (orderId == null || orderId.isBlank()) {

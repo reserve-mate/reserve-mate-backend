@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.reservation.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
@@ -7,10 +8,11 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
-import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.ConfirmReservationRequest;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
+import com.reservemate.reserve_mate_backend.reservation.dto.request.ReservationCancelRequest;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
 import com.reservemate.reserve_mate_backend.user.domain.User;
@@ -28,8 +30,24 @@ public class ReserveCUDService {
     private final CourtRepository courtRepository;
     private final UserRepository userRepository;
     private final Validator validator;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final JwtUtil jwtUtil;
+
+    /* 예약 취소 */
+    @Transactional
+    public String reservationCancel(Long reservationId, String cancelReason) {
+        Reservation reservation = reserveRepository.findById(reservationId).orElseThrow(() -> new ApiException(
+            ErrorCode.NOT_FOUND_RESERVATION));
+        reservation.isCompleteOrCancel();
+
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+            eventPublisher.publishEvent(new ReservationCancelRequest(reservationId, cancelReason));
+        }
+        reservation.cancel(cancelReason);
+
+        return reservation.getReservationNumber();
+    }
 
     /* 예약 확정 */
     @Transactional

@@ -14,6 +14,7 @@ public class ReservationEvent {
 
     private final ReserveCUDService reserveCUDService;
 
+    /* 결제 후 예약 확정 */
     @EventListener
     public void reservationConfirm(ConfirmReservationRequest reservationRequest) {
         reserveCUDService.reservationConfirm(reservationRequest);

@@ -139,10 +139,45 @@ public class Reservation extends BaseEntity {
         return this.court.getId();
     }
 
+    public void isNotConfirm() {
+        if (this.status != ReservationStatus.CONFIRMED) {
+            throw new ApiException(ErrorCode.NOT_CONFIRMED_RESERVATION);
+        }
+    }
+
     // 예약 대기 상태가 아닌 경우
     public void isNotPending() {
         if (this.status != ReservationStatus.PENDING) {
             throw new ApiException(ErrorCode.RESERVATION_NOT_PENDING);
+        }
+    }
+
+    // 이미 취소된 예약인지 검증
+    public void isCancel() {
+        if (this.status == ReservationStatus.CANCELED) {
+            throw new ApiException(ErrorCode.ALREADY_CANCELLED_RESERVATION);
+        }
+    }
+
+    // 이미 취소된 예약인지 검증
+    public void isNotCancel() {
+        if (this.status != ReservationStatus.CANCELED) {
+            throw new ApiException(ErrorCode.NOT_CANCELLED_RESERVATION);
+        }
+    }
+
+    // 이미 종료된 예약약인지 검증
+    public void isComplete() {
+        if (this.status == ReservationStatus.COMPLETED) {
+            throw new ApiException(ErrorCode.ALREADY_ENDED_RESERVATION);
+        }
+    }
+
+    // 이미 완료되거나 취소된 예약인지 검증
+    public void isCompleteOrCancel() {
+        List<ReservationStatus> status = List.of(ReservationStatus.CANCELED, ReservationStatus.COMPLETED);
+        if (status.contains(this.status)) {
+            throw new ApiException(ErrorCode.ALREADY_PROCESSED_RESERVATION);
         }
     }
 

@@ -31,6 +31,12 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final PaymentReservationService paymentReservationService;
 
+    @GetMapping("/reservationCancelChk")
+    public ResponseEntity<PaymentResponse> reservationCancelChk(
+        @RequestParam("reservationNumber") String reservationNumber) {
+        return ResponseEntity.ok(paymentReservationService.reservationPaymentCancelChk(reservationNumber));
+    }
+
     /* 예약 결제 */
     @PostMapping("/reservationApprove")
     public ResponseEntity<PaymentResponse> reservationPayment(@RequestBody ReservationPaymentRequest paymentRequest) {
@@ -38,7 +44,7 @@ public class PaymentController {
     }
 
     @GetMapping("/cancelStatus")
-    public ResponseEntity<PaymentResponse> getMethodName(@RequestParam("orderId") String orderId) {
+    public ResponseEntity<PaymentResponse> checkCancelStatus(@RequestParam("orderId") String orderId) {
         return ResponseEntity.ok(paymentService.checkCancelStatus(orderId));
     }
 

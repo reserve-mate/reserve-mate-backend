@@ -27,6 +27,13 @@ public class Validator {
     private final MatchRepository matchRepository;
     private final OperationHourRepository operationHourRepository;
 
+    public Reservation reservationCancelChk(String reservationNumber) {
+        Reservation reservation = reserveRepository.findByReservationNumber(reservationNumber).orElseThrow(
+            () -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));
+        reservation.isNotCancel();
+        return reservation;
+    }
+
     /* 예약 확정 시 데이터 검증 */
     public Reservation reservationConfirmValid(Long reservationId) {
 

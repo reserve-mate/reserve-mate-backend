@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +33,13 @@ public class ReservceController {
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
 
+    @PutMapping("/cancel/{reservationId}")
+    public ResponseEntity<String> putMethodName(@PathVariable("reservationId") Long id,
+        @RequestParam("cancelReason") String cancelReason) {
+        return ResponseEntity.ok(reserveCUDService.reservationCancel(id, cancelReason));
+    }
+
+    /* 예약 취소(대기 상태) */
     @GetMapping("/verifyReservation")
     public ResponseEntity<Boolean> verifyReservation(@RequestParam("reservationId") Long reservationId) {
         return ResponseEntity.ok(reserveService.verifyReservation(reservationId));

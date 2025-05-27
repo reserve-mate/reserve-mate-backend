@@ -9,6 +9,8 @@ import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import jakarta.persistence.*;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -129,6 +131,27 @@ public class Payment extends BaseEntity {
         this.payMethod = payMethod;
         this.user = user;
         this.match = match;
+    }
+
+    // 예약 취소시각에 따른 환불
+    public int reservationRefundAmount() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        LocalDateTime reserveDateTime = LocalDateTime.of(this.reservation.getReserveDate(), this.reservation
+            .getStartTime());
+
+        Duration duration = Duration.between(nowDateTime, reserveDateTime);
+        long hourUntilStart = duration.toHours();
+
+        int refund = 0;
+        if (hourUntilStart >= ReturnPolicy.TWO_DAY_AGO_BY_HOUR) {    // 48시간 전
+            refund = this.amount;
+        } else if (hourUntilStart >= ReturnPolicy.ONE_DAY_AGO_BY_HOUR) {  // 24~48시간 전
+            refund = (int) (this.amount * ReturnPolicy.RETURN_50);
+        } else if (hourUntilStart > 0) {
+            refund = 0;
+        }
+
+        return refund;
     }
 
     // 취소 시각에 따른 환불

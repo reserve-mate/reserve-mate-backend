@@ -63,7 +63,11 @@ public enum ErrorCode {
                 "중복된 대기 또는 확정 예약이 존재합니다."), NOT_FOUND_RESERVATION(BAD_REQUEST,
                     "예약 정보가 존재하지 않습니다."), INVALID_RESERVATION_SCOPE(BAD_REQUEST,
                         "유효하지 않은 예약 조회 타입입니다."), ALREADY_RESERVED(CONFLICT, "이미 예약된 시간입니다."), RESERVATION_NOT_PENDING(
-                            BAD_REQUEST, "예약이 대기 상태가 아닙니다.");
+                            BAD_REQUEST, "예약이 대기 상태가 아닙니다."), ALREADY_CANCELLED_RESERVATION(BAD_REQUEST,
+                                "이미 취소된 예약입니다."), ALREADY_ENDED_RESERVATION(BAD_REQUEST,
+                                    "이미 종료된 예약입니다."), ALREADY_PROCESSED_RESERVATION(BAD_REQUEST,
+                                        "이미 완료되었거나 취소된 예약입니다."), NOT_CONFIRMED_RESERVATION(BAD_REQUEST,
+                                            "확정된 예약이 아닙니다."), NOT_CANCELLED_RESERVATION(BAD_REQUEST, "취소된 예약이 아닙니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.reservation.repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -60,5 +61,8 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findOverlappingWithLock(@Param("courtId") Long courtId,
         @Param("reserveDate") LocalDate reserveDate, @Param("startTime") LocalTime startTime,
         @Param("endTime") LocalTime endTime);
+
+    /* 예약 일련번호로 조회 */
+    Optional<Reservation> findByReservationNumber(String reservationNumber);
 
 }

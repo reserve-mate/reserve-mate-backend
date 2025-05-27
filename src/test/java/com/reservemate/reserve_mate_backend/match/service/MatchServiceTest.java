@@ -339,7 +339,7 @@ public class MatchServiceTest {
             .matchName("매치")
             .managerId(facilityManager.getId())
             .teamCapacity(15)
-            .matchDate(LocalDate.now())
+            .matchDate(LocalDate.of(2025, 12, 31))
             .matchTime(22)
             .matchEndTime(23)
             .courtId(court.getId())

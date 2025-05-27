@@ -20,7 +20,7 @@ public class ReservationPaymentRequest {
 
     public Payment toEntity(Reservation reservation) {
         return new Payment(
-            this.paymentKey, this.orderId, this.amount, reservation.getUser(), PaymentMethod.CARD, reservation);
+            this.orderId, this.paymentKey, this.amount, reservation.getUser(), PaymentMethod.CARD, reservation);
     }
 
 }
