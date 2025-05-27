@@ -1,6 +1,8 @@
 package com.reservemate.reserve_mate_backend.reservation.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import jakarta.persistence.*;
@@ -130,6 +132,18 @@ public class Reservation extends BaseEntity {
         }
 
         return hours.stream().sorted().toList();
+    }
+
+    // 코트 아이디 가져오기
+    public Long getCourtId() {
+        return this.court.getId();
+    }
+
+    // 예약 대기 상태가 아닌 경우
+    public void isNotPending() {
+        if (this.status != ReservationStatus.PENDING) {
+            throw new ApiException(ErrorCode.RESERVATION_NOT_PENDING);
+        }
     }
 
 }

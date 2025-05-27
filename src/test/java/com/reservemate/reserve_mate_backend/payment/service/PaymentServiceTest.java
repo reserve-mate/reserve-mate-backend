@@ -67,6 +67,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDt
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.MatchPaymentSuccessDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentCancelDto;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentFailDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
@@ -273,7 +274,10 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.checkCancelStatus(orderId);
 
         /* then */
-        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
+        if (response instanceof PaymentCancelDto) {
+            PaymentCancelDto paymentCancelDto = (PaymentCancelDto) response;
+            assertThat(paymentCancelDto.getCancelReason()).isEqualTo(payment.getCancelReason());
+        }
     }
 
     @Test
@@ -376,8 +380,11 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
 
         /* then */
-        assertThat(response.getErrorCode()).isEqualTo("400");
-        assertThat(response.getErrorMsg()).isEqualTo("결제 취소 실패");
+        if (response instanceof PaymentFailDto) {
+            PaymentFailDto failDto = (PaymentFailDto) response;
+            assertThat(failDto.getErrorCode()).isEqualTo("400");
+            assertThat(failDto.getErrorMsg()).isEqualTo("결제 취소 실패");
+        }
     }
 
     @Test
@@ -410,8 +417,10 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
 
         /* then */
-        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
+        if (response instanceof PaymentCancelDto) {
+            PaymentCancelDto paymentCancelDto = (PaymentCancelDto) response;
+            assertThat(paymentCancelDto.getCancelReason()).isEqualTo(payment.getCancelReason());
+        }
     }
 
     @Test

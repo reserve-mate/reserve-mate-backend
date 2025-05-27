@@ -186,14 +186,14 @@ public class PaymentService {
                 eventPublisher.publishEvent(new CancelPlayerDto(matchPlayer));
             } else {
                 JSONObject errorResponse = Utils.stringToJson(response.body().toString());
-                return PaymentResponse.toErrorResponse(errorResponse);
+                return PaymentResponse.toPaymentFailed(errorResponse);
             }
         } catch (Exception e) {
             e.printStackTrace();
             throw new ApiException(ErrorCode.SERVER_ERROR);
         }
 
-        return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason());
+        return PaymentResponse.toPaymentCancel(payment.getImpUid(), payment.getCancelReason());
     }
 
     /* 매치 검증 후 결제 요청 */

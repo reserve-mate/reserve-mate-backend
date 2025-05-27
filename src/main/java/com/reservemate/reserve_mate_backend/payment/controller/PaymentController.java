@@ -7,7 +7,9 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDt
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
+import com.reservemate.reserve_mate_backend.payment.service.PaymentReservationService;
 import com.reservemate.reserve_mate_backend.payment.service.PaymentService;
+import com.reservemate.reserve_mate_backend.reservation.dto.request.ReservationPaymentRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentReservationService paymentReservationService;
+
+    /* 예약 결제 */
+    @PostMapping("/reservationApprove")
+    public ResponseEntity<PaymentResponse> reservationPayment(@RequestBody ReservationPaymentRequest paymentRequest) {
+        return ResponseEntity.ok(paymentReservationService.reservationPayment(paymentRequest));
+    }
 
     @GetMapping("/cancelStatus")
     public ResponseEntity<PaymentResponse> getMethodName(@RequestParam("orderId") String orderId) {

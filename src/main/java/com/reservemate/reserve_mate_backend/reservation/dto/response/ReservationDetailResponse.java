@@ -30,6 +30,9 @@ public class ReservationDetailResponse {
     private String bookedName;
     private String reservationNumber;
 
+    private String userEmail;
+    private String userPhone;
+
     private Long facilityId;
     private String facilityName;
     private String courtName;
@@ -53,6 +56,8 @@ public class ReservationDetailResponse {
             .endTime(reservation.getEndTime())
             .bookedName(reservation.getUser().getName())
             .reservationNumber(reservation.getReservationNumber())
+            .userEmail(reservation.getUser().getEmail())
+            .userPhone(reservation.getUser().getPhone())
             .facilityId(reservation.getCourt().getFacilityId())
             .sportType(reservation.getCourt().getFacility().getSportType())
             .facilityName(reservation.getCourt().getFacility().getName())

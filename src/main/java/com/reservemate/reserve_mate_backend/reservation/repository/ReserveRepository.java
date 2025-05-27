@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +15,8 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.user.domain.User;
+
+import jakarta.persistence.LockModeType;
 
 public interface ReserveRepository extends JpaRepository<Reservation, Long> {
 
@@ -44,5 +47,18 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
 
     /* 상태에 따른 사용자의 예약 목록 조회(무한 스크롤 페이징) */
     Slice<Reservation> findByUserAndStatusIn(User user, List<ReservationStatus> status, Pageable pageable);
+
+    /* 시간대 겹치는 예약 중 CONFIRM 상태 있는지 확인 */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Reservation r"
+        + " where r.court.id = :courtId"
+        + " and r.reserveDate = :reserveDate"
+        + " and r.startTime < :endTime"
+        + " and r.endTime > :startTime"
+        + " and r.status = 'CONFIRMED'"
+    )
+    List<Reservation> findOverlappingWithLock(@Param("courtId") Long courtId,
+        @Param("reserveDate") LocalDate reserveDate, @Param("startTime") LocalTime startTime,
+        @Param("endTime") LocalTime endTime);
 
 }

@@ -94,6 +94,24 @@ public class Payment extends BaseEntity {
         this.match = match;
     }
 
+    // @Builder 여러개 있는 경우 Lombok이 한개만 적용(한개만 적용 추천)
+    public Payment(
+        String impUid,
+        String merchantUid,
+        Integer amount,
+        User user,
+        PaymentMethod payMethod,
+        Reservation reservation) {
+        this.impUid = impUid;
+        this.merchantUid = merchantUid;
+        this.amount = amount;
+        this.status = PaymentStatus.PAID;
+        this.paidAt = LocalDateTime.now();
+        this.payMethod = payMethod;
+        this.user = user;
+        this.reservation = reservation;
+    }
+
     @Builder
     public Payment(
         Long id,

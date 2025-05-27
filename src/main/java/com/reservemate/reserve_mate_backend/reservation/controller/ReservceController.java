@@ -32,12 +32,19 @@ public class ReservceController {
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
 
+    @GetMapping("/verifyReservation")
+    public ResponseEntity<Boolean> verifyReservation(@RequestParam("reservationId") Long reservationId) {
+        return ResponseEntity.ok(reserveService.verifyReservation(reservationId));
+    }
+
+    /* 예약 목록 조회 */
     @GetMapping("/reservations")
     public ResponseEntity<Slice<ReservationsResponse>> getMethodName(HttpServletRequest request,
         @RequestParam("type") String type, @RequestParam("pageNum") Integer pageNum) {
         return ResponseEntity.ok(reserveService.getReservations(request, type, pageNum));
     }
 
+    /* 예약 상세 */
     @GetMapping("/{reservationId}")
     public ResponseEntity<ReservationDetailResponse> getReservationDetail(
         @PathVariable("reservationId") Long reservationId) {

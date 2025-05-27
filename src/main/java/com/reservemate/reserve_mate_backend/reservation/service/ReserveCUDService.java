@@ -7,7 +7,9 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.dto.request.ConfirmReservationRequest;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
@@ -26,7 +28,15 @@ public class ReserveCUDService {
     private final CourtRepository courtRepository;
     private final UserRepository userRepository;
     private final Validator validator;
+
     private final JwtUtil jwtUtil;
+
+    /* 예약 확정 */
+    @Transactional
+    public void reservationConfirm(ConfirmReservationRequest confirmReservationRequest) {
+        Reservation reservation = confirmReservationRequest.getReservation();
+        reservation.confirm();
+    }
 
     /* 예약(대기) 생성 */
     @Transactional

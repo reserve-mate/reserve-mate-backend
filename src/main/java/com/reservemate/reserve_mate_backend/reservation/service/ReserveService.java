@@ -45,6 +45,16 @@ public class ReserveService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
+    /* 예약 가능 여부 */
+    public boolean verifyReservation(Long reservationId) {
+        Reservation reservation = reserveRepository.findById(reservationId).orElseThrow(() -> new ApiException(
+            ErrorCode.NOT_FOUND_RESERVATION));
+        reservation.isNotPending();
+
+        return reserveRepository.existsReservationDate(reservation.getReserveDate(), reservation.getStartTime(),
+            reservation.getEndTime(), reservation.getCourtId(), ReservationStatus.CONFIRMED);
+    }
+
     /* 예약 목록 조회 */
     public Slice<ReservationsResponse> getReservations(HttpServletRequest request, String type, Integer pageNum) {
 

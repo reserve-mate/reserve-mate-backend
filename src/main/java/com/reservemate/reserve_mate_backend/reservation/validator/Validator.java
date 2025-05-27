@@ -11,6 +11,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
@@ -25,6 +26,26 @@ public class Validator {
     private final ReserveRepository reserveRepository;
     private final MatchRepository matchRepository;
     private final OperationHourRepository operationHourRepository;
+
+    /* 예약 확정 시 데이터 검증 */
+    public Reservation reservationConfirmValid(Long reservationId) {
+
+        Reservation reservation = reserveRepository.findById(reservationId).orElseThrow(() -> new ApiException(
+            ErrorCode.NOT_FOUND_RESERVATION));
+        reservation.isNotPending();
+
+        // 해당 시간대에 겹치는 예약이 있는지 조회(비관적 락)
+        List<Reservation> reservations = reserveRepository.findOverlappingWithLock(reservation.getCourtId(), reservation
+            .getReserveDate(), reservation.getStartTime(), reservation.getEndTime());
+
+        boolean hasConflict = reservations.stream().anyMatch(r -> !r.getId().equals(reservationId) && r.getStatus()
+            == ReservationStatus.CONFIRMED);
+        if (hasConflict) {
+            throw new ApiException(ErrorCode.ALREADY_RESERVED);
+        }
+
+        return reservation;
+    }
 
     /* 예약 생성 시 데이터 검증 */
     public void createReservationValid(CreateReservation createReservation, User user, Court court) {
