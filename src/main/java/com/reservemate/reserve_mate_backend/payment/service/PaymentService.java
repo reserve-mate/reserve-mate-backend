@@ -223,7 +223,8 @@ public class PaymentService {
         PaymentResponse response = null;
         // toss payments에 결제 요청
         try {
-            HttpResponse httpResponse = payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount());
+            HttpResponse httpResponse = payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(),
+                amountRequest.getAmount());
             if (httpResponse.statusCode() != 200) { // 결제 승인 시 에러로 인한 취소는 DB에 넣지 않음
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
                 payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, amountRequest.getAmount());

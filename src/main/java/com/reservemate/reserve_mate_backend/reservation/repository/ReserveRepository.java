@@ -36,6 +36,18 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
         @Param("endTime") LocalTime endTime, @Param("courtId") Long courtId,
         @Param("status") ReservationStatus confirmed);
 
+    @Query("select r from Reservation r"
+        + " where r.court.id = :courtId"
+        + " and r.reserveDate = :reserveDate"
+        + " and r.startTime < :endTime"
+        + " and r.endTime > :startTime"
+        + " and r.status = :status"
+    )
+    List<Reservation> findByOtherReservations(@Param("reserveDate") LocalDate reserveDate,
+        @Param("startTime") LocalTime startTime,
+        @Param("endTime") LocalTime endTime, @Param("courtId") Long courtId,
+        @Param("status") ReservationStatus confirmed);
+
     /* 중복된 대기 또는 확정 상태인 예약이 있는지 검증 */
     boolean existsByReserveDateAndStartTimeAndEndTimeAndStatusInAndUserAndCourt(LocalDate reserveDate,
         LocalTime startTime, LocalTime endTime, List<ReservationStatus> status, User user, Court court);
@@ -56,7 +68,7 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
         + " and r.reserveDate = :reserveDate"
         + " and r.startTime < :endTime"
         + " and r.endTime > :startTime"
-        + " and r.status = 'CONFIRMED'"
+        + " and r.status in ('CONFIRMED', 'PENDING')"
     )
     List<Reservation> findOverlappingWithLock(@Param("courtId") Long courtId,
         @Param("reserveDate") LocalDate reserveDate, @Param("startTime") LocalTime startTime,

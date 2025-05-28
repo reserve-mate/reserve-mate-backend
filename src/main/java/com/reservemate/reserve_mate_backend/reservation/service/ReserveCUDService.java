@@ -82,6 +82,16 @@ public class ReserveCUDService {
     public void reservationConfirm(ConfirmReservationRequest confirmReservationRequest) {
         Reservation reservation = confirmReservationRequest.getReservation();
         reservation.confirm();
+
+        List<Reservation> pendings = reserveRepository.findByOtherReservations(reservation.getReserveDate(), reservation
+            .getStartTime(), reservation.getEndTime(), reservation.getCourtId(), ReservationStatus.PENDING);
+        if (!pendings.isEmpty()) {
+            for (Reservation pending : pendings) {
+                pending.cancel("해당 시간은 이미 다른 예약이 잡혀 있습니다.");
+            }
+
+            reserveRepository.saveAll(pendings);
+        }
     }
 
     /* 예약(대기) 생성 */

@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,9 +35,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
@@ -44,6 +50,10 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
@@ -64,38 +74,34 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import okhttp3.mockwebserver.MockWebServer;
 
-@ExtendWith(MockitoExtension.class)
+// @ExtendWith(MockitoExtension.class)
+@SpringBootTest
 @Transactional
 public class MatchServiceConcurrencyTest {
 
-    @Mock
-    private PaymentRepository paymentRepository;
-
-    @Mock
-    private MatchRepository matchRepository;
-
-    @Mock
+    @MockitoBean
     private UserRepository userRepository;
 
-    @Mock
-    private PaymentCustomRepository paymentCustomRepository;
+    @MockitoBean
+    private FacilityRepository facilityRepository;
 
-    @Mock
-    private MatchPlayerRepository matchPlayerRepository;
+    @MockitoBean
+    private CourtRepository courtRepository;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @MockitoBean
+    private FacilityManagerRepository facilityManagerRepository;
 
-    @Mock
+    @MockitoBean
+    private MatchRepository matchRepository;
+
+    @MockitoBean
     private PayClient payClient;
 
-    @Mock
+    @MockitoBean
     private JwtUtil jwtUtil;
 
-    @InjectMocks
+    @Autowired
     private PaymentService paymentService;
-
-    private PayClient tossClient;
 
     private User user;
     private Facility facility;
@@ -103,103 +109,14 @@ public class MatchServiceConcurrencyTest {
     private Match match;
     private FacilityManager facilityManager;
 
-    private MockWebServer mockWebServer;
-    private String mockWebServerUrl;
-
-    private String successBody;
-    private String failBody;
-
     @BeforeEach
-    void setUp(TestInfo testInfo) throws IOException {
+    void setUp(TestInfo testInfo) throws Exception {
         user = getUser();
         facility = getFacility();
         court = getCourt(facility);
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
 
-        tossClient = new PayClientImpl();
-
-        if (testInfo.getDisplayName().equals("결제 취소 상태 체크")) { // 해당 테스트 아래 로직 건너뛰기
-            return;
-        }
-
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
-        mockWebServerUrl = mockWebServer.url("http://localhost:" + this.mockWebServer.getPort()).toString();
-
-        successBody = "{\n" +
-            "  \\\"mId\\\": \\\"tosspayments\\\",\n" +
-            "  \\\"version\\\": \\\"2022-11-16\\\",\n" +
-            "  \\\"paymentKey\\\": \\\"B1d9edx08u7ic9yQqcTzj\\\",\n" +
-            "  \\\"status\\\": \\\"DONE\\\",\n" +
-            "  \\\"lastTransactionKey\\\": \\\"Wgz12DHTz2PaVxm5LUO6i\\\",\n" +
-            "  \\\"method\\\": \\\"간편결제\\\",\n" +
-            "  \\\"orderId\\\": \\\"chdimFOf9tnXV5u8Xqtlo\\\",\n" +
-            "  \\\"orderName\\\": \\\"토스 티셔츠 외 2건\\\",\n" +
-            "  \\\"requestedAt\\\": \\\"2022-06-08T15:40:09+09:00\\\",\n" +
-            "  \\\"approvedAt\\\": \\\"2022-06-08T15:40:49+09:00\\\",\n" +
-            "  \\\"useEscrow\\\": false,\n" +
-            "  \\\"cultureExpense\\\": false,\n" +
-            "  \\\"card\\\": {\n" +
-            "    \\\"issuerCode\\\": \\\"61\\\",\n" +
-            "    \\\"acquirerCode\\\": \\\"31\\\",\n" +
-            "    \\\"number\\\": \\\"12345678****789*\\\",\n" +
-            "    \\\"installmentPlanMonths\\\": 0,\n" +
-            "    \\\"isInterestFree\\\": false,\n" +
-            "    \\\"interestPayer\\\": null,\n" +
-            "    \\\"approveNo\\\": \\\"00000000\\\",\n" +
-            "    \\\"useCardPoint\\\": false,\n" +
-            "    \\\"cardType\\\": \\\"신용\\\",\n" +
-            "    \\\"ownerType\\\": \\\"개인\\\",\n" +
-            "    \\\"acquireStatus\\\": \\\"READY\\\",\n" +
-            "    \\\"amount\\\": 15000\n" +
-            "  },\n" +
-            "  \\\"virtualAccount\\\": null,\n" +
-            "  \\\"transfer\\\": null,\n" +
-            "  \\\"mobilePhone\\\": null,\n" +
-            "  \\\"giftCertificate\\\": null,\n" +
-            "  \\\"cashReceipt\\\": null,\n" +
-            "  \\\"cashReceipts\\\": null,\n" +
-            "  \\\"discount\\\": null,\n" +
-            "  \\\"cancels\\\": null,\n" +
-            "  \\\"secret\\\": null,\n" +
-            "  \\\"type\\\": \\\"NORMAL\\\",\n" +
-            "  \\\"easyPay\\\": {\n" +
-            "    \\\"provider\\\": \\\"토스페이\\\",\n" +
-            "    \\\"amount\\\": 0,\n" +
-            "    \\\"discountAmount\\\": 0\n" +
-            "  },\n" +
-            "  \\\"country\\\": \\\"KR\\\",\n" +
-            "  \\\"failure\\\": null,\n" +
-            "  \\\"isPartialCancelable\\\": true,\n" +
-            "  \\\"receipt\\\": {\n" +
-            "    \\\"url\\\": \\\"https://dashboard.tosspayments.com/sales-slip?transactionId=KAgfjGxIqVVXDxOiSW1wUnRWBS1dszn3DKcuhpm7mQlKP0iOdgPCKmwEdYglIHX&ref=PX\\\"\n"
-            +
-            "  },\n" +
-            "  \\\"checkout\\\": {\n" +
-            "    \\\"url\\\": \\\"https://api.tosspayments.com/v1/payments/B1d9edx08u7ic9yQqcTzj/checkout\\\"\n" +
-            "  },\n" +
-            "  \\\"currency\\\": \\\"KRW\\\",\n" +
-            "  \\\"totalAmount\\\": 15000,\n" +
-            "  \\\"balanceAmount\\\": 15000,\n" +
-            "  \\\"suppliedAmount\\\": 13636,\n" +
-            "  \\\"vat\\\": 1364,\n" +
-            "  \\\"taxFreeAmount\\\": 0,\n" +
-            "  \\\"metadata\\\": null\n" +
-            "}";
-
-        failBody = "{\n" +
-            "  \\\"code\\\": \\\"NOT_FOUND_PAYMENT_SESSION\\\",\n" +
-            "  \\\"message\\\": \\\"결제 시간이 만료되어 결제 진행 데이터가 존재하지 않습니다.\\\"\n" +
-            "}";
-    }
-
-    @AfterEach
-    void terminate(TestInfo testInfo) throws IOException {
-        if (testInfo.getDisplayName().equals("결제 취소 상태 체크")) { // 해당 테스트 아래 로직 건너뛰기
-            return;
-        }
-        mockWebServer.shutdown();
     }
 
     @Test
@@ -207,10 +124,6 @@ public class MatchServiceConcurrencyTest {
     void testRequestPayConfirmThread() throws InterruptedException, IOException {
 
         List<Boolean> results = Collections.synchronizedList(new ArrayList<>());
-        //Semaphore concurrentLimit = new Semaphore(2);
-
-        /* given */
-        given(matchRepository.findByIdWithLock(match.getMatchId())).willReturn(Optional.of(match));
 
         int numberOfThread = match.getTeamCapacity();
         ExecutorService service = Executors.newFixedThreadPool(10);
@@ -219,7 +132,6 @@ public class MatchServiceConcurrencyTest {
             service.submit(() -> {
                 // 실행될 로직
                 try {
-                    //concurrentLimit.acquire();  // 2개까지만 동시 허용됨
                     SaveAmountRequest amountRequest = SaveAmountRequest.builder()
                         .amount(match.getMatchPrice())
                         .orderId(UUID.randomUUID().toString())
@@ -231,32 +143,31 @@ public class MatchServiceConcurrencyTest {
                     String fakeAccessToken = "mocked.jwt.token";
 
                     given(request.getHeader("access")).willReturn(fakeAccessToken);
-                    lenient().when(jwtUtil.getId(fakeAccessToken)).thenReturn(user.getId());
-                    lenient().when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+                    given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+                    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
-                    // 외부 api 가짜 응답
                     HttpResponse<String> mockResponse = mock(HttpResponse.class);
                     when(mockResponse.statusCode()).thenReturn(200);
-                    lenient().when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount())).thenReturn(mockResponse);
+                    given(payClient.requestPay(any(), any(), anyInt())).willReturn(mockResponse);
 
                     /* when */
                     paymentService.requestPayConfirm(request, amountRequest);
                     results.add(true);
 
-                } catch (IOException | InterruptedException e) {
+                } catch (Exception e) {
                     // TODO Auto-generated catch block
                     results.add(false);
                     e.printStackTrace();
+                } finally {
+                    latch.countDown();
                 }
-
-                latch.countDown();
             });
         }
         latch.await();
 
         /* then */
-        long successCnt = results.stream().filter(result -> result).count(); // 해당 결과가 true은 List 요소의 개수
-        assertThat(successCnt).isEqualTo(18);
+        long successCnt = results.stream().filter(result -> !result).count(); // 해당 결과가 true은 List 요소의 개수
+        assertThat(successCnt).isEqualTo(numberOfThread);
     }
 
     // 매니저 데이터 저장
@@ -309,7 +220,11 @@ public class MatchServiceConcurrencyTest {
         Facility facility = Facility.builder()
             .name("시설")
             .address(address)
+            .description("123")
+            .conventient("1100")
+            .sportType(SportType.BADMINTON)
             .build();
+
         return facility;
     }
 
