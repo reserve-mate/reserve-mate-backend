@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.reservation.service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -93,9 +94,12 @@ public class ReserveService {
 
         if (reservation.getStatus() == ReservationStatus.PENDING) {  // 대기 상태인 경우
             response = ReservationDetailResponse.toReservationDetailPending(reservation);
+        } else if (reservation.getStatus() == ReservationStatus.CANCELED) {
+            Optional<Payment> payment = paymentRepository.findByReservation(reservation);
+            response = ReservationDetailResponse.toReservationCancelResponse(reservation, payment);
         } else {
-            Payment payment = paymentRepository.findByReservation(reservation)
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_PAYMENT));
+            Payment payment = paymentRepository.findByReservation(reservation).orElseThrow(() -> new ApiException(
+                ErrorCode.NOT_FOUND_RESERVATION));
             response = ReservationDetailResponse.toReservationDetailResponse(reservation, payment);
         }
 
