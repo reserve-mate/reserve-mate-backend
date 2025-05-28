@@ -237,7 +237,7 @@ public class MatchServiceConcurrencyTest {
                     // 외부 api 가짜 응답
                     HttpResponse<String> mockResponse = mock(HttpResponse.class);
                     when(mockResponse.statusCode()).thenReturn(200);
-                    lenient().when(payClient.requestPay(any())).thenReturn(mockResponse);
+                    lenient().when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount())).thenReturn(mockResponse);
 
                     /* when */
                     paymentService.requestPayConfirm(request, amountRequest);

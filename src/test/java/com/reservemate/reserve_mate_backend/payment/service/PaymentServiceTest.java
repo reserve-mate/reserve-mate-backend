@@ -533,7 +533,7 @@ public class PaymentServiceTest {
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(400);
         when(mockResponse.body()).thenReturn("{\"message\":\"결제 실패\"}");
-        when(payClient.requestPay(any())).thenReturn(mockResponse);
+        when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount())).thenReturn(mockResponse);
 
         HttpResponse<String> mockFailRes = mock(HttpResponse.class);
         lenient().when(mockFailRes.statusCode()).thenReturn(200); // mock 중복시 lenient 적용 (중복 stubbing 무시)
@@ -574,7 +574,7 @@ public class PaymentServiceTest {
         // 외부 api 가짜 응답
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
-        when(payClient.requestPay(any())).thenReturn(mockResponse);
+        when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount())).thenReturn(mockResponse);
 
         ArgumentCaptor<Payment> argumentCaptor = ArgumentCaptor.forClass(Payment.class);
 

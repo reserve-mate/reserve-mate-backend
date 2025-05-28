@@ -43,20 +43,6 @@ public class PayClientImpl implements PayClient {
     }
 
     @Override
-    public HttpResponse requestPay(SaveAmountRequest amountRequest) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(tossApiUrl + "confirm"))
-            .header("Authorization", "Basic " + PaymentUtil.getPayAuth(tossSecret))
-            .header("Content-Type", "application/json")
-            .method("POST", HttpRequest.BodyPublishers.ofString(PaymentUtil.requestBody(amountRequest)))
-            .build();
-
-        HttpResponse httpResponse = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        return httpResponse;
-    }
-
-    @Override
     public HttpResponse requestPayForTest(String scretKey, String url,
         SaveAmountRequest amountRequest) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

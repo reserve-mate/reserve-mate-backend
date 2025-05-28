@@ -39,7 +39,7 @@ public class PaymentUtil {
 
     }
 
-    // 승인 요청에 사용할 JSON 객체를 만듦
+    //승인 요청에 사용할 JSON 객체를 만듦
     public static String requestBody(SaveAmountRequest amountRequest) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode requestObj = mapper.createObjectNode()
