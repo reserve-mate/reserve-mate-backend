@@ -1,11 +1,16 @@
 package com.reservemate.reserve_mate_backend.reservation.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
@@ -33,6 +38,29 @@ public class ReserveCUDService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final JwtUtil jwtUtil;
+
+    // 확정된 COMPLETE 수정
+    @Transactional
+    public void chgConfirm() {
+        LocalTime nowTime = LocalTime.of(Utils.getNowTime(), 0);
+        List<Reservation> reservations = reserveRepository.findByReserveDateAndStartTimeAndStatus(LocalDate.now(),
+            nowTime, ReservationStatus.CONFIRMED);
+
+        if (!reservations.isEmpty()) {
+            int batch = 1000;
+            for (int i = 0; i < reservations.size(); i += batch) {
+                List<Reservation> batchList = reservations.subList(i, Math.min(i + batch, reservations.size()));
+                confirmBatchProcess(batchList); // 확정된 COMPLETE 수정
+            }
+        }
+    }
+
+    // 확정된 COMPLETE 수정
+    private void confirmBatchProcess(List<Reservation> batchList) {
+        for (Reservation reservation : batchList) {
+            reservation.complete();
+        }
+    }
 
     /* 예약 취소 */
     @Transactional

@@ -65,4 +65,8 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
     /* 예약 일련번호로 조회 */
     Optional<Reservation> findByReservationNumber(String reservationNumber);
 
+    /* 현재 시간의 확정된 예약 목록 조회 */
+    List<Reservation> findByReserveDateAndStartTimeAndStatus(LocalDate now, LocalTime nowTime,
+        ReservationStatus confirmed);
+
 }
