@@ -36,6 +36,19 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
         @Param("endTime") LocalTime endTime, @Param("courtId") Long courtId,
         @Param("status") ReservationStatus confirmed);
 
+    /* 해당 시간대에 에약이 존재하는 검증 */
+    @Query("select case when count(r) > 0 then true else false end"
+        + " from Reservation r"
+        + " where r.reserveDate = :reserveDate"
+        + " and r.startTime < :endTime"
+        + " and r.endTime > :startTime"
+        + " and r.status in (:status)"
+        + " and r.court.id = :courtId")
+    boolean existsReservationDateTime(@Param("reserveDate") LocalDate reserveDate,
+        @Param("startTime") LocalTime startTime,
+        @Param("endTime") LocalTime endTime, @Param("courtId") Long courtId,
+        @Param("status") List<ReservationStatus> status);
+
     @Query("select r from Reservation r"
         + " where r.court.id = :courtId"
         + " and r.reserveDate = :reserveDate"
