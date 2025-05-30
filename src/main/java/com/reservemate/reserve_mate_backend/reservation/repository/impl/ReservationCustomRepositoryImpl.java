@@ -1,16 +1,23 @@
 package com.reservemate.reserve_mate_backend.reservation.repository.impl;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
+import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReservationCustomRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,14 +28,73 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
 
     private final JPAQueryFactory queryFactory;
 
+    QReservation reservation = QReservation.reservation;
+    QCourt court = QCourt.court;
+    QFacility facility = QFacility.facility;
+    QFacilityManager facilityManager = QFacilityManager.facilityManager;
+
+    /* 관리자 예약 현황 */
+    @Override
+    public Slice<AdminReservationResponse> getAdminReservations(Long userId, String searchTerm,
+        ReservationStatus reservationStatus, Long facilityId, LocalDate searchDate, Pageable pageable) {
+
+        List<AdminReservationResponse> responses = queryFactory
+            .select(
+                Projections.fields(AdminReservationResponse.class, reservation.id.as("reservationId"),
+                    reservation.user.name.as("userName"), facility.name.as("faciliyyName"), reservation.court.name.as(
+                        "courtName"), reservation.reserveDate.as("reservationDate"), reservation.startTime.as(
+                            "startTime"), reservation.endTime.as("endTime"), reservation.status.as("reservationStatus"),
+                    reservation.totalPrice.as("totalPrice"))
+            )
+            .from(reservation)
+            .join(court).on(reservation.court.id.eq(court.id))
+            .join(facility).on(facility.id.eq(court.facility.id))
+            .join(facilityManager).on(facilityManager.facility.id.eq(facility.id), facilityManager.user.id.eq(userId))
+            .where(whereSearchTerm(searchTerm), whereReservationStatus(reservationStatus), whereReservationDate(
+                searchDate), whereFacility(facilityId))
+            .orderBy(reservation.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize() + 1)
+            .fetch();
+
+        return checkEndPage(pageable, responses);
+    }
+
+    // 무한스크롤
+    private <T> Slice<T> checkEndPage(Pageable pageable, List<T> list) {
+        boolean hasNext = false;
+        if (list.size() > pageable.getPageSize()) {
+            hasNext = true;
+            list.remove(pageable.getPageSize()); // 한개 더 가져왔으니 더 가져온 데이터 삭제
+        }
+
+        return new SliceImpl<>(list, pageable, hasNext);
+    }
+
+    // 시설 조건
+    private BooleanExpression whereFacility(Long facilityId) {
+        return (facilityId != 0) ? facility.id.eq(facilityId) : null;
+    }
+
+    // 날짜 조건
+    private BooleanExpression whereReservationDate(LocalDate reservationDate) {
+        return (reservationDate != null) ? reservation.reserveDate.eq(reservationDate) : null;
+    }
+
+    // 예약 상태
+    private BooleanExpression whereReservationStatus(ReservationStatus status) {
+        return (status != null) ? reservation.status.eq(status) : null;
+    }
+
+    // 검색어 조건(고객명, 시설명)
+    private BooleanExpression whereSearchTerm(String searchTerm) {
+        return (searchTerm != null) ? (reservation.user.name.like("%" + searchTerm + "%").or(facility.name.like("%"
+            + searchTerm + "%"))) : null;
+    }
+
     /* 관리자 대시보드 최근 예약 조회 */
     @Override
     public List<DashboardReservationResponse> getDashboardReservationResponse(Long userId) {
-
-        QReservation reservation = QReservation.reservation;
-        QCourt court = QCourt.court;
-        QFacility facility = QFacility.facility;
-        QFacilityManager facilityManager = QFacilityManager.facilityManager;
 
         List<DashboardReservationResponse> responses = queryFactory
             .select(Projections.fields(DashboardReservationResponse.class, reservation.id.as("reservationId"),
