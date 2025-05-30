@@ -18,7 +18,7 @@ public class AdminReservationResponse {
 
     private Long reservationId;
     private String userName;
-    private String faciliyyName;
+    private String facilityName;
     private String courtName;
     private LocalDate reservationDate;
     private LocalTime startTime;

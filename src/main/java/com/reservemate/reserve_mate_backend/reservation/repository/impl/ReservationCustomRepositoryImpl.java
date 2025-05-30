@@ -41,7 +41,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
         List<AdminReservationResponse> responses = queryFactory
             .select(
                 Projections.fields(AdminReservationResponse.class, reservation.id.as("reservationId"),
-                    reservation.user.name.as("userName"), facility.name.as("faciliyyName"), reservation.court.name.as(
+                    reservation.user.name.as("userName"), facility.name.as("facilityName"), reservation.court.name.as(
                         "courtName"), reservation.reserveDate.as("reservationDate"), reservation.startTime.as(
                             "startTime"), reservation.endTime.as("endTime"), reservation.status.as("reservationStatus"),
                     reservation.totalPrice.as("totalPrice"))
