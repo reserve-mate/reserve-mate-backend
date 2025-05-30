@@ -109,4 +109,14 @@ public class Court extends BaseEntity {
             .facility(facility)
             .build();
     }
+
+    // 시설 아이디 가져오기
+    public Long getFacilityId() {
+        return this.facility.getId();
+    }
+
+    // 시설 종목 가져오기
+    public SportType getSportType() {
+        return this.facility.getSportType();
+    }
 }

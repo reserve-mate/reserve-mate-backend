@@ -5,6 +5,11 @@ import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -84,5 +89,53 @@ public class OperatingHour extends BaseEntity {
             .holiday(dto.getHoliday())
             .facility(facility)
             .build();
+    }
+
+    // 사용 가능한 시간대
+    public static List<LocalTime> getAvailableHours(OperatingHour operatingHour, List<LocalTime> matchTimes,
+        List<LocalTime> reserveTimes) {
+        // 해당 요일 날짜 시간대 List
+        List<LocalTime> operationHours = getOperationHours(operatingHour.getOpenTime(), operatingHour.getCloseTime());
+
+        // 겹치는 시간대 List
+        List<LocalTime> overLappingTimes = getOverlappingTimes(matchTimes, reserveTimes);
+
+        return getUnionHoursWithout(operationHours, overLappingTimes);
+    }
+
+    // 사용 가능한 시간대 List
+    private static List<LocalTime> getUnionHoursWithout(List<LocalTime> operationHours,
+        List<LocalTime> overLappingTimes) {
+        Set<LocalTime> hours = new HashSet<>(operationHours);
+
+        Set<LocalTime> intersection = new HashSet<>(operationHours);
+        intersection.retainAll(overLappingTimes);
+
+        hours.removeAll(intersection); // 합집합에서 교집합 제거
+
+        return hours.stream().sorted().toList();
+    }
+
+    // 겹치는 시간대 List
+    private static List<LocalTime> getOverlappingTimes(List<LocalTime> matchTimes, List<LocalTime> reserveTimes) {
+        Set<LocalTime> times = new HashSet<>();
+        times.addAll(matchTimes);
+        times.addAll(reserveTimes);
+
+        return times.stream().sorted().toList();
+    }
+
+    // 해당 요일 날짜 시간대 List
+    private static List<LocalTime> getOperationHours(LocalTime openTime, LocalTime endTime) {
+
+        List<LocalTime> slots = new ArrayList<>();
+
+        LocalTime time = openTime;
+        while (time.isBefore(endTime)) {
+            slots.add(time);
+            time = time.plusHours(1);
+        }
+
+        return slots;
     }
 }

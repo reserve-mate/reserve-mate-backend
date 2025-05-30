@@ -35,12 +35,17 @@ public class FacilityNameResponseDto {
 
         List<FacilityNameResponseDto> facilityNameResponseDtos = new ArrayList<>();
 
-        facilityManagers.forEach((facilityManager) -> {
-            if (facilityManager.getFacility().getSportType() == sportType) {
+        if (sportType != null) {
+            facilityManagers.forEach((facilityManager) -> {
+                if (facilityManager.getFacility().getSportType() == sportType) {
+                    facilityNameResponseDtos.add(toFacilityNameResponseDto(facilityManager.getFacility(), hours));
+                }
+            });
+        } else {
+            facilityManagers.forEach((facilityManager) -> {
                 facilityNameResponseDtos.add(toFacilityNameResponseDto(facilityManager.getFacility(), hours));
-            }
-        });
-
+            });
+        }
         return facilityNameResponseDtos;
     }
 
