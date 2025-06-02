@@ -2,7 +2,17 @@ package com.reservemate.reserve_mate_backend.facility.domain;
 
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +50,9 @@ public class Court extends BaseEntity {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @Column(name = "fee", nullable = false)
+    private Integer fee;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
@@ -52,6 +65,7 @@ public class Court extends BaseEntity {
         int height,
         Boolean indoor,
         Boolean active,
+        Integer fee,
         Facility facility) {
         this.name = name;
         this.courtType = courtType;
@@ -59,6 +73,7 @@ public class Court extends BaseEntity {
         this.height = height;
         this.indoor = indoor != null ? indoor : false;
         this.active = active != null ? active : false;
+        this.fee = fee;
         this.facility = facility;
     }
 
@@ -69,6 +84,7 @@ public class Court extends BaseEntity {
         int width,
         int height,
         Boolean indoor,
+        Integer fee,
         Facility facility) {
         this.id = id;
         this.name = name;
@@ -76,6 +92,7 @@ public class Court extends BaseEntity {
         this.width = width;
         this.height = height;
         this.indoor = indoor != null ? indoor : false;
+        this.fee = fee;
         this.facility = facility;
     }
 
@@ -106,6 +123,7 @@ public class Court extends BaseEntity {
             .height(dto.getHeight())
             .indoor(dto.getIndoor())
             .active(dto.getActive())
+            .fee(dto.getFee())
             .facility(facility)
             .build();
     }

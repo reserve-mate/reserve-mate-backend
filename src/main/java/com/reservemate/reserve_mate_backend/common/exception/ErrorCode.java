@@ -52,7 +52,10 @@ public enum ErrorCode {
                 BAD_REQUEST, "결제된 이력이 존재하지 않습니다."), PAYMENT_AMOUNT_MISMATCH(BAD_REQUEST,
                     "결제 금액이 일치하지 않습니다."), NOT_READY_PAYEMNT(BAD_REQUEST, "결제 요청된 이력이 존재하지 않습니다."), NOT_CANCEL_PAYMENT(
                         BAD_REQUEST, "아직 취소된 결제가 아닙니다. 결제 상태를 확인해주세요."), PAYMETN_CANCEL_ERROR(INTERNAL_SERVER_ERROR,
-                            "결제 취소 처리가 정상적으로 처리되지 않았습니다.");
+                            "결제 취소 처리가 정상적으로 처리되지 않았습니다.")
+
+    // 이미지 관련 에러
+    , IMAGE_METADATA_MISMATCH(BAD_REQUEST, "업로드 된 이미지와 이미지 메타데이터의 수가 일치하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

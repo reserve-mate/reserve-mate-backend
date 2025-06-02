@@ -11,4 +11,6 @@ public interface CourtRepository extends JpaRepository<Court, Long> {
 
     List<Court> findByFacilityAndActive(Facility facility, boolean b);
 
+    List<Court> findByFacility(Facility facility);
+
 }
