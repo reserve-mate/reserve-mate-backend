@@ -8,8 +8,9 @@ public class RequestCreateCourt {
 
     private String name;
     private CourtType courtType;
-    private int width;
-    private int height;
+    private Integer width;
+    private Integer height;
     private Boolean indoor;
     private Boolean active;
+    private Integer fee;
 }

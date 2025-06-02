@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.repository;
 
+import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import java.time.DayOfWeek;
 import java.util.List;
 
@@ -14,5 +15,7 @@ public interface OperationHourRepository extends JpaRepository<OperatingHour, Lo
     @Query(value = "select oh from OperatingHour oh where oh.facility.id in :facilityIds and dayOfWeek = :dayOfWeek")
     List<OperatingHour> findByFacilityInAndDayOfWeek(@Param("facilityIds") List<Long> facilityIds,
         @Param("dayOfWeek") DayOfWeek dayOfWeek);
+
+    List<OperatingHour> findByFacility(Facility facility);
 
 }
