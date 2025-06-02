@@ -62,7 +62,7 @@ public class CourtServiceTest {
 
         for (int i = 1; i <= 2; i++) {
 
-            Court court = new Court(Long.valueOf(i), "코트" + i, CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false,
+            Court court = new Court(Long.valueOf(i), "코트" + i, CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, 0,
                 facility);
 
             courts.add(court);

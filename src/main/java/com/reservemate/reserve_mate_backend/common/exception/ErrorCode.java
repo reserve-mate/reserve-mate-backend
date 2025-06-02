@@ -56,6 +56,9 @@ public enum ErrorCode {
                         BAD_REQUEST, "아직 취소된 결제가 아닙니다. 결제 상태를 확인해주세요."), PAYMETN_CANCEL_ERROR(INTERNAL_SERVER_ERROR,
                             "결제 취소 처리가 정상적으로 처리되지 않았습니다.")
 
+    // 이미지 관련 에러
+    , IMAGE_METADATA_MISMATCH(BAD_REQUEST, "업로드 된 이미지와 이미지 메타데이터의 수가 일치하지 않습니다.")
+
     // 예약 관련 에러
     , NO_AVAILABLE_TIME_ON_DAY(BAD_REQUEST, "선택하신 날짜에는 예약 가능한 시간이 존재하지 않습니다."), PAST_TIME_NOT_ALLOWED(BAD_REQUEST,
         "이미 지난 시간에는 예약할 수 없습니다."), DUPLICATE_RESERVATION(BAD_REQUEST,

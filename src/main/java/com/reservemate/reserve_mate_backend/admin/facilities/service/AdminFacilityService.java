@@ -1,12 +1,12 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.service;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
-
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
-
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -14,19 +14,16 @@ import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
-
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
-import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityNameResponseDto;
-
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
-
+import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityNameResponseDto;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
-
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -105,6 +102,12 @@ public class AdminFacilityService {
         courtRepository.saveAll(courts);
 
         //이미지 저장
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+        if (facilityImageUploadDtoList == null || images.size() != facilityImageUploadDtoList.size()) {
+            throw new ApiException(ErrorCode.IMAGE_METADATA_MISMATCH);
+        }
         if (images != null && !images.isEmpty() && images.size() == facilityImageUploadDtoList.size()) {
             List<String> imagePaths = fileService.uploadFiles(images, facilityImagesPath);
             // 이미지 저장 리스트 + 받아온 이미지 세부정보 리스트
@@ -117,7 +120,6 @@ public class AdminFacilityService {
                 .toList();
 
             facilityImageRepository.saveAll(image);
-
         }
     }
 
@@ -132,4 +134,21 @@ public class AdminFacilityService {
         return ResponseEntity.ok(facilityList);
     }
 
+    public ResponseAdminFacilityDto detailAdminFacility(Long id) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+        List<OperatingHour> operatingHours = operationHourRepository.findByFacility(facility);
+        List<Court> courts = courtRepository.findByFacility(facility);
+        return ResponseAdminFacilityDto.getFacility(facility, operatingHours, courts);
+    }
+
+    public List<ResponseCourtDto> getAdminCourtList(Long id) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("해당 시설이 존재하지 않습니다."));
+        List<Court> courts = courtRepository.findByFacility(facility);
+
+        return courts.stream()
+            .map(ResponseCourtDto::getCourt)
+            .toList();
+    }
 }

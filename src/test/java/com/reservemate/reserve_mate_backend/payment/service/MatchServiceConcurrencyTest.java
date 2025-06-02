@@ -230,7 +230,7 @@ public class MatchServiceConcurrencyTest {
 
     private Court getCourt(Facility facility) {
 
-        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
+        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, 0, facility);
 
         return court;
     }
