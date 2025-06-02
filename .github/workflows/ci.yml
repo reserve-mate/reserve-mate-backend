@@ -53,7 +53,7 @@ jobs:
           script_stop: true
           script: | 
             cd /home/ubuntu/project/reserve-mate-backend
-            rm -rf src/main/resoruces/application.properties
+            rm -rf src/main/resources/application.properties
             git pull origin dev
             echo "$APPLICATION_PROPERTIES" > src/main/resources/application.properties
             ./gradlew build -x test

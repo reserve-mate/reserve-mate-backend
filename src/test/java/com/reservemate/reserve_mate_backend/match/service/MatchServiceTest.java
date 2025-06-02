@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,8 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerReposito
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
+import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -82,6 +85,9 @@ public class MatchServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private ReserveRepository reserveRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -254,6 +260,10 @@ public class MatchServiceTest {
         given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
             matchStatus))
             .willReturn(matches);
+        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
+        given(reserveRepository.existsReservationDateTime(
+            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
+                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(
             createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
@@ -276,6 +286,10 @@ public class MatchServiceTest {
         given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
             matchStatus))
             .willReturn(matches);
+        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
+        given(reserveRepository.existsReservationDateTime(
+            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
+                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(
             createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
@@ -339,9 +353,9 @@ public class MatchServiceTest {
             .matchName("매치")
             .managerId(facilityManager.getId())
             .teamCapacity(15)
-            .matchDate(LocalDate.now())
-            .matchTime(10)
-            .matchEndTime(12)
+            .matchDate(LocalDate.of(2025, 12, 31))
+            .matchTime(22)
+            .matchEndTime(23)
             .courtId(court.getId())
             .matchPrice(11000)
             .build();
@@ -382,6 +396,7 @@ public class MatchServiceTest {
             .email("email@email.com")
             .password("password")
             .phone("01000000000")
+            .role(UserRole.ROLE_FACILITY_MANAGER)
             .build();
 
         return user;

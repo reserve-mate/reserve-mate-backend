@@ -3,7 +3,14 @@ package com.reservemate.reserve_mate_backend.payment.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -82,6 +89,17 @@ public class PaymentRepositoryTest {
 
     }
 
+    private Payment getPaymentLoop(User user) {
+        Payment payment = Payment.builder()
+            .impUid(UUID.randomUUID().toString())
+            .amount(11000)
+            .payMethod(PaymentMethod.CARD)
+            .user(user)
+            .match(match)
+            .build();
+        return payment;
+    }
+
     private Payment getPayment() {
         Payment payment = Payment.builder()
             .impUid(UUID.randomUUID().toString())
@@ -149,6 +167,18 @@ public class PaymentRepositoryTest {
             .build();
         Court saveUser = courtRepository.save(court);
         return saveUser;
+    }
+
+    /* 회원 기본 설정 */
+    private User getUserLoop(int num) {
+        User user = User.builder()
+            .name("이름")
+            .email("email" + num + "@email.com")
+            .password("password")
+            .phone("0100000000" + num)
+            .build();
+        User savUser = userRepository.save(user);
+        return savUser;
     }
 
     /* 회원 기본 설정 */

@@ -51,7 +51,7 @@ public class AdminFacilityController {
     /* 매치 등록 시 시설명 조회 */
     @GetMapping("/getFacilityNames")
     public ResponseEntity<List<FacilityNameResponseDto>> getMatchFacilityNames(HttpServletRequest request,
-        @RequestParam(name = "sportType") SportType sportType) {
+        @RequestParam(name = "sportType", required = false) SportType sportType) {
         return ResponseEntity.ok(adminFacilityService.getMatchFacilityNames(request, sportType));
     }
 

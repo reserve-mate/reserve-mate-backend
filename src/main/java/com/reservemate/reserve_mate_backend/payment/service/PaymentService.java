@@ -89,12 +89,6 @@ public class PaymentService {
 
     }
 
-    /* 매치 삭제 시 일괄 삭제 */
-    @Transactional
-    public void bulkPaymentCancel() {
-
-    }
-
     /* 매치 결제 취소 상태 체크 */
     public PaymentResponse checkCancelStatus(String orderId) {
         if (orderId == null || orderId.isBlank()) {
@@ -186,14 +180,14 @@ public class PaymentService {
                 eventPublisher.publishEvent(new CancelPlayerDto(matchPlayer));
             } else {
                 JSONObject errorResponse = Utils.stringToJson(response.body().toString());
-                return PaymentResponse.toErrorResponse(errorResponse);
+                return PaymentResponse.toPaymentFailed(errorResponse);
             }
         } catch (Exception e) {
             e.printStackTrace();
             throw new ApiException(ErrorCode.SERVER_ERROR);
         }
 
-        return PaymentResponse.toCancelResponse(payment.getImpUid(), payment.getCancelReason());
+        return PaymentResponse.toPaymentCancel(payment.getImpUid(), payment.getCancelReason());
     }
 
     /* 매치 검증 후 결제 요청 */
@@ -219,16 +213,18 @@ public class PaymentService {
         String accessToken = request.getHeader("access");
         Long userId = jwtUtil.getId(accessToken);
 
-        Match match = matchRepository.findById(amountRequest.getMatchId())
+        Match match = matchRepository.findByIdWithLock(amountRequest.getMatchId())
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.validatePrice(amountRequest.getAmount());
+        match.isFinish();
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         PaymentResponse response = null;
         // toss payments에 결제 요청
         try {
-            HttpResponse httpResponse = payClient.requestPay(amountRequest);
+            HttpResponse httpResponse = payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(),
+                amountRequest.getAmount());
             if (httpResponse.statusCode() != 200) { // 결제 승인 시 에러로 인한 취소는 DB에 넣지 않음
                 String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
                 payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, amountRequest.getAmount());
