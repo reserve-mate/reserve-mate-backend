@@ -25,6 +25,7 @@ public class AdminReservationDetailResponse {
 
     private Long reservationId;
     private ReservationStatus reservationStatus;
+    private String reservationNumber;
     private String userName;
     private String facilityName;
     private String courtName;
@@ -76,6 +77,7 @@ public class AdminReservationDetailResponse {
         return AdminReservationDetailResponse.builder()
             .reservationId(reservation.getId())
             .reservationStatus(reservation.getStatus())
+            .reservationNumber(reservation.getReservationNumber())
             .userName(reservation.getUser().getName())
             .facilityName(reservation.getCourt().getFacility().getName())
             .courtName(reservation.getCourt().getName())
