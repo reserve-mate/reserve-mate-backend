@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
+import com.reservemate.reserve_mate_backend.admin.reservation.service.AdminReservationCUDService;
 import com.reservemate.reserve_mate_backend.admin.reservation.service.AdminReservationService;
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @Controller
 @RequestMapping("/admin/reservation")
@@ -27,9 +29,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AdminReservationController {
 
     private final AdminReservationService reservationService;
+    private final AdminReservationCUDService adminReservationCUDService;
 
+    @PutMapping("/status/{reservationId}")
+    public ResponseEntity<Void> putMethodName(@PathVariable("reservationId") Long reservationId,
+        @RequestParam(name = "status") ReservationStatus reservationStatus) {
+        adminReservationCUDService.adminReservationCancel(reservationId, reservationStatus);
+        return ResponseEntity.ok().build();
+    }
+
+    /* 관리자 예약 상세 */
     @GetMapping("/{reservationId}")
-    public ResponseEntity<AdminReservationDetailResponse> getMethodName(
+    public ResponseEntity<AdminReservationDetailResponse> getAdminReservaionDetail(
         @PathVariable("reservationId") Long reservationId) {
         return ResponseEntity.ok(reservationService.getAdminReservaionDetail(reservationId));
     }
