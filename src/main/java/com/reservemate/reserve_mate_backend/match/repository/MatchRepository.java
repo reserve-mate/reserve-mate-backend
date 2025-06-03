@@ -95,4 +95,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         @Param("endTime") int endTime, @Param("matchStatus") List<MatchStatus> matchStatus,
         @Param("courtId") Long courtId);
 
+    @Query("select m from Match m where m.court.id in (:courtIds)")
+    List<Match> findByCourtIds(@Param("courtIds") List<Long> courtIds);
+
 }

@@ -27,6 +27,12 @@ public class Validator {
     private final MatchRepository matchRepository;
     private final OperationHourRepository operationHourRepository;
 
+    // 코트에 의한 예약 목록 조회
+    public List<Reservation> getCourtsReservations(List<Court> courts) {
+        List<Long> courtIds = Court.getCourtIds(courts);
+        return reserveRepository.findByCourtIds(courtIds);
+    }
+
     public Reservation reservationCancelChk(String reservationNumber) {
         Reservation reservation = reserveRepository.findByReservationNumber(reservationNumber).orElseThrow(
             () -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));
