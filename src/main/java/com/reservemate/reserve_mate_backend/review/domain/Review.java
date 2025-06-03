@@ -47,7 +47,7 @@ public class Review extends BaseEntity {
 
 
     @Builder
-    public Review(Integer rating, String content, User user, Facility facility, Boolean isVisible) {
+    public Review(Integer rating, String content, User user, Facility facility, Boolean isVisible, String reviewImage, String delYn) {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
@@ -55,10 +55,12 @@ public class Review extends BaseEntity {
         this.content = content;
         this.user = user;
         this.facility = facility;
+        this.reviewImage = reviewImage;
+        this.delYn = delYn != null ? "N" : "Y"; // If reviewImage is provided, set delYn to 'Y'
         this.isVisible = isVisible != null ? isVisible : true;
     }
 
-    public void update(Integer rating, String content, Boolean isVisible) {
+    public void update(Integer rating, String content) {
         if (rating != null) {
             if (rating < 1 || rating > 5) {
                 throw new IllegalArgumentException("Rating must be between 1 and 5");
@@ -67,9 +69,6 @@ public class Review extends BaseEntity {
         }
         if (content != null) {
             this.content = content;
-        }
-        if (isVisible != null) {
-            this.isVisible = isVisible;
         }
     }
 }
