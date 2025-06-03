@@ -5,14 +5,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.PlayerEjectRequest;
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchPlayerService;
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/admin/player")
@@ -21,6 +24,13 @@ public class AdminMatchPlayerController {
 
     private final AdminMatchPlayerService adminMatchPlayerService;
 
+    @GetMapping("/getAdminMatchPlayerCount")
+    public ResponseEntity<Integer> getAdminMatchPlayerCount(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(adminMatchPlayerService.getAdminMatchPlayerCount(customUserDetails.getId()));
+    }
+
+    // 참가자 퇴장
     @PutMapping("/eject/{playerId}")
     public ResponseEntity<Void> postMethodName(HttpServletRequest request, @PathVariable("playerId") Long playerId,
         @RequestBody PlayerEjectRequest ejectRequest) {

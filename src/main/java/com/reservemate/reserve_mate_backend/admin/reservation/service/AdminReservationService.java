@@ -45,7 +45,7 @@ public class AdminReservationService {
         List<Long> facilityIds = FacilityManager.getFacilityIds(managers);
         List<Court> courts = courtRepository.findByFacilityIds(facilityIds);
 
-        List<Reservation> reservations = validator.getCourtsReservations(courts); 
+        List<Reservation> reservations = validator.getCourtsReservations(courts);
 
         return Reservation.getTotalReservation(reservations);
     }

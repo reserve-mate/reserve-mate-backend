@@ -35,7 +35,6 @@ public class AdminReservationController {
     public ResponseEntity<Long> getAdminTotalReservation(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok(reservationService.getAdminTotalReservation(customUserDetails.getId()));
     }
-    
 
     @PutMapping("/status/{reservationId}")
     public ResponseEntity<Void> putMethodName(@PathVariable("reservationId") Long reservationId,
