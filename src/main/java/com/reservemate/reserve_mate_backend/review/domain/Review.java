@@ -36,8 +36,11 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
 
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible = true;
+
     @Builder
-    public Review(Integer rating, String content, User user, Facility facility) {
+    public Review(Integer rating, String content, User user, Facility facility, Boolean isVisible) {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
@@ -45,9 +48,10 @@ public class Review extends BaseEntity {
         this.content = content;
         this.user = user;
         this.facility = facility;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
-    public void update(Integer rating, String content) {
+    public void update(Integer rating, String content, Boolean isVisible) {
         if (rating != null) {
             if (rating < 1 || rating > 5) {
                 throw new IllegalArgumentException("Rating must be between 1 and 5");
@@ -56,6 +60,9 @@ public class Review extends BaseEntity {
         }
         if (content != null) {
             this.content = content;
+        }
+        if (isVisible != null) {
+            this.isVisible = isVisible;
         }
     }
 }
