@@ -31,6 +31,12 @@ public class AdminReservationController {
     private final AdminReservationService reservationService;
     private final AdminReservationCUDService adminReservationCUDService;
 
+    @GetMapping("/getAdminTotalReservation")
+    public ResponseEntity<Long> getAdminTotalReservation(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(reservationService.getAdminTotalReservation(customUserDetails.getId()));
+    }
+    
+
     @PutMapping("/status/{reservationId}")
     public ResponseEntity<Void> putMethodName(@PathVariable("reservationId") Long reservationId,
         @RequestParam(name = "status") ReservationStatus reservationStatus) {

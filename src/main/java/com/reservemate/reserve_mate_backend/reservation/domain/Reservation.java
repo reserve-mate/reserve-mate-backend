@@ -181,4 +181,10 @@ public class Reservation extends BaseEntity {
         }
     }
 
+    // 관리자 대시보드 총 예약 수
+    public static Long getTotalReservation(List<Reservation> reservations) {
+        return reservations.stream().filter((reservation) -> (reservation.getStatus() == ReservationStatus.COMPLETED)
+        || (reservation.getStatus() == ReservationStatus.CONFIRMED)).count();
+    }
+
 }

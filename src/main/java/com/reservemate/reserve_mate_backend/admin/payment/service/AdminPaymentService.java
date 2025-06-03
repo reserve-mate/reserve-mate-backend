@@ -9,8 +9,6 @@ import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
-import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
-import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.match.validator.MatchValidator;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
