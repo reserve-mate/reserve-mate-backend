@@ -3,7 +3,7 @@ package com.reservemate.reserve_mate_backend.admin.facilities.service;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -142,13 +142,4 @@ public class AdminFacilityService {
         return ResponseAdminFacilityDto.getFacility(facility, operatingHours, courts);
     }
 
-    public List<ResponseCourtDto> getAdminCourtList(Long id) {
-        Facility facility = facilityRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("해당 시설이 존재하지 않습니다."));
-        List<Court> courts = courtRepository.findByFacility(facility);
-
-        return courts.stream()
-            .map(ResponseCourtDto::getCourt)
-            .toList();
-    }
 }

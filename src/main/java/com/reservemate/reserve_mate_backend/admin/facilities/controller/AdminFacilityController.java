@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.admin.facilities.controller;
 
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminFacilityService;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
@@ -76,12 +75,5 @@ public class AdminFacilityController {
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
     public ResponseEntity<?> detailAdminFacility(@PathVariable Long id) {
         return ResponseEntity.ok(adminFacilityService.detailAdminFacility(id));
-    }
-
-    @GetMapping("/get/court/{id}")
-//    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
-    public ResponseEntity<List<ResponseCourtDto>> getAdminCourtList(@PathVariable Long id) {
-        List<ResponseCourtDto> courts = adminFacilityService.getAdminCourtList(id);
-        return ResponseEntity.ok(courts);
     }
 }
