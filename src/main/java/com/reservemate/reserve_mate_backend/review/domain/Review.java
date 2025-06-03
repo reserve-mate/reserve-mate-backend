@@ -36,8 +36,15 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
 
-    @Column(name = "is_visible", nullable = false)
+    @Column(name = "is_visible", nullable = false, columnDefinition = "BOOLEAN DEFAULT true") //공개/비공개
     private Boolean isVisible = true;
+
+    @Column(name = "del_yn", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
+    @Column(name = "review_image")
+    private String reviewImage;
+
 
     @Builder
     public Review(Integer rating, String content, User user, Facility facility, Boolean isVisible) {
