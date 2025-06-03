@@ -40,12 +40,12 @@ public class AdminReservationService {
     private final Validator validator;
 
     // 관리자 대시보드 총 예약 수
-    public Long getAdminTotalReservation(Long userId) {
+    public Long getAdminTotalReservation(Long userId, Long facilityId, Integer year, Integer month) {
         List<FacilityManager> managers = facilityManagerRepository.findByUserId(userId);
         List<Long> facilityIds = FacilityManager.getFacilityIds(managers);
         List<Court> courts = courtRepository.findByFacilityIds(facilityIds);
 
-        List<Reservation> reservations = validator.getCourtsReservations(courts);
+        List<Reservation> reservations = validator.getCourtsReservations(courts, year, month, facilityId);
 
         return Reservation.getTotalReservation(reservations);
     }
@@ -81,10 +81,11 @@ public class AdminReservationService {
     }
 
     // 관리자 대시보드 예약 목록
-    public List<DashboardReservationResponse> getDashboardReservations(Long userId) {
+    public List<DashboardReservationResponse> getDashboardReservations(Long userId, Long facilityId, Integer year,
+        Integer month) {
 
         List<DashboardReservationResponse> responses = reservationCustomRepository.getDashboardReservationResponse(
-            userId);
+            userId, facilityId, year, month);
 
         return responses;
     }

@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.admin.match.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.PlayerEjectRequest;
@@ -26,8 +27,10 @@ public class AdminMatchPlayerController {
 
     @GetMapping("/getAdminMatchPlayerCount")
     public ResponseEntity<Integer> getAdminMatchPlayerCount(
-        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return ResponseEntity.ok(adminMatchPlayerService.getAdminMatchPlayerCount(customUserDetails.getId()));
+        @AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestParam("facilityId") Long facilityId,
+        @RequestParam("year") Integer year, @RequestParam("month") Integer month) {
+        return ResponseEntity.ok(adminMatchPlayerService.getAdminMatchPlayerCount(customUserDetails.getId(), facilityId,
+            year, month));
     }
 
     // 참가자 퇴장

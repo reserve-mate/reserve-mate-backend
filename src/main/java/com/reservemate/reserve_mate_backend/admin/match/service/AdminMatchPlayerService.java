@@ -33,12 +33,12 @@ public class AdminMatchPlayerService {
     private final JwtUtil jwtUtil;
 
     /* 대시보드 매치 총 이용자 수 */
-    public Integer getAdminMatchPlayerCount(Long userId) {
+    public Integer getAdminMatchPlayerCount(Long userId, Long facilityId, Integer year, Integer month) {
         List<FacilityManager> managers = facilityManagerRepository.findByUserId(userId);
         List<Long> facilityIds = FacilityManager.getFacilityIds(managers);
         List<Court> courts = courtRepository.findByFacilityIds(facilityIds);
 
-        List<Match> matches = matchValidator.getCourtsMatches(courts);   // 매치 리스트
+        List<Match> matches = matchValidator.getCourtsMatches(courts, year, month, facilityId);   // 매치 리스트
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING, PlayerStatus.READY,
             PlayerStatus.KICKED);
         int matchPlayerCnt = matchPlayerRepository.countByMatchInAndStatusIn(matches, playerStatus);

@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
@@ -92,9 +93,16 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
             + searchTerm + "%"))) : null;
     }
 
+    // 해당 월 조건
+    private BooleanExpression betweenMonth(Integer year, Integer month) {
+        int lastMonthDay = Utils.getLastMonthDay(year, month);
+        return reservation.reserveDate.between(LocalDate.of(year, month, 1), LocalDate.of(year, month, lastMonthDay));
+    }
+
     /* 관리자 대시보드 최근 예약 조회 */
     @Override
-    public List<DashboardReservationResponse> getDashboardReservationResponse(Long userId) {
+    public List<DashboardReservationResponse> getDashboardReservationResponse(Long userId, Long facilityId,
+        Integer year, Integer month) {
 
         List<DashboardReservationResponse> responses = queryFactory
             .select(Projections.fields(DashboardReservationResponse.class, reservation.id.as("reservationId"),
@@ -105,6 +113,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
             .join(court).on(reservation.court.id.eq(court.id))
             .join(facility).on(court.facility.id.eq(facility.id))
             .join(facilityManager).on(facilityManager.facility.id.eq(facility.id), facilityManager.user.id.eq(userId))
+            .where(whereFacility(facilityId), betweenMonth(year, month))
             .orderBy(reservation.id.desc())
             .limit(4L)
             .fetch();

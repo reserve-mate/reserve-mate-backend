@@ -31,9 +31,13 @@ public class AdminReservationController {
     private final AdminReservationService reservationService;
     private final AdminReservationCUDService adminReservationCUDService;
 
+    /* 관리자 대시보드 총 예약 수 */
     @GetMapping("/getAdminTotalReservation")
-    public ResponseEntity<Long> getAdminTotalReservation(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return ResponseEntity.ok(reservationService.getAdminTotalReservation(customUserDetails.getId()));
+    public ResponseEntity<Long> getAdminTotalReservation(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @RequestParam("facilityId") Long facilityId, @RequestParam("year") Integer year,
+        @RequestParam("month") Integer month) {
+        return ResponseEntity.ok(reservationService.getAdminTotalReservation(customUserDetails.getId(), facilityId,
+            year, month));
     }
 
     @PutMapping("/status/{reservationId}")
@@ -66,8 +70,10 @@ public class AdminReservationController {
     /* 관리자 대시보드 최근 예약 */
     @GetMapping("/dashboardReservations")
     public ResponseEntity<List<DashboardReservationResponse>> getDashboardReservations(
-        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(reservationService.getDashboardReservations(userDetails.getId()));
+        @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam("facilityId") Long facilityId,
+        @RequestParam("year") Integer year, @RequestParam("month") Integer month) {
+        return ResponseEntity.ok(reservationService.getDashboardReservations(userDetails.getId(), facilityId, year,
+            month));
     }
 
 }

@@ -1,11 +1,13 @@
 package com.reservemate.reserve_mate_backend.reservation.validator;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
@@ -28,9 +30,17 @@ public class Validator {
     private final OperationHourRepository operationHourRepository;
 
     // 코트에 의한 예약 목록 조회
-    public List<Reservation> getCourtsReservations(List<Court> courts) {
+    public List<Reservation> getCourtsReservations(List<Court> courts, Integer year, Integer month, Long facilityId) {
         List<Long> courtIds = Court.getCourtIds(courts);
-        return reserveRepository.findByCourtIds(courtIds);
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = LocalDate.of(year, month, Utils.getLastMonthDay(year, month));
+
+        if (facilityId == 0L) {
+            return reserveRepository.findByCourtIdsReservationDate(courtIds, startDate, endDate);
+        } else {
+            return reserveRepository.findByCourtIdsReservationDateFacilityId(courtIds, startDate, endDate, facilityId);
+        }
+
     }
 
     public Reservation reservationCancelChk(String reservationNumber) {
