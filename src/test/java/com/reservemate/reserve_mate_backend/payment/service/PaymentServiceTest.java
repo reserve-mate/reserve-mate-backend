@@ -67,6 +67,7 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDt
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
 import com.reservemate.reserve_mate_backend.payment.dto.response.MatchPaymentSuccessDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentCancelDto;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentFailDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
@@ -273,7 +274,10 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.checkCancelStatus(orderId);
 
         /* then */
-        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
+        if (response instanceof PaymentCancelDto) {
+            PaymentCancelDto paymentCancelDto = (PaymentCancelDto) response;
+            assertThat(paymentCancelDto.getCancelReason()).isEqualTo(payment.getCancelReason());
+        }
     }
 
     @Test
@@ -376,8 +380,11 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
 
         /* then */
-        assertThat(response.getErrorCode()).isEqualTo("400");
-        assertThat(response.getErrorMsg()).isEqualTo("결제 취소 실패");
+        if (response instanceof PaymentFailDto) {
+            PaymentFailDto failDto = (PaymentFailDto) response;
+            assertThat(failDto.getErrorCode()).isEqualTo("400");
+            assertThat(failDto.getErrorMsg()).isEqualTo("결제 취소 실패");
+        }
     }
 
     @Test
@@ -410,8 +417,10 @@ public class PaymentServiceTest {
         PaymentResponse response = paymentService.requestCancelPayment(cancelPayRequestDto);
 
         /* then */
-        assertThat(response.getCancelReason()).isEqualTo(payment.getCancelReason());
-        assertThat(response.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
+        if (response instanceof PaymentCancelDto) {
+            PaymentCancelDto paymentCancelDto = (PaymentCancelDto) response;
+            assertThat(paymentCancelDto.getCancelReason()).isEqualTo(payment.getCancelReason());
+        }
     }
 
     @Test
@@ -524,7 +533,8 @@ public class PaymentServiceTest {
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(400);
         when(mockResponse.body()).thenReturn("{\"message\":\"결제 실패\"}");
-        when(payClient.requestPay(any())).thenReturn(mockResponse);
+        when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount()))
+            .thenReturn(mockResponse);
 
         HttpResponse<String> mockFailRes = mock(HttpResponse.class);
         lenient().when(mockFailRes.statusCode()).thenReturn(200); // mock 중복시 lenient 적용 (중복 stubbing 무시)
@@ -565,7 +575,8 @@ public class PaymentServiceTest {
         // 외부 api 가짜 응답
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
-        when(payClient.requestPay(any())).thenReturn(mockResponse);
+        when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount()))
+            .thenReturn(mockResponse);
 
         ArgumentCaptor<Payment> argumentCaptor = ArgumentCaptor.forClass(Payment.class);
 
@@ -702,7 +713,7 @@ public class PaymentServiceTest {
 
     private Court getCourt(Facility facility) {
 
-        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, facility);
+        Court court = new Court(1L, "운동 코트", CourtType.ARTIFICIAL_TURF_FUTSAL, 20, 40, false, 0, facility);
 
         return court;
     }

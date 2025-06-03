@@ -17,7 +17,7 @@ public class ScheduleService {
 
     private final MatchService matchService;
 
-    @Scheduled(cron = "0 0 6-23 * * *")
+    @Scheduled(cron = "0 0 6-23 * * *", zone = "Asia/Seoul")
     public void endBeforeMatch() {
         log.info("---------" + LocalTime.now().getHour() + "시 ---------");
         matchService.endBeforeMatch();

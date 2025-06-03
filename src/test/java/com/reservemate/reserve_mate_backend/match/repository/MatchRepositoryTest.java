@@ -198,6 +198,7 @@ public class MatchRepositoryTest {
             .width(20)
             .height(40)
             .indoor(false)
+            .fee(0)
             .facility(facility)
             .build();
         Court saveUser = courtRepository.save(court);

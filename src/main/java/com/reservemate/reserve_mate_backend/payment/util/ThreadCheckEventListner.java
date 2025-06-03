@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import com.reservemate.reserve_mate_backend.match.dto.request.ApplyPlayerDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.CancelPlayerDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchPlayerService;
+import com.reservemate.reserve_mate_backend.payment.service.PaymentReservationService;
+import com.reservemate.reserve_mate_backend.reservation.dto.request.ReservationCancelRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -16,6 +18,14 @@ import lombok.extern.log4j.Log4j2;
 public class ThreadCheckEventListner {
 
     private final MatchPlayerService matchPlayerService;
+    private final PaymentReservationService paymentReservationService;
+
+    /* 결제 후 예약 취소 */
+    @EventListener
+    public void reservationCancel(ReservationCancelRequest cancelRequest) {
+        paymentReservationService.reservationCancelPayment(cancelRequest.getReservationId(), cancelRequest
+            .getCancelReason());
+    }
 
     /* 결제 성공 시 매치 플레이어 등록 */
     @EventListener

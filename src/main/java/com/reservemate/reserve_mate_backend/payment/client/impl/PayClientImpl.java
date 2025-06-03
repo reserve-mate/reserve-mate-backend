@@ -25,13 +25,16 @@ public class PayClientImpl implements PayClient {
     @Value("${toss.pay.baseurl}")
     private String tossApiUrl;
 
+    // 파라미터 수정본
     @Override
-    public HttpResponse requestPay(SaveAmountRequest amountRequest) throws IOException, InterruptedException {
+    public HttpResponse requestPay(String impUid, String paymentKey,
+        Integer amount) throws IOException, InterruptedException {
+
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(tossApiUrl + "confirm"))
             .header("Authorization", "Basic " + PaymentUtil.getPayAuth(tossSecret))
             .header("Content-Type", "application/json")
-            .method("POST", HttpRequest.BodyPublishers.ofString(PaymentUtil.requestBody(amountRequest)))
+            .method("POST", HttpRequest.BodyPublishers.ofString(PaymentUtil.requestBody(impUid, paymentKey, amount)))
             .build();
 
         HttpResponse httpResponse = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());

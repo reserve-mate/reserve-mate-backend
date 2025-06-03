@@ -1,17 +1,13 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
+import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import java.time.LocalDate;
-
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import com.reservemate.reserve_mate_backend.facility.domain.Court;
-import com.reservemate.reserve_mate_backend.facility.domain.SportType;
-import com.reservemate.reserve_mate_backend.match.domain.Match;
-import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 @SpringBootTest
 public class MatchCustomRepositoryImplTest {
@@ -25,6 +21,7 @@ public class MatchCustomRepositoryImplTest {
             //.sportType(SportType.FUTSAL)
             //.capacity(12)
             .indoor(false)
+            .fee(0)
             .build();
 
         court.activate();
