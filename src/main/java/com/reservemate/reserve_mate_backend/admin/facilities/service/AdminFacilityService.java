@@ -1,9 +1,9 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.service;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
-import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -142,4 +142,11 @@ public class AdminFacilityService {
         return ResponseAdminFacilityDto.getFacility(facility, operatingHours, courts);
     }
 
+    @Transactional
+    public void createCourt(Long facilityId, RequestCreateCourt createCourt) {
+        Facility facility = facilityRepository.findById(facilityId)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+        Court court = courtRepository.save(Court.create(createCourt, facility));
+
+    }
 }

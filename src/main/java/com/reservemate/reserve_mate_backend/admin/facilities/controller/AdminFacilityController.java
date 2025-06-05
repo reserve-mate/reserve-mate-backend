@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.controller;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -75,5 +77,11 @@ public class AdminFacilityController {
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
     public ResponseEntity<?> detailAdminFacility(@PathVariable Long id) {
         return ResponseEntity.ok(adminFacilityService.detailAdminFacility(id));
+    }
+
+    @PostMapping("/{id}/create/court")
+    public ResponseEntity<?> createCourt(@PathVariable Long facilityId, @RequestBody RequestCreateCourt createCourt) {
+        adminFacilityService.createCourt(facilityId, createCourt);
+        return ResponseEntity.ok().build();
     }
 }

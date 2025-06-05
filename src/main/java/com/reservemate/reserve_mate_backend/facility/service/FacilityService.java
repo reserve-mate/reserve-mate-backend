@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.facility.service;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportType;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import java.util.List;
@@ -24,5 +25,11 @@ public class FacilityService {
         return courts.stream()
             .map(ResponseCourtDto::getCourt)
             .toList();
+    }
+
+    public ResponseFacilitySportType getFacilityNameAndSportType(Long id) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("해당 시설이 존재하지 않습니다."));
+        return ResponseFacilitySportType.getNameAndSportType(facility);
     }
 }
