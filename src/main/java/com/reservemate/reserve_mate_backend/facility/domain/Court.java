@@ -17,6 +17,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
@@ -136,5 +140,14 @@ public class Court extends BaseEntity {
     // 시설 종목 가져오기
     public SportType getSportType() {
         return this.facility.getSportType();
+    }
+
+    // 코트 아이디 가져오기
+    public static List<Long> getCourtIds(List<Court> courts) {
+        List<Long> ids = new ArrayList<>();
+        courts.forEach((court) -> {
+            ids.add(court.getId());
+        });
+        return ids;
     }
 }

@@ -94,4 +94,14 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByReserveDateAndStartTimeAndStatus(LocalDate now, LocalTime nowTime,
         ReservationStatus confirmed);
 
+    /* 코트 아이디로 예약 조회 */
+    @Query("select r from Reservation r where r.court.id in (:courtIds) and r.reserveDate between :startDate and :endDate")
+    List<Reservation> findByCourtIdsReservationDate(@Param("courtIds") List<Long> courtIds,
+        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /* 코트 아이디로 예약 조회 */
+    @Query("select r from Reservation r where r.court.id in (:courtIds) and r.reserveDate between :startDate and :endDate and r.court.facility.id = :facilityId")
+    List<Reservation> findByCourtIdsReservationDateFacilityId(@Param("courtIds") List<Long> courtIds,
+        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+        @Param("facilityId") Long facilityId);
 }

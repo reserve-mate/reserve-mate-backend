@@ -95,4 +95,13 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         @Param("endTime") int endTime, @Param("matchStatus") List<MatchStatus> matchStatus,
         @Param("courtId") Long courtId);
 
+    @Query("select m from Match m where m.court.id in (:courtIds) and m.matchDate between :startDate and :endDate")
+    List<Match> findByCourtIdsMatchDate(@Param("courtIds") List<Long> courtIds, @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate);
+
+    @Query("select m from Match m where m.court.id in (:courtIds) and m.matchDate between :startDate and :endDate and m.court.facility.id = :facilityId")
+    List<Match> findByCourtIdsMatchDateFacility(@Param("courtIds") List<Long> courtIds,
+        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+        @Param("facilityId") Long facilityId);
+
 }
