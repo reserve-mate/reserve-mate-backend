@@ -67,7 +67,8 @@ public class PaymentCustomRepositoryImpl implements PaymentCustomRepository {
             payment.paidAt.as("paidAt"), payment.cancelReason.as("cancelReason"), payment.refundAmount.as(
                 "refundAmount"), payment.canceledAt.as("cancelAt"), facility.name.as("facilityName"), court.name.as(
                     "courtName"), reservation.reserveDate.as("useDate"), reservation.startTime.as("startTime"),
-            reservation.endTime.as("endTime"), reservation.id.as("reservationId")
+            reservation.endTime.as("endTime"), reservation.id.as("reservationId"), reservation.status.as(
+                "reservationStatus")
         )
         ).from(payment)
             .join(reservation).on(reservation.id.eq(payment.reservation.id))
@@ -97,7 +98,7 @@ public class PaymentCustomRepositoryImpl implements PaymentCustomRepository {
                     "paidAt"), payment.cancelReason.as("cancelReason"), payment.refundAmount.as("refundAmount"),
             payment.canceledAt.as("cancelAt"), facility.name.as("facilityName"), court.name.as("courtName"),
             match.matchDate.as("useDate"), startTime, endTime, match.matchId.as("matchId"), match.matchName.as(
-                "matchName")
+                "matchName"), match.matchStatus.as("matchStatus")
         )
         ).from(payment)
             .join(match).on(match.matchId.eq(payment.match.matchId))

@@ -1,6 +1,5 @@
 package com.reservemate.reserve_mate_backend.match.domain;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;

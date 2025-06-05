@@ -42,4 +42,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /* 해당 유저의 예약 결제 내역 카운트 */
     int countByReservationInAndUser(List<Reservation> reservations, User user);
 
+    /* 예약 결제 리스트 조회 */
+    List<Payment> findByReservationIn(List<Reservation> reservations);
+
+    /* 매치 결제 리스트 조회 */
+    List<Payment> findByMatchIn(List<Match> matches);
+
 }

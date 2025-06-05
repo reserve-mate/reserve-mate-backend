@@ -52,4 +52,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     // 유저 조회
     List<MatchPlayer> findByUser(User user);
 
+    // 매치 플레이어 참가자 및 퇴장자 조회(여러 매치)
+    int countByMatchInAndStatusIn(List<Match> matches, List<PlayerStatus> playerStatus);
+
 }

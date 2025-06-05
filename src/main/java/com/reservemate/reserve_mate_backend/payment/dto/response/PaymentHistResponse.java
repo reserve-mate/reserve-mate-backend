@@ -6,8 +6,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import com.querydsl.core.annotations.QueryProjection;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
+import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,44 +41,8 @@ public class PaymentHistResponse {
     private Long refId;
     private String refName;
 
-    // native용 생성자
-    public PaymentHistResponse(
-        Long paymentId,
-        String paymentType,
-        String orderId,
-        Integer amount,
-        PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus,
-        LocalDateTime paidAt,
-        String cancelReason,
-        Integer refundAmount,
-        LocalDateTime cancelAt,
-        String facilityName,
-        String courtName,
-        LocalDate useDate,
-        LocalTime startTime,
-        LocalTime endTime,
-        Long refId,
-        String refName
-    ) {
-        this.paymentId = paymentId;
-        this.paymentType = paymentType;
-        this.orderId = orderId;
-        this.amount = amount;
-        this.paymentMethod = paymentMethod;
-        this.paymentStatus = paymentStatus;
-        this.paidAt = paidAt;
-        this.cancelReason = cancelReason;
-        this.refundAmount = refundAmount;
-        this.cancelAt = cancelAt;
-        this.facilityName = facilityName;
-        this.courtName = courtName;
-        this.useDate = useDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.refId = refId;
-        this.refName = refName;
-    }
+    private MatchStatus matchStatus;
+    private ReservationStatus reservationStatus;
 
     // 매치 결제용 생성자
     @QueryProjection
@@ -97,7 +63,8 @@ public class PaymentHistResponse {
         Time startTime,
         Time endTime,
         Long matchId,
-        String matchName
+        String matchName,
+        MatchStatus matchStatus
     ) {
         this.paymentId = paymentId;
         this.paymentType = paymentType;
@@ -116,6 +83,7 @@ public class PaymentHistResponse {
         this.endTime = endTime.toLocalTime();
         this.refId = matchId;
         this.refName = matchName;
+        this.matchStatus = matchStatus;
     }
 
     // 예약 결제용 생성자
@@ -136,7 +104,8 @@ public class PaymentHistResponse {
         LocalDate useDate,
         LocalTime startTime,
         LocalTime endTime,
-        Long reservationId
+        Long reservationId,
+        ReservationStatus reservationStatus
     ) {
         this.paymentId = paymentId;
         this.paymentType = paymentType;
@@ -154,6 +123,7 @@ public class PaymentHistResponse {
         this.startTime = startTime;
         this.endTime = endTime;
         this.refId = reservationId;
+        this.reservationStatus = reservationStatus;
     }
 
 }

@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -227,6 +228,14 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.REFUNDED;
         this.cancelReason = reason;
         this.canceledAt = LocalDateTime.now();
+    }
+
+    // 가격 총 합 구하기
+    public static Integer getTotalRevenues(List<Payment> payments) {
+        return payments.stream()
+            .mapToInt((payment) -> payment.getAmount() - ((payment.getRefundAmount() == null) ? 0 : payment
+                .getRefundAmount()))
+            .sum();
     }
 
 }
