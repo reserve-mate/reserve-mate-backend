@@ -29,10 +29,14 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistCntResponse;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResponse;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -51,6 +55,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
     private final MatchRepository matchRepository;
+    private final ReserveRepository reserveRepository;
 
     private final ApplicationEventPublisher eventPublisher;
     private final PayClient payClient;
@@ -108,6 +113,29 @@ public class PaymentService {
         }
 
         PaymentResponse response = PaymentResponse.toPaymentCancel(payment.getImpUid(), payment.getCancelReason());
+        return response;
+    }
+
+    /* 결제 내역 카운트 */
+    public PaymentHistCntResponse getPaymentHistCnt(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        List<MatchPlayer> matchPlayers = matchPlayerRepository.findByUser(user);
+        List<Match> matchIds = MatchPlayer.getMatches(matchPlayers);
+
+        List<Reservation> reservations = reserveRepository.findByUser(user);
+
+        int matchPaymentCnt = paymentRepository.countByMatchInAndUser(matchIds, user);
+        int reservationPaymentCnt = paymentRepository.countByReservationInAndUser(reservations, user);
+
+        return new PaymentHistCntResponse(matchPaymentCnt, reservationPaymentCnt);
+    }
+
+    /* 결제 내역 */
+    public Slice<PaymentHistResponse> getpaymentHist(Long userId, String type, Integer pageNum) {
+        Pageable pageable = PageRequest.of(pageNum, 6);
+        Slice<PaymentHistResponse> response = paymentCustomRepository.getPaymentHist(userId, type, pageable);
+
         return response;
     }
 
