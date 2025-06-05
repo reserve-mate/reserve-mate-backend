@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.payment.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,5 +35,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /* 예약 결제 정보 조회 */
     @Query("select p from Payment p where p.reservation.id = :reservationId")
     Optional<Payment> findByReservationId(@Param("reservationId") Long reservationId);
+
+    /* 예약 결제 리스트 조회 */
+    List<Payment> findByReservationIn(List<Reservation> reservations);
+
+    /* 매치 결제 리스트 조회 */
+    List<Payment> findByMatchIn(List<Match> matches);
 
 }

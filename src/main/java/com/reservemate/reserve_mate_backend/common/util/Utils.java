@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
@@ -17,6 +18,11 @@ import org.json.simple.parser.ParseException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 
 public class Utils {
+
+    public static int getLastMonthDay(Integer year, Integer month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        return yearMonth.lengthOfMonth();
+    }
 
     // s3 파일 저장 url 가져오기
     public static String getPublicUrl(String bucket, String regionName, String filename) {
