@@ -52,9 +52,8 @@ public class Payment extends BaseEntity {
     @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "pay_method", nullable = false)
-    private PaymentMethod payMethod;
+    private String payMethod;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
@@ -85,7 +84,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Match match) {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
@@ -103,7 +102,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Reservation reservation) {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
@@ -122,7 +121,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Match match) {
         this.id = id;
         this.impUid = impUid;

@@ -7,7 +7,6 @@ import java.time.LocalTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 
@@ -24,7 +23,7 @@ public class PaymentHistResponse {
     private String paymentType; // MATCH or RESERVATION
     private String orderId;
     private Integer amount;
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
     private PaymentStatus paymentStatus;
     private LocalDateTime paidAt;
 
@@ -51,7 +50,7 @@ public class PaymentHistResponse {
         String paymentType,
         String orderId,
         Integer amount,
-        PaymentMethod paymentMethod,
+        String paymentMethod,
         PaymentStatus paymentStatus,
         LocalDateTime paidAt,
         String cancelReason,
@@ -93,7 +92,7 @@ public class PaymentHistResponse {
         String paymentType,
         String orderId,
         Integer amount,
-        PaymentMethod paymentMethod,
+        String paymentMethod,
         PaymentStatus paymentStatus,
         LocalDateTime paidAt,
         String cancelReason,

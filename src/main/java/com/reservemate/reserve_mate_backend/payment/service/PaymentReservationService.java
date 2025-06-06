@@ -89,7 +89,8 @@ public class PaymentReservationService {
 
                 response = PaymentResponse.toPaymentCancel(paymentRequest.getOrderId(), failMsg);
             } else {
-                Payment payment = paymentRequest.toEntity(reservation);
+                String paymethod = PaymentUtil.getPaymentMethod(httpResponse.body().toString());
+                Payment payment = paymentRequest.toEntity(reservation, paymethod);
                 paymentRepository.save(payment);
                 eventPublisher.publishEvent(new ConfirmReservationRequest(reservation));
                 response = PaymentResponse.toReservationPaymentResponse(reservation);

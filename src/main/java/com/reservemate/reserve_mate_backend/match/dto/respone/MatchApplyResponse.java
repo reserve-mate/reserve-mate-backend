@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.dto.respone;
 
 import com.reservemate.reserve_mate_backend.match.dto.request.RequestMatchDto;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import lombok.AllArgsConstructor;
@@ -17,7 +16,6 @@ import lombok.Setter;
 @Setter
 public class MatchApplyResponse {
 
-    //private PaymentMethod paymentMethod;    // 결제 수단
     private Integer amount;         // 매치 가격
     private String orderId;         // 주문 번호
     private String orderName;       // 매치 명
@@ -29,7 +27,6 @@ public class MatchApplyResponse {
     public static MatchApplyResponse toMatchApplyResponse(RequestMatchDto requestMatchDto, User user, String matchName,
         String successUrl, String failUrl) {
         return MatchApplyResponse.builder()
-            //.paymentMethod(requestMatchDto.getPaymentMethod())
             .orderName(matchName)
             .customerName(user.getName())
             .customerEmail(user.getEmail())
