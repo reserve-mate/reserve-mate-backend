@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.payment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -21,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,6 +68,8 @@ import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResD
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
+import com.reservemate.reserve_mate_backend.payment.util.PaymentUtil;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -98,6 +96,9 @@ public class PaymentServiceTest {
 
     @Mock
     private MatchPlayerRepository matchPlayerRepository;
+
+    @Mock
+    private ReserveRepository reserveRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -575,6 +576,8 @@ public class PaymentServiceTest {
         // 외부 api 가짜 응답
         HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.statusCode()).thenReturn(200);
+        when(mockResponse.body()).thenReturn("{\"method\":\"카드\"}");
+
         when(payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(), amountRequest.getAmount()))
             .thenReturn(mockResponse);
 

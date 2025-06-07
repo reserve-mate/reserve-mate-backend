@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.payment.domain.PaymentStatus;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
@@ -44,7 +43,7 @@ public class ReservationDetailResponse {
 
     private Integer totalPrice;
     private PaymentStatus paymentStatus;
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
     private Integer refundPayment;
     private String cancelReason;
     private LocalDateTime canceledAt;

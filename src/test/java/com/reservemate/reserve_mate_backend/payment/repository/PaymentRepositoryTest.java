@@ -15,7 +15,6 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -83,7 +82,7 @@ public class PaymentRepositoryTest {
         Payment payment = Payment.builder()
             .impUid(UUID.randomUUID().toString())
             .amount(11000)
-            .payMethod(PaymentMethod.CARD)
+            .payMethod("카드")
             .user(user)
             .match(match)
             .build();
@@ -94,7 +93,7 @@ public class PaymentRepositoryTest {
         Payment payment = Payment.builder()
             .impUid(UUID.randomUUID().toString())
             .amount(11000)
-            .payMethod(PaymentMethod.CARD)
+            .payMethod("카드")
             .user(user)
             .match(match)
             .build();

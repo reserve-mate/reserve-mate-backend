@@ -8,7 +8,6 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
 import lombok.AllArgsConstructor;
@@ -29,12 +28,12 @@ public class SaveAmountRequest {
     private String paymentKey;
     private Long matchId;
 
-    public Payment toEntity(Match match, User user) {
+    public Payment toEntity(Match match, User user, String paymethod) {
         Payment payment = Payment.builder()
             .impUid(this.orderId)
             .merchantUid(this.paymentKey)
             .amount(this.amount)
-            .payMethod(PaymentMethod.CARD)
+            .payMethod(paymethod)
             .match(match)
             .user(user)
             .build();

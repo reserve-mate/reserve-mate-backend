@@ -58,6 +58,22 @@ public class PaymentUtil {
         return requestBody;
     }
 
+    // 결제 성공 시 결제 수단 가져오기
+    public static String getPaymentMethod(String responseBody) {
+        JSONParser parser = new JSONParser();
+        JSONObject object = null;
+        String payMethod = "";
+        try {
+            object = (JSONObject) parser.parse(responseBody);
+            payMethod = object.get("method").toString();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            throw new ApiException(ErrorCode.SERVER_ERROR);
+        }
+        return payMethod;
+    }
+
+    // 결재 실패 이유 가져오기
     public static String getFailReason(String responseBody) {
         String failMsg = "결제처리에 실패하였습니다.";
 

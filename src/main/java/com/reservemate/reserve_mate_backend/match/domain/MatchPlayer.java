@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.match.domain;
 
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -106,6 +108,13 @@ public class MatchPlayer extends BaseEntity {
     public void removePlayer(EjectionReason ejectionReason) {
         this.removalReason = ejectionReason;
         this.status = PlayerStatus.KICKED;
+    }
+
+    // 매치 아이디 조회
+    public static List<Match> getMatches(List<MatchPlayer> matchPlayers) {
+        return matchPlayers.stream()
+            .map(matchPlayer -> matchPlayer.getMatch())
+            .distinct().toList();
     }
 
 }

@@ -32,7 +32,7 @@ public class ConfirmRequestDto {
         return Payment.builder()
             .impUid(UUID.randomUUID().toString())
             .amount(confirmRequestDto.getAmount())
-            .payMethod(confirmRequestDto.getPaymentMethod())
+            .payMethod("카드")
             .user(user)
             .match(match)
             .build();
