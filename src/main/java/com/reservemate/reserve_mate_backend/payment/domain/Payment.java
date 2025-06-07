@@ -223,10 +223,11 @@ public class Payment extends BaseEntity {
         this.refundAmount = cancelAmount;
     }
 
-    public void refund(String reason) {
+    public void refund(String reason, int refundAmount) {
         this.status = PaymentStatus.REFUNDED;
         this.cancelReason = reason;
         this.canceledAt = LocalDateTime.now();
+        this.refundAmount = refundAmount;
     }
 
     // 가격 총 합 구하기

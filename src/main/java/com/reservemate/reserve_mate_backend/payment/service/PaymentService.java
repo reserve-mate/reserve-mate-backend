@@ -77,7 +77,7 @@ public class PaymentService {
                 HttpResponse response = payClient.requestCancelPay(payment.getMerchantUid(), cancelReason,
                     refundAmount);
                 if (response.statusCode() == 200) {
-                    payment.refund(cancelReason);
+                    payment.refund(cancelReason, refundAmount);
                     matchPlayer.chgMatchRemoved();
                 } else {
                     JSONObject errorResponse = Utils.stringToJson(response.body().toString());
