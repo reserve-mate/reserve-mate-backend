@@ -17,6 +17,7 @@ public interface ReservationCustomRepository {
         ReservationStatus reservationStatus, Long facilityId, LocalDate searchDate, Pageable pageable);
 
     // 대시보드 최근 예약
-    List<DashboardReservationResponse> getDashboardReservationResponse(Long userId);
+    List<DashboardReservationResponse> getDashboardReservationResponse(Long userId, Long facilityId, Integer year,
+        Integer month);
 
 }

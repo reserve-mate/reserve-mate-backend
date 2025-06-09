@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,9 +52,8 @@ public class Payment extends BaseEntity {
     @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "pay_method", nullable = false)
-    private PaymentMethod payMethod;
+    private String payMethod;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
@@ -84,7 +84,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Match match) {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
@@ -102,7 +102,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Reservation reservation) {
         this.impUid = impUid;
         this.merchantUid = merchantUid;
@@ -121,7 +121,7 @@ public class Payment extends BaseEntity {
         String merchantUid,
         Integer amount,
         User user,
-        PaymentMethod payMethod,
+        String payMethod,
         Match match) {
         this.id = id;
         this.impUid = impUid;
@@ -223,10 +223,19 @@ public class Payment extends BaseEntity {
         this.refundAmount = cancelAmount;
     }
 
-    public void refund(String reason) {
+    public void refund(String reason, int refundAmount) {
         this.status = PaymentStatus.REFUNDED;
         this.cancelReason = reason;
         this.canceledAt = LocalDateTime.now();
+        this.refundAmount = refundAmount;
+    }
+
+    // 가격 총 합 구하기
+    public static Integer getTotalRevenues(List<Payment> payments) {
+        return payments.stream()
+            .mapToInt((payment) -> payment.getAmount() - ((payment.getRefundAmount() == null) ? 0 : payment
+                .getRefundAmount()))
+            .sum();
     }
 
 }

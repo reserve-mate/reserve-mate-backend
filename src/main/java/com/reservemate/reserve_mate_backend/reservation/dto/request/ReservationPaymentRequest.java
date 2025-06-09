@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.reservation.dto.request;
 
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
-import com.reservemate.reserve_mate_backend.payment.domain.PaymentMethod;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 
 import lombok.AllArgsConstructor;
@@ -18,9 +17,9 @@ public class ReservationPaymentRequest {
     private Integer amount;
     private Long reservationId;
 
-    public Payment toEntity(Reservation reservation) {
+    public Payment toEntity(Reservation reservation, String paymethod) {
         return new Payment(
-            this.orderId, this.paymentKey, this.amount, reservation.getUser(), PaymentMethod.CARD, reservation);
+            this.orderId, this.paymentKey, this.amount, reservation.getUser(), paymethod, reservation);
     }
 
 }

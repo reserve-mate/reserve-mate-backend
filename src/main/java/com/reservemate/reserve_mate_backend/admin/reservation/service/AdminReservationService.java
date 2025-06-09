@@ -14,12 +14,17 @@ import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.Admin
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.facility.domain.Court;
+import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReservationCustomRepository;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
+import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +35,20 @@ public class AdminReservationService {
     private final ReservationCustomRepository reservationCustomRepository;
     private final ReserveRepository reserveRepository;
     private final PaymentRepository paymentRepository;
+    private final FacilityManagerRepository facilityManagerRepository;
+    private final CourtRepository courtRepository;
+    private final Validator validator;
+
+    // 관리자 대시보드 총 예약 수
+    public Long getAdminTotalReservation(Long userId, Long facilityId, Integer year, Integer month) {
+        List<FacilityManager> managers = facilityManagerRepository.findByUserId(userId);
+        List<Long> facilityIds = FacilityManager.getFacilityIds(managers);
+        List<Court> courts = courtRepository.findByFacilityIds(facilityIds);
+
+        List<Reservation> reservations = validator.getCourtsReservations(courts, year, month, facilityId);
+
+        return Reservation.getTotalReservation(reservations);
+    }
 
     // 관리자 예약 상세
     public AdminReservationDetailResponse getAdminReservaionDetail(Long reservationId) {
@@ -62,10 +81,11 @@ public class AdminReservationService {
     }
 
     // 관리자 대시보드 예약 목록
-    public List<DashboardReservationResponse> getDashboardReservations(Long userId) {
+    public List<DashboardReservationResponse> getDashboardReservations(Long userId, Long facilityId, Integer year,
+        Integer month) {
 
         List<DashboardReservationResponse> responses = reservationCustomRepository.getDashboardReservationResponse(
-            userId);
+            userId, facilityId, year, month);
 
         return responses;
     }
