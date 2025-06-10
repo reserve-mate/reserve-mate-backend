@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,7 @@ import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyResponse;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
@@ -157,6 +159,58 @@ public class MatchService {
 
             matchRepository.save(match);
         }
+    }
+
+    // 매치 이용 내역
+    public Slice<MatchHistroyResponse> getMatchHistory(Long userId, String matchStatus, int pageNum) {
+
+        Pageable pageable = PageRequest.of(pageNum, 6);
+
+        List<String> tabs = List.of("all", "upcoming", "completed", "canceled");
+        if (!tabs.contains(matchStatus)) {
+            throw new ApiException(ErrorCode.MISSING_QUERY_PARAM);
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        Slice<MatchPlayer> matchPlayers = matchPlayerRepository.findByUser(user, pageable);
+        if (matchStatus.equals("upcoming")) {
+            matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
+        } else if (matchStatus.equals("completed")) {
+            List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+                PlayerStatus.KICKED);
+            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+        } else if (matchStatus.equals("canceled")) {
+            List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
+            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+        }
+
+        List<MatchHistroyResponse> content = matchPlayers.stream()
+            .map(matchPlayer -> {
+                int playerCnt = getPlayerCnt(matchPlayer.getMatch());
+                return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
+            }).toList();
+
+        Slice<MatchHistroyResponse> sliceResponse = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
+
+        return sliceResponse;
+    }
+
+    // 매치 플레이어 카운트
+    private int getPlayerCnt(Match match) {
+
+        List<MatchStatus> beforeStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
+            MatchStatus.FINISH);
+        List<MatchStatus> afterStatus = List.of(MatchStatus.END, MatchStatus.CANCELLED);
+
+        List<PlayerStatus> playerStatus = null;
+        if (beforeStatus.contains(match.getMatchStatus())) {
+            playerStatus = List.of(PlayerStatus.READY);
+        } else if (match.getMatchStatus() == MatchStatus.ONGOING) {
+            playerStatus = List.of(PlayerStatus.ONGOING, PlayerStatus.KICKED);
+        } else if (afterStatus.contains(match.getMatchStatus())) {
+            playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.KICKED);
+        }
+        return matchPlayerRepository.countByMatchAndStatusIn(match, playerStatus);
     }
 
     // s3 파일 업로드 테스트

@@ -352,4 +352,13 @@ public class Match extends BaseEntity {
         return hours.stream().sorted().toList();
     }
 
+    // 원하는 상태의 매치 목록 
+    public static List<Match> getFilterMatches(List<Match> matches, String matchStatus) {
+
+        return matches.stream()
+            .filter(match -> match.getMatchStatus().toString() == matchStatus)
+            .distinct()
+            .toList();
+    }
+
 }

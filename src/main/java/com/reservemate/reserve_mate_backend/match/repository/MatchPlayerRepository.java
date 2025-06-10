@@ -3,6 +3,8 @@ package com.reservemate.reserve_mate_backend.match.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -51,6 +53,18 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
 
     // 유저 조회
     List<MatchPlayer> findByUser(User user);
+
+    // 유저 조회 페이징
+    Slice<MatchPlayer> findByUser(User user, Pageable pageable);
+
+    // 유저 조회 상태(단일 상태)
+    Slice<MatchPlayer> findByUserAndStatus(User user, PlayerStatus playerStatus, Pageable pageable);
+
+    // 유저 조회 상태(여러 상태)
+    Slice<MatchPlayer> findByUserAndStatusIn(User user, List<PlayerStatus> playerStatus, Pageable pageable);
+
+    // 매치 플레이어 참가자 및 퇴장자 조회(여러 매치)
+    int countByMatchAndStatusIn(Match match, List<PlayerStatus> playerStatus);
 
     // 매치 플레이어 참가자 및 퇴장자 조회(여러 매치)
     int countByMatchInAndStatusIn(List<Match> matches, List<PlayerStatus> playerStatus);
