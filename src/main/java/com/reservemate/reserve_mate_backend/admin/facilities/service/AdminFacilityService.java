@@ -1,7 +1,7 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.service;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
@@ -81,21 +81,21 @@ public class AdminFacilityService {
     }
 
     @Transactional
-    public void createFacility(RequestCreateFacility requestCreateFacility, List<MultipartFile> images,
+    public void createFacility(RequestCreateFacilityDto requestCreateFacilityDto, List<MultipartFile> images,
         List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
         //setting facility data
-        Facility facility = Facility.create(requestCreateFacility);
+        Facility facility = Facility.create(requestCreateFacilityDto);
         Facility savedFacility = facilityRepository.save(facility);
 
         //setting operatingHour
-        List<OperatingHour> hours = requestCreateFacility.getOperatingHours().stream()
+        List<OperatingHour> hours = requestCreateFacilityDto.getOperatingHours().stream()
             .map(hourDto -> OperatingHour.create(hourDto, savedFacility))
             .toList();
 
         operationHourRepository.saveAll(hours);
 
         //setting court
-        List<Court> courts = requestCreateFacility.getCourts().stream()
+        List<Court> courts = requestCreateFacilityDto.getCourts().stream()
             .map(courtDto -> Court.create(courtDto, savedFacility))
             .toList();
 
@@ -143,10 +143,84 @@ public class AdminFacilityService {
     }
 
     @Transactional
-    public void createCourt(Long facilityId, RequestCreateCourt createCourt) {
+    public void updateFacility(Long id, RequestCreateFacilityDto requestUpdateFacilityDto) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+
+        String conventient = Facility.setConventient(
+            requestUpdateFacilityDto.isHasParking(),
+            requestUpdateFacilityDto.isHasShower(),
+            requestUpdateFacilityDto.isHasEquipmentRental(),
+            requestUpdateFacilityDto.isHasCafe()
+        );
+        //update facility
+        facility.update(
+            requestUpdateFacilityDto.getName(),
+            requestUpdateFacilityDto.getDescription(),
+            requestUpdateFacilityDto.getAddress(),
+            conventient
+        );
+
+        //delete operatingHour
+        operationHourRepository.softDeleteByFacility(facility);
+
+        //insert new operatingHour
+        List<OperatingHour> newOperatingHours = requestUpdateFacilityDto.getOperatingHours().stream()
+            .map(dto -> OperatingHour.create(dto, facility))
+            .toList();
+
+        operationHourRepository.saveAll(newOperatingHours);
+    }
+
+    @Transactional
+    public void deleteFacility(Long id) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+
+        //시간 삭제
+        operationHourRepository.softDeleteByFacility(facility);
+
+        //코트 삭제
+        courtRepository.softDeleteByFacility(facility);
+
+        //이미지 삭제
+        facilityImageRepository.deleteByFacility(facility);
+
+        //시설 삭제
+        facility.delete();
+    }
+
+    @Transactional
+    public void createCourt(Long facilityId, RequestCreateCourtDto createCourt) {
         Facility facility = facilityRepository.findById(facilityId)
             .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
-        Court court = courtRepository.save(Court.create(createCourt, facility));
-
+        courtRepository.save(Court.create(createCourt, facility));
     }
+
+    @Transactional
+    public void updateCourt(Long facilityId, Long courtId, RequestCreateCourtDto requestUpdateCourtDto) {
+        Facility facility = facilityRepository.findById(facilityId)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+        Court court = courtRepository.findByIdAndFacility(courtId, facility)
+            .orElseThrow(() -> new EntityNotFoundException("해당 코트가 존재하지 않습니다."));
+        court.update(
+            requestUpdateCourtDto.getName(),
+            requestUpdateCourtDto.getCourtType(),
+            requestUpdateCourtDto.getWidth(),
+            requestUpdateCourtDto.getHeight(),
+            requestUpdateCourtDto.getIndoor(),
+            requestUpdateCourtDto.getActive(),
+            requestUpdateCourtDto.getFee()
+        );
+    }
+
+    @Transactional
+    public void deleteCourt(Long facilityId, Long courtId) {
+        Facility facility = facilityRepository.findById(facilityId)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+        Court court = courtRepository.findByIdAndFacility(courtId, facility)
+            .orElseThrow(() -> new EntityNotFoundException("해당 코트가 존재하지 않습니다."));
+        court.delete();
+    }
+
 }

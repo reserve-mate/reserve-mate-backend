@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourt;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,21 +13,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "courts")
 @SQLDelete(sql = "UPDATE courts SET deleted = true WHERE court_id = ?")
+@SQLRestriction("deleted = false")
 public class Court extends BaseEntity {
 
     @Id
@@ -102,13 +102,19 @@ public class Court extends BaseEntity {
 
     public void update(
         String name,
+        CourtType courtType,
         int width,
         int height,
-        Boolean indoor) {
+        Boolean indoor,
+        Boolean active,
+        Integer fee) {
         this.name = name != null ? name : this.name;
-        this.indoor = indoor != null ? indoor : this.indoor;
+        this.courtType = courtType;
         this.width = width;
         this.height = height;
+        this.indoor = indoor != null ? indoor : this.indoor;
+        this.active = active;
+        this.fee = fee;
     }
 
     public void activate() {
@@ -119,7 +125,7 @@ public class Court extends BaseEntity {
         this.active = false;
     }
 
-    public static Court create(RequestCreateCourt dto, Facility facility) {
+    public static Court create(RequestCreateCourtDto dto, Facility facility) {
         return Court.builder()
             .name(dto.getName())
             .courtType(dto.getCourtType())

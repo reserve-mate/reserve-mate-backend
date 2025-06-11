@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.facility.controller;
 
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
 import com.reservemate.reserve_mate_backend.facility.service.FacilityService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,13 @@ public class FacilityController {
 
     @GetMapping("/name/type/{id}")
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
-    public ResponseEntity<?> getFacilityNameAndSportType(@PathVariable Long id) {
+    public ResponseEntity<ResponseFacilitySportTypeDto> getFacilityNameAndSportType(@PathVariable Long id) {
         return ResponseEntity.ok(facilityService.getFacilityNameAndSportType(id));
     }
 
     @GetMapping("/{id}/courts")
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
-    public ResponseEntity<?> getCourtList(@PathVariable Long id) {
-        List<ResponseCourtDto> courts = facilityService.getCourtList(id);
-        return ResponseEntity.ok(courts);
+    public ResponseEntity<List<ResponseCourtDto>> getCourtList(@PathVariable Long id) {
+        return ResponseEntity.ok(facilityService.getCourtList(id));
     }
 }

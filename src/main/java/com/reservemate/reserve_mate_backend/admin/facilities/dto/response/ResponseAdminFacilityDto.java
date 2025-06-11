@@ -19,6 +19,7 @@ public class ResponseAdminFacilityDto {
     private String name;
     private SportType sportType;
     private Address address;
+    private String description;
     private boolean hasParking;
     private boolean hasShower;
     private boolean hasEquipmentRental;
@@ -29,13 +30,14 @@ public class ResponseAdminFacilityDto {
     private List<ResponseCourtDto> courts;
 
     @Builder
-    public ResponseAdminFacilityDto(Long id, String name, SportType sportType, Address address,
+    public ResponseAdminFacilityDto(Long id, String name, SportType sportType, Address address, String description,
         boolean hasParking, boolean hasShower, boolean hasEquipmentRental, boolean hasCafe, int courtCount,
         List<ResponseOperatingHour> operatingHours, List<ResponseCourtDto> courts) {
         this.id = id;
         this.name = name;
         this.sportType = sportType;
         this.address = address;
+        this.description = description;
         this.hasParking = hasParking;
         this.hasShower = hasShower;
         this.hasEquipmentRental = hasEquipmentRental;
@@ -53,6 +55,7 @@ public class ResponseAdminFacilityDto {
             .name(facility.getName())
             .sportType(facility.getSportType())
             .address(facility.getAddress())
+            .description(facility.getDescription())
             .hasParking(conventient.charAt(0) == '1')
             .hasShower(conventient.charAt(1) == '1')
             .hasEquipmentRental(conventient.charAt(2) == '1')

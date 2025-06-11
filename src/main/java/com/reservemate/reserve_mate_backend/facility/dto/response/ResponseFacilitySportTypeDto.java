@@ -6,21 +6,21 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class ResponseFacilitySportType {
+public class ResponseFacilitySportTypeDto {
 
     private Long id;
     private String name;
     private SportType sportType;
 
     @Builder
-    public ResponseFacilitySportType(Long id, String name, SportType sportType) {
+    public ResponseFacilitySportTypeDto(Long id, String name, SportType sportType) {
         this.id = id;
         this.name = name;
         this.sportType = sportType;
     }
 
-    public static ResponseFacilitySportType getNameAndSportType(Facility facility) {
-        return ResponseFacilitySportType.builder()
+    public static ResponseFacilitySportTypeDto getNameAndSportType(Facility facility) {
+        return ResponseFacilitySportTypeDto.builder()
             .id(facility.getId())
             .name(facility.getName())
             .sportType(facility.getSportType())
