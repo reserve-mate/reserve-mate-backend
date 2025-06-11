@@ -29,10 +29,15 @@ import com.reservemate.reserve_mate_backend.payment.dto.request.CancelPaymentDto
 import com.reservemate.reserve_mate_backend.payment.dto.request.PaymentHistReqDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.RequestPaymentDto;
 import com.reservemate.reserve_mate_backend.payment.dto.request.SaveAmountRequest;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistCntResponse;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResDto;
+import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentHistResponse;
 import com.reservemate.reserve_mate_backend.payment.dto.response.PaymentResponse;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentCustomRepository;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
+import com.reservemate.reserve_mate_backend.payment.util.PaymentUtil;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -51,6 +56,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
     private final MatchRepository matchRepository;
+    private final ReserveRepository reserveRepository;
 
     private final ApplicationEventPublisher eventPublisher;
     private final PayClient payClient;
@@ -71,7 +77,7 @@ public class PaymentService {
                 HttpResponse response = payClient.requestCancelPay(payment.getMerchantUid(), cancelReason,
                     refundAmount);
                 if (response.statusCode() == 200) {
-                    payment.refund(cancelReason);
+                    payment.refund(cancelReason, refundAmount);
                     matchPlayer.chgMatchRemoved();
                 } else {
                     JSONObject errorResponse = Utils.stringToJson(response.body().toString());
@@ -108,6 +114,29 @@ public class PaymentService {
         }
 
         PaymentResponse response = PaymentResponse.toPaymentCancel(payment.getImpUid(), payment.getCancelReason());
+        return response;
+    }
+
+    /* 결제 내역 카운트 */
+    public PaymentHistCntResponse getPaymentHistCnt(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        List<MatchPlayer> matchPlayers = matchPlayerRepository.findByUser(user);
+        List<Match> matchIds = MatchPlayer.getMatches(matchPlayers);
+
+        List<Reservation> reservations = reserveRepository.findByUser(user);
+
+        int matchPaymentCnt = paymentRepository.countByMatchInAndUser(matchIds, user);
+        int reservationPaymentCnt = paymentRepository.countByReservationInAndUser(reservations, user);
+
+        return new PaymentHistCntResponse(matchPaymentCnt, reservationPaymentCnt);
+    }
+
+    /* 결제 내역 */
+    public Slice<PaymentHistResponse> getpaymentHist(Long userId, String type, Integer pageNum) {
+        Pageable pageable = PageRequest.of(pageNum, 6);
+        Slice<PaymentHistResponse> response = paymentCustomRepository.getPaymentHist(userId, type, pageable);
+
         return response;
     }
 
@@ -226,13 +255,13 @@ public class PaymentService {
             HttpResponse httpResponse = payClient.requestPay(amountRequest.getOrderId(), amountRequest.getPaymentKey(),
                 amountRequest.getAmount());
             if (httpResponse.statusCode() != 200) { // 결제 승인 시 에러로 인한 취소는 DB에 넣지 않음
-                String failMsg = amountRequest.getFailReason(httpResponse.body().toString());
+                String failMsg = PaymentUtil.getFailReason(httpResponse.body().toString());
                 payClient.requestCancelPay(amountRequest.getPaymentKey(), failMsg, amountRequest.getAmount());
 
                 response = PaymentResponse.toPaymentCancel(amountRequest.getOrderId(), failMsg);
-            } else {
-
-                Payment payment = amountRequest.toEntity(match, user);
+            } else { // 결제 승인 시 DB 저장
+                String paymethod = PaymentUtil.getPaymentMethod(httpResponse.body().toString());
+                Payment payment = amountRequest.toEntity(match, user, paymethod);
                 paymentRepository.save(payment);
                 eventPublisher.publishEvent(new ApplyPlayerDto(payment.getUser(), payment.getMatch()));
 
