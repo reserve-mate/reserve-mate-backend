@@ -70,7 +70,9 @@ public enum ErrorCode {
                                 "이미 취소된 예약입니다."), ALREADY_ENDED_RESERVATION(BAD_REQUEST,
                                     "이미 종료된 예약입니다."), ALREADY_PROCESSED_RESERVATION(BAD_REQUEST,
                                         "이미 완료되었거나 취소된 예약입니다."), NOT_CONFIRMED_RESERVATION(BAD_REQUEST,
-                                            "확정된 예약이 아닙니다."), NOT_CANCELLED_RESERVATION(BAD_REQUEST, "취소된 예약이 아닙니다.");
+                                            "확정된 예약이 아닙니다."), NOT_CANCELLED_RESERVATION(BAD_REQUEST, "취소된 예약이 아닙니다.")
+    // 시설 매니저 관련 에러
+    , FACILITY_MANAGER_ALREADY_REGISTERD(BAD_REQUEST, "이미 매니저로 등록되어 있는 회원입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

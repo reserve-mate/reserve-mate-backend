@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.admin.facilities.controller;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminFacilityService;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
@@ -116,6 +117,13 @@ public class AdminFacilityController {
     public ResponseEntity<?> deleteCourt(@PathVariable(name = "facilityId") Long facilityId,
         @PathVariable(name = "courtId") Long courtId) {
         adminFacilityService.deleteCourt(facilityId, courtId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{facilityId}/assign/manager")
+    public ResponseEntity<?> assignManager(@PathVariable(name = "facilityId") Long id,
+        @RequestBody RequestAssignManagersDto assignManagersDto) {
+        adminFacilityService.assignManager(id, assignManagersDto);
         return ResponseEntity.ok().build();
     }
 }

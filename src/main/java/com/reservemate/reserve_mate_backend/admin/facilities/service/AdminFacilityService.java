@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.admin.facilities.service;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -23,11 +24,15 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRep
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
+import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.domain.UserRole;
+import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.IntStream;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -36,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@RequiredArgsConstructor
 public class AdminFacilityService {
 
     private final FacilityManagerRepository facilityManagerRepository;
@@ -49,18 +55,7 @@ public class AdminFacilityService {
     @Value("${spring.app.file.facility-images}")
     private String facilityImagesPath;
 
-    public AdminFacilityService(FacilityRepository facilityRepository,
-        CourtRepository courtRepository, OperationHourRepository operationHourRepository,
-        FileService fileService, FacilityImageRepository facilityImageRepository,
-        FacilityManagerRepository facilityManagerRepository, JwtUtil jwtUtil) {
-        this.facilityRepository = facilityRepository;
-        this.courtRepository = courtRepository;
-        this.operationHourRepository = operationHourRepository;
-        this.fileService = fileService;
-        this.facilityImageRepository = facilityImageRepository;
-        this.facilityManagerRepository = facilityManagerRepository;
-        this.jwtUtil = jwtUtil;
-    }
+    private final UserRepository userRepository;
 
     // 매치 등록 시 시설명 조회
     public List<FacilityNameResponseDto> getMatchFacilityNames(HttpServletRequest request, SportType sportType) {
@@ -177,17 +172,13 @@ public class AdminFacilityService {
         Facility facility = facilityRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
 
-        //시간 삭제
+        // 연관 테이블 소프트 삭제
         operationHourRepository.softDeleteByFacility(facility);
-
-        //코트 삭제
         courtRepository.softDeleteByFacility(facility);
-
-        //이미지 삭제
         facilityImageRepository.deleteByFacility(facility);
 
         //시설 삭제
-        facility.delete();
+        facilityRepository.delete(facility);
     }
 
     @Transactional
@@ -223,4 +214,26 @@ public class AdminFacilityService {
         court.delete();
     }
 
+    @Transactional
+    public void assignManager(Long id, RequestAssignManagersDto assignManagersDto) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+
+        User user = userRepository.findByEmailAndName(assignManagersDto.getEmail(), assignManagersDto.getUserName())
+            .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+
+        boolean isRegistered = facilityManagerRepository.existsByUser_IdAndFacility_Id(user.getId(), id);
+
+        if (isRegistered) {
+            throw new ApiException(ErrorCode.FACILITY_MANAGER_ALREADY_REGISTERD);   //이미 매니저로 등록되어 있는 회원입니다.
+        }
+
+        FacilityManager facilityManager = FacilityManager.create(facility, user, assignManagersDto);
+        facilityManagerRepository.save(facilityManager);
+
+        if (user.getRole() == UserRole.ROLE_USER) {
+            user.updateRole(UserRole.ROLE_FACILITY_MANAGER);
+        }
+
+    }
 }
