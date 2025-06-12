@@ -4,10 +4,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchModifyRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
-import com.reservemate.reserve_mate_backend.admin.match.dto.request.MatchStatusUpdateRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchService;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -35,10 +36,10 @@ public class AdminMatchController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/status/{matchId}")
+    @PutMapping("/status/{matchId}")
     public ResponseEntity<Void> updateMatchStat(@PathVariable("matchId") Long matchId,
-        @RequestBody MatchStatusUpdateRequest matchStatusUpdateRequest) {
-        adminMatchService.matchStatusChange(matchId, matchStatusUpdateRequest.getMatchStatus());
+        @RequestParam("status") MatchStatus status) {
+        adminMatchService.matchStatusChange(matchId, status);
         return ResponseEntity.ok().build();
     }
 

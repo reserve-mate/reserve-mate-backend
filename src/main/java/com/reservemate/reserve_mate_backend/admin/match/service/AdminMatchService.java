@@ -23,7 +23,6 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
@@ -93,22 +92,18 @@ public class AdminMatchService {
         if (matchStatus == MatchStatus.END) {
             match.isEndMatch();
             match.isNotOngoinChk();
-        } else if (matchStatus == MatchStatus.ONGOING || matchStatus == MatchStatus.FINISH) {
-            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
-            int playerCnt = matchPlayers.size() + 1;
+        } else if (matchStatus == MatchStatus.FINISH || matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
 
-            if (matchStatus == MatchStatus.ONGOING) {
-                match.isOngoinChk();
-                match.isNotFinishOrClose(playerCnt);
-                match.validateOngoingTransitionByTime();
+            int playerCount = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY) + 1;
 
-                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
-            } else if (matchStatus == MatchStatus.FINISH) {
+            if (matchStatus == MatchStatus.FINISH) {
                 match.isFinish();
-                match.isNotCloseToDeadLine(playerCnt);
+                match.isNotCloseToDeadLine(playerCount);
+            } else if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
+                match.isNotFinish();
+                match.isFullMatch((playerCount - 1));
             }
-        } else if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
-            match.isNotFinish();
+
         }
 
         match.matchStatusChange(matchStatus);

@@ -285,7 +285,7 @@ public class Match extends BaseEntity {
     public void isNotCloseToDeadLine(int playerCnt) {
         int majority = (this.teamCapacity / 2);
 
-        if (this.matchStatus != MatchStatus.CLOSE_TO_DEADLINE || (playerCnt <= majority)) {
+        if (this.matchStatus != MatchStatus.CLOSE_TO_DEADLINE) {
             throw new ApiException(ErrorCode.INVALID_MATCH_STATE_CLOSE_TO_DEADLINE);
         }
     }
@@ -359,6 +359,13 @@ public class Match extends BaseEntity {
             .filter(match -> match.getMatchStatus().toString() == matchStatus)
             .distinct()
             .toList();
+    }
+
+    // 해당 매치가 인원이 다 찾는지 검증
+    public void isFullMatch(int playerCnt) {
+        if (playerCnt >= this.teamCapacity) {
+            throw new ApiException(ErrorCode.FINISH_MATCH_ERROR);
+        }
     }
 
 }

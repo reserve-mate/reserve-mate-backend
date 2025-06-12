@@ -13,7 +13,6 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyRespon
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,9 +91,14 @@ public class MatchController {
 
     /*매치 단일 조회 */
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<MatchDetailDto> getMatch(HttpServletRequest request,
+    public ResponseEntity<MatchDetailDto> getMatch(@AuthenticationPrincipal CustomUserDetails customUserDetails,
         @PathVariable(name = "matchId") Long matchId) {
-        MatchDetailDto detailDto = matchService.getMatch(request, matchId);
+        MatchDetailDto detailDto = null;
+        if (customUserDetails == null) {
+            detailDto = matchService.getMatch(null, matchId);
+        } else {
+            detailDto = matchService.getMatch(customUserDetails.getId(), matchId);
+        }
         return ResponseEntity.ok(detailDto);
     }
 
