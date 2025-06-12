@@ -53,6 +53,7 @@ public class FacilityManager extends BaseEntity {
         this.managerRole = managerRole;
     }
 
+    @Builder
     public FacilityManager(Long id, Facility facility, User user, ManagerRole managerRole) {
         this.id = id;
         this.assignedAt = LocalDateTime.now();

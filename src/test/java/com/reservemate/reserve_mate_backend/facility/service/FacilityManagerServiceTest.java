@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.facility.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,7 @@ public class FacilityManagerServiceTest {
             FacilityManager manager = FacilityManager.builder()
                 .facility(facility)
                 .user(getUser(i))
+                .managerRole(ManagerRole.MANAGER)
                 .build();
 
             managers.add(manager);

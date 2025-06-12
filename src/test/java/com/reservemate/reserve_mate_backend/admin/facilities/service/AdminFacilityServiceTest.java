@@ -4,23 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityNameResponseDto;
@@ -31,9 +21,17 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityReposito
 import com.reservemate.reserve_mate_backend.facility.repository.OperationHourRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Transactional
@@ -113,7 +111,8 @@ public class AdminFacilityServiceTest {
         List<FacilityManager> facilityManagers = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
-            FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i));
+            FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i),
+                ManagerRole.MANAGER);
 
             facilityManagers.add(facilityManager);
         }

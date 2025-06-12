@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -222,7 +223,7 @@ public class AdminMatchServiceTest {
 
     // 매니저 데이터 저장
     private FacilityManager getFacilityManager(User user, Facility facility) {
-        FacilityManager manager = new FacilityManager(1L, facility, user);
+        FacilityManager manager = new FacilityManager(1L, facility, user, ManagerRole.MANAGER);
         return manager;
     }
 
