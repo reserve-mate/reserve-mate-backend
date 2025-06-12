@@ -7,6 +7,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
@@ -122,6 +123,7 @@ public class PaymentRepositoryTest {
         FacilityManager manager = FacilityManager.builder()
             .facility(facility)
             .user(user)
+            .managerRole(ManagerRole.MANAGER)
             .build();
 
         FacilityManager saveManager = facilityManagerRepository.save(manager);
