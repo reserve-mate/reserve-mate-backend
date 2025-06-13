@@ -7,13 +7,14 @@ import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatches
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchService;
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,9 +57,10 @@ public class AdminMatchController {
 
     /* 관리자 매치 목록 조회 */
     @PostMapping("/getMatches")
-    public ResponseEntity<Slice<AdminMatchesResponse>> getMatches(HttpServletRequest request,
+    public ResponseEntity<Slice<AdminMatchesResponse>> getMatches(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestBody AdminMatchesRequest adminMatchesRequest) {
-        return ResponseEntity.ok(adminMatchService.getMatches(request, adminMatchesRequest));
+        return ResponseEntity.ok(adminMatchService.getMatches(customUserDetails.getId(), adminMatchesRequest));
     }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
@@ -58,13 +57,6 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return result > 0;
     }
 
-    private BooleanExpression hasConflict() {
-        return new CaseBuilder()
-            .when(match.count().gt(0))
-            .then(true)
-            .otherwise(false);
-    }
-
     /* 날짜별 매치 Count */
     @Override
     public List<MatchDateDto> getMatchesForDate(MatchSearchDto matchSearchDto) {
@@ -77,7 +69,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .from(match)
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
-                searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED)
+                searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED),
+                matchStatusEq(matchSearchDto.getMatchStatus())
             )
             .groupBy(match.matchDate)
             .fetch();
@@ -119,6 +112,11 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             : null;
     }
 
+    // 매치 상태 조회
+    private BooleanExpression matchStatusEq(MatchStatus matchStatus) {
+        return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : null;
+    }
+
     /* 사용자입장 매치 목록 조회 */
     @Override
     public Slice<MatchesDto> getMatches(Pageable pageable, MatchSearchDto matchSearchDto) {
@@ -151,7 +149,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
-                    matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED)
+                    matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED), matchStatusEq(
+                        matchSearchDto.getMatchStatus())
             )
             .groupBy(match.matchId)
             .orderBy(match.matchTime.asc())
@@ -209,7 +208,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .where(
                 facilityManager.user.id.eq(userId), searchValueLike(adminMatchesRequest.getSearchValue()), sportTypeEq(
                     adminMatchesRequest.getSportType()), betweenDate(adminMatchesRequest.getStartDate(),
-                        adminMatchesRequest.getEndDate())
+                        adminMatchesRequest.getEndDate()), matchStatusEq(adminMatchesRequest.getMatchStatus())
             )
             .groupBy(match.matchId)
             .offset(pageable.getOffset())

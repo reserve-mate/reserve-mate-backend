@@ -12,7 +12,6 @@ import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchMo
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -28,7 +27,6 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerReposito
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -42,7 +40,6 @@ public class AdminMatchService {
     private final CourtRepository courtRepository;
     private final FacilityManagerRepository facilityManagerRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final JwtUtil jwtUtil;
 
     /* 매치 정보 수정 */
     @Transactional
@@ -138,14 +135,7 @@ public class AdminMatchService {
 
     /* 관리자 매치 목록 조회 */
     @Transactional
-    public Slice<AdminMatchesResponse> getMatches(HttpServletRequest request, AdminMatchesRequest adminMatchesRequest) {
-        adminMatchesRequest.initSportType();
-
-        String accessToken = request.getHeader("access");
-        if (accessToken == null) {
-            throw new ApiException(ErrorCode.ADMIN_FORBIDDEN);
-        }
-        Long userId = jwtUtil.getId(accessToken);
+    public Slice<AdminMatchesResponse> getMatches(Long userId, AdminMatchesRequest adminMatchesRequest) {
 
         Pageable pageable = PageRequest.of(adminMatchesRequest.getPageNumber(), 6);
 
