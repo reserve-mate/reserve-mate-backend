@@ -43,6 +43,15 @@ public class Validator {
 
     }
 
+    // 해당 예약이 완료된 예약인지 체크
+    public Reservation reservationCompleteChk(String reservationNumber, Long courtId, Long userId) {
+        Reservation reservation = reserveRepository.findByReservationNumberAndCourtId(reservationNumber, courtId,
+            userId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));
+        reservation.isNotComplete();
+        return reservation;
+    }
+
     public Reservation reservationCancelChk(String reservationNumber) {
         Reservation reservation = reserveRepository.findByReservationNumber(reservationNumber).orElseThrow(
             () -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));

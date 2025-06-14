@@ -1,6 +1,8 @@
 package com.reservemate.reserve_mate_backend.common.file.service;
 
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.dto.RequestImageUploadDto;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -26,6 +28,8 @@ public class FileService {
 
     @Value("${spring.app.file.profile-image}")
     private String profileImagePath;
+
+    private static final int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public FileService(JwtUtil jwtUtil, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
@@ -91,6 +95,10 @@ public class FileService {
         return files.stream()
             .filter(file -> !file.isEmpty())
             .map(file -> {
+                if (file.getSize() > MAX_FILE_SIZE) {
+                    throw new ApiException(ErrorCode.BIG_SIZE_FILE);
+                }
+
                 String imageFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
                 String savedUrl = "/" + targetFilePath + imageFileName;
                 //실제 저장경로 (./uploads/targetFilePath/uuid_파일명)

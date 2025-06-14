@@ -1,5 +1,7 @@
 package com.reservemate.reserve_mate_backend.review.domain;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 
 import jakarta.persistence.*;
@@ -12,7 +14,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "review_images")
-public class ReviewImage extends BaseEntity{
+@SQLRestriction("deleted = false")
+public class ReviewImage extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "review_image_id", updatable = false)
@@ -34,7 +38,7 @@ public class ReviewImage extends BaseEntity{
         this.review = review;
         this.imageOrder = (imageOrder != null) ? imageOrder : 1;
     }
-    
+
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }

@@ -46,6 +46,7 @@ spring:
       base-path: /tmp/test-uploads/
       profile-image: profileImage/
       facility-images: facilityImages/
+      review: review/
   cloud:
     aws:
       credentials:
@@ -55,6 +56,10 @@ spring:
         static: ap-northeast-2
       s3:
         bucket: bucket-files
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 toss:
   pay:
