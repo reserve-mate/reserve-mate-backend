@@ -77,7 +77,7 @@ public enum ErrorCode {
                                                     "이용 완료된 예약이 아닙니다.")
 
     // 리뷰 관련 에러
-    , EXIST_RESERVATION_REVIEW(CONFLICT, "이미 해당 예약에 대한 리뷰가 존재합니다.");
+    , EXIST_RESERVATION_REVIEW(CONFLICT, "이미 해당 예약에 대한 리뷰가 존재합니다."), NOT_FOUND_REVIEW(BAD_REQUEST, "리뷰가 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.review.domain;
 
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "review_images")
+@SQLDelete(sql = "UPDATE review_images SET deleted = true WHERE review_image_id = ?")
 @SQLRestriction("deleted = false")
 public class ReviewImage extends BaseEntity {
 
@@ -46,4 +48,5 @@ public class ReviewImage extends BaseEntity {
     public void setReview(Review review) {
         this.review = review;
     }
+
 }
