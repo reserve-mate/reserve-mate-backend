@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.Getter;
 
 @Getter
-public class RequestCreateFacility {
+public class RequestCreateFacilityDto {
 
     private String name;
     private SportType sportType;
@@ -18,8 +18,8 @@ public class RequestCreateFacility {
     private boolean hasEquipmentRental;
     private boolean hasCafe;
 
-    private List<RequestCreateCourt> courts;
+    private List<RequestCreateCourtDto> courts;
 
-    private List<RequestOperatingHour> operatingHours;
+    private List<RequestOperatingHourDto> operatingHours;
 
 }

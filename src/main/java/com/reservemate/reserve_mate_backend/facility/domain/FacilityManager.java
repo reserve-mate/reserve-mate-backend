@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
@@ -40,18 +41,25 @@ public class FacilityManager extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "manager_role", nullable = false)
+    private ManagerRole managerRole;
+
     @Builder
-    public FacilityManager(Facility facility, User user) {
+    public FacilityManager(Facility facility, User user, ManagerRole managerRole) {
         this.assignedAt = LocalDateTime.now();
         this.facility = facility;
         this.user = user;
+        this.managerRole = managerRole;
     }
 
-    public FacilityManager(Long id, Facility facility, User user) {
+    @Builder
+    public FacilityManager(Long id, Facility facility, User user, ManagerRole managerRole) {
         this.id = id;
         this.assignedAt = LocalDateTime.now();
         this.facility = facility;
         this.user = user;
+        this.managerRole = managerRole;
     }
 
     // 매니저 등급 가져오기
@@ -82,5 +90,13 @@ public class FacilityManager extends BaseEntity {
     }
 
     public void updateRole(ManagerRole role) {
+    }
+
+    public static FacilityManager create(Facility facility, User user, RequestAssignManagersDto managersDto) {
+        return FacilityManager.builder()
+            .facility(facility)
+            .user(user)
+            .managerRole(managersDto.getManagerRole())
+            .build();
     }
 }

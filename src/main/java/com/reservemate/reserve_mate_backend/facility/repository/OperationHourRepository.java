@@ -5,6 +5,7 @@ import java.time.DayOfWeek;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,5 +18,9 @@ public interface OperationHourRepository extends JpaRepository<OperatingHour, Lo
         @Param("dayOfWeek") DayOfWeek dayOfWeek);
 
     List<OperatingHour> findByFacility(Facility facility);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE OperatingHour o SET o.deleted = true WHERE o.facility = :facility")
+    void softDeleteByFacility(@Param("facility") Facility facility);
 
 }

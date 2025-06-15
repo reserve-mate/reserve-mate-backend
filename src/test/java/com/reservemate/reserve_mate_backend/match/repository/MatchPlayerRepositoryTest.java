@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -232,6 +233,7 @@ public class MatchPlayerRepositoryTest {
         FacilityManager manager = FacilityManager.builder()
             .facility(facility)
             .user(user)
+            .managerRole(ManagerRole.MANAGER)
             .build();
 
         FacilityManager saveManager = facilityManagerRepository.save(manager);

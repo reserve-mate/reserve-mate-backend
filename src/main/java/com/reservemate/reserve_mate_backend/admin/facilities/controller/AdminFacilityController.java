@@ -1,8 +1,9 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.controller;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminFacilityService;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
@@ -17,9 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -64,11 +68,12 @@ public class AdminFacilityController {
 
     @PostMapping
 //  @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createFacility(@RequestPart("facilityData") RequestCreateFacility requestCreateFacility,
+    public ResponseEntity<?> createFacility(
+        @RequestPart("facilityData") RequestCreateFacilityDto requestCreateFacilityDto,
         @RequestPart(value = "images", required = false) List<MultipartFile> images,
         @RequestPart(value = "imageMeta", required = false) List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
 
-        adminFacilityService.createFacility(requestCreateFacility, images, facilityImageUploadDtoList);
+        adminFacilityService.createFacility(requestCreateFacilityDto, images, facilityImageUploadDtoList);
         return ResponseEntity.ok().build();
     }
 
@@ -78,10 +83,47 @@ public class AdminFacilityController {
         return ResponseEntity.ok(adminFacilityService.detailAdminFacility(id));
     }
 
-    @GetMapping("/get/court/{id}")
-//    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")
-    public ResponseEntity<List<ResponseCourtDto>> getAdminCourtList(@PathVariable Long id) {
-        List<ResponseCourtDto> courts = adminFacilityService.getAdminCourtList(id);
-        return ResponseEntity.ok(courts);
+    @PutMapping("/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateFacility(@PathVariable Long id,
+        @RequestBody RequestCreateFacilityDto requestUpdateFacilityDto) {
+        adminFacilityService.updateFacility(id, requestUpdateFacilityDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteFacility(@PathVariable Long id) {
+        adminFacilityService.deleteFacility(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/create/court")
+    public ResponseEntity<?> createCourt(@PathVariable(name = "id") Long facilityId,
+        @RequestBody RequestCreateCourtDto createCourt) {
+        adminFacilityService.createCourt(facilityId, createCourt);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{facilityId}/courts/{courtId}")
+    public ResponseEntity<?> updateCourt(@PathVariable(name = "facilityId") Long facilityId,
+        @PathVariable(name = "courtId") Long courtId,
+        @RequestBody RequestCreateCourtDto requestUpdateCourtDto) {
+        adminFacilityService.updateCourt(facilityId, courtId, requestUpdateCourtDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{facilityId}/courts/{courtId}")
+    public ResponseEntity<?> deleteCourt(@PathVariable(name = "facilityId") Long facilityId,
+        @PathVariable(name = "courtId") Long courtId) {
+        adminFacilityService.deleteCourt(facilityId, courtId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{facilityId}/assign/manager")
+    public ResponseEntity<?> assignManager(@PathVariable(name = "facilityId") Long id,
+        @RequestBody RequestAssignManagersDto assignManagersDto) {
+        adminFacilityService.assignManager(id, assignManagersDto);
+        return ResponseEntity.ok().build();
     }
 }

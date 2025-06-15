@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
@@ -698,7 +699,7 @@ public class PaymentServiceTest {
 
     // 매니저 데이터 저장
     private FacilityManager getFacilityManager(User user, Facility facility) {
-        FacilityManager manager = new FacilityManager(1L, facility, user);
+        FacilityManager manager = new FacilityManager(1L, facility, user, ManagerRole.MANAGER);
         return manager;
     }
 

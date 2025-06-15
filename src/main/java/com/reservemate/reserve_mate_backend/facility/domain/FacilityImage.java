@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "facility_images")
 @SQLDelete(sql = "UPDATE facility_images SET deleted = true WHERE facility_image_id = ?")
+@SQLRestriction("deleted = false")
 public class FacilityImage extends BaseEntity {
 
     @Id

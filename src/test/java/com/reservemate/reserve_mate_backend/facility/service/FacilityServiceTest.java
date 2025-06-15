@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.service;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +60,8 @@ public class FacilityServiceTest {
         List<FacilityManager> facilityManagers = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
-            FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i));
+            FacilityManager facilityManager = new FacilityManager(Long.valueOf(i), getFacilityLoop(i), getUserLoop(i),
+                ManagerRole.MANAGER);
 
             facilityManagers.add(facilityManager);
         }

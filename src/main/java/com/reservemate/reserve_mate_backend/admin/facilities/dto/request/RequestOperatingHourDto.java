@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import lombok.Getter;
 
 @Getter
-public class RequestOperatingHour {
+public class RequestOperatingHourDto {
 
     private DayOfWeek dayOfWeek;
     private String openTime;
