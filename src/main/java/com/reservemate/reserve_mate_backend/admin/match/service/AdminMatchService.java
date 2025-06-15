@@ -12,7 +12,6 @@ import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchMo
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -23,13 +22,11 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +40,6 @@ public class AdminMatchService {
     private final CourtRepository courtRepository;
     private final FacilityManagerRepository facilityManagerRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final JwtUtil jwtUtil;
 
     /* 매치 정보 수정 */
     @Transactional
@@ -93,22 +89,18 @@ public class AdminMatchService {
         if (matchStatus == MatchStatus.END) {
             match.isEndMatch();
             match.isNotOngoinChk();
-        } else if (matchStatus == MatchStatus.ONGOING || matchStatus == MatchStatus.FINISH) {
-            List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
-            int playerCnt = matchPlayers.size() + 1;
+        } else if (matchStatus == MatchStatus.FINISH || matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
 
-            if (matchStatus == MatchStatus.ONGOING) {
-                match.isOngoinChk();
-                match.isNotFinishOrClose(playerCnt);
-                match.validateOngoingTransitionByTime();
+            int playerCount = matchPlayerRepository.countByMatchAndStatus(match, PlayerStatus.READY) + 1;
 
-                eventPublisher.publishEvent(new PlayerOngingRequest(matchPlayers, PlayerStatus.ONGOING));
-            } else if (matchStatus == MatchStatus.FINISH) {
+            if (matchStatus == MatchStatus.FINISH) {
                 match.isFinish();
-                match.isNotCloseToDeadLine(playerCnt);
+                match.isNotCloseToDeadLine(playerCount);
+            } else if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
+                match.isNotFinish();
+                match.isFullMatch((playerCount - 1));
             }
-        } else if (matchStatus == MatchStatus.CLOSE_TO_DEADLINE) {
-            match.isNotFinish();
+
         }
 
         match.matchStatusChange(matchStatus);
@@ -143,14 +135,7 @@ public class AdminMatchService {
 
     /* 관리자 매치 목록 조회 */
     @Transactional
-    public Slice<AdminMatchesResponse> getMatches(HttpServletRequest request, AdminMatchesRequest adminMatchesRequest) {
-        adminMatchesRequest.initSportType();
-
-        String accessToken = request.getHeader("access");
-        if (accessToken == null) {
-            throw new ApiException(ErrorCode.ADMIN_FORBIDDEN);
-        }
-        Long userId = jwtUtil.getId(accessToken);
+    public Slice<AdminMatchesResponse> getMatches(Long userId, AdminMatchesRequest adminMatchesRequest) {
 
         Pageable pageable = PageRequest.of(adminMatchesRequest.getPageNumber(), 6);
 

@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.match.dto.request;
 import java.time.LocalDate;
 
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,14 +24,9 @@ public class MatchSearchDto {
 
     private String searchValue;
     private SportType sportType;
+    private MatchStatus matchStatus;
 
     private LocalDate matchDate;
-
-    public void initSportType() {
-        if (this.sportType == SportType.ALL) {
-            this.sportType = null;
-        }
-    }
 
     public void initMatchDateIfNull() {
         if (this.matchDate == null) {

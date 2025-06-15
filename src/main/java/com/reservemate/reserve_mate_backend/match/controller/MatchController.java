@@ -3,15 +3,16 @@ package com.reservemate.reserve_mate_backend.match.controller;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyResponse;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -34,6 +36,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MatchController {
 
     private final MatchService matchService;
+
+    @GetMapping("/matchHistory")
+    public ResponseEntity<Slice<MatchHistroyResponse>> getMatchHistory(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @RequestParam(name = "matchStatus") String matchStatus, @RequestParam("pageNum") int pageNum
+    ) {
+        return ResponseEntity.ok(matchService.getMatchHistory(customUserDetails.getId(), matchStatus, pageNum));
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<String> postMethodName(@RequestParam("file") MultipartFile multipartFile) {
@@ -81,9 +91,14 @@ public class MatchController {
 
     /*매치 단일 조회 */
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<MatchDetailDto> getMatch(HttpServletRequest request,
+    public ResponseEntity<MatchDetailDto> getMatch(@AuthenticationPrincipal CustomUserDetails customUserDetails,
         @PathVariable(name = "matchId") Long matchId) {
-        MatchDetailDto detailDto = matchService.getMatch(request, matchId);
+        MatchDetailDto detailDto = null;
+        if (customUserDetails == null) {
+            detailDto = matchService.getMatch(null, matchId);
+        } else {
+            detailDto = matchService.getMatch(customUserDetails.getId(), matchId);
+        }
         return ResponseEntity.ok(detailDto);
     }
 
