@@ -98,23 +98,23 @@ public class ReviewCUDService {
     @Transactional
     public void createReview(Long userId, ReviewRequestDto reviewRequestDto, List<MultipartFile> files) {
 
-        if (files.size() > MAX_FILE_COUNT) {
-            throw new ApiException(ErrorCode.MAX_FILE_COUNT3);
-        }
+        Reservation reservation = validator.reservationCompleteChk(reviewRequestDto.getReservationNumber(),
+            reviewRequestDto.getCourtId(), userId);
 
-        boolean isExistReview = reviewRepository.existsByReservationNumber(reviewRequestDto.getReservationNumber());
+        boolean isExistReview = reviewRepository.existsByReservation(reservation);
         if (isExistReview) {
             throw new ApiException(ErrorCode.EXIST_RESERVATION_REVIEW);
         }
-
-        Reservation reservation = validator.reservationCompleteChk(reviewRequestDto.getReservationNumber(),
-            reviewRequestDto.getCourtId(), userId);
 
         Review review = reviewRequestDto.toEntity(reservation);
         Review saveReview = reviewRepository.save(review);
 
         if (files == null || files.isEmpty()) {
             return;
+        }
+
+        if (files.size() > MAX_FILE_COUNT) {
+            throw new ApiException(ErrorCode.MAX_FILE_COUNT3);
         }
 
         List<String> imagePaths = fileService.uploadFiles(files, reviewImagePath);
