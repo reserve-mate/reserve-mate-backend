@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacility;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -18,12 +18,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "facilities")
 @SQLDelete(sql = "UPDATE facilities SET deleted = true WHERE facility_id = ?")
+@SQLRestriction("deleted = false")
 public class Facility extends BaseEntity {
 
     @Id
@@ -68,10 +70,11 @@ public class Facility extends BaseEntity {
         this.conventient = conventient;
     }
 
-    public void update(String name, String description, Address address) {
+    public void update(String name, String description, Address address, String conventient) {
         this.name = name != null ? name : this.name;
         this.description = description != null ? description : this.description;
         this.address = address != null ? address : this.address;
+        this.conventient = conventient != null ? conventient : this.conventient;
     }
 
     public static String setConventient(boolean parking, boolean shower, boolean rental,
@@ -82,7 +85,7 @@ public class Facility extends BaseEntity {
             (cafe ? "1" : "0");
     }
 
-    public static Facility create(RequestCreateFacility dto) {
+    public static Facility create(RequestCreateFacilityDto dto) {
         String conventient = setConventient(dto.isHasParking(), dto.isHasShower(), dto.isHasEquipmentRental(), dto
             .isHasCafe());
         return Facility.builder()

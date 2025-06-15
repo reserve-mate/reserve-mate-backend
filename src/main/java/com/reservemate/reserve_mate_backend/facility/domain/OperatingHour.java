@@ -1,6 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.domain;
 
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestOperatingHour;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestOperatingHourDto;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
@@ -15,12 +15,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "operating_hours")
 @SQLDelete(sql = "UPDATE operating_hours SET deleted = true WHERE operating_hour_id = ?")
+@SQLRestriction("deleted = false")
 public class OperatingHour extends BaseEntity {
 
     @Id
@@ -81,7 +83,7 @@ public class OperatingHour extends BaseEntity {
         this.holiday = holiday != null ? holiday : this.holiday;
     }
 
-    public static OperatingHour create(RequestOperatingHour dto, Facility facility) {
+    public static OperatingHour create(RequestOperatingHourDto dto, Facility facility) {
         return OperatingHour.builder()
             .dayOfWeek(dto.getDayOfWeek())
             .openTime(LocalTime.parse(dto.getOpenTime()))

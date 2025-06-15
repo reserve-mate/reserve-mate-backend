@@ -4,7 +4,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import lombok.Getter;
 
 @Getter
-public class RequestCreateCourt {
+public class RequestCreateCourtDto {
 
     private String name;
     private CourtType courtType;

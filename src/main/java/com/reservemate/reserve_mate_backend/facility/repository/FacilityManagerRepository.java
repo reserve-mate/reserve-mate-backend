@@ -24,4 +24,6 @@ public interface FacilityManagerRepository extends JpaRepository<FacilityManager
     Optional<FacilityManager> findByUserIdAndfacilityId(@Param("userId") Long userId,
         @Param("facilityId") Long facilityId);
 
+    boolean existsByUser_IdAndFacility_Id(Long userId, Long facilityId);
+
 }

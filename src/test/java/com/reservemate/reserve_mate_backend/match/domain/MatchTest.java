@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.match.domain;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -96,7 +97,7 @@ public class MatchTest {
 
     // 매니저 데이터 저장
     private FacilityManager getFacilityManager(User user, Facility facility) {
-        FacilityManager manager = new FacilityManager(1L, facility, user);
+        FacilityManager manager = new FacilityManager(1L, facility, user, ManagerRole.MANAGER);
         return manager;
     }
 
