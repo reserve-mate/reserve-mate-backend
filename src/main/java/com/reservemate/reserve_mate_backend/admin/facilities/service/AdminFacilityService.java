@@ -1,12 +1,13 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.service;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseFacilityManagerDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
@@ -15,6 +16,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import com.reservemate.reserve_mate_backend.facility.domain.OperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
@@ -79,7 +81,7 @@ public class AdminFacilityService {
 
     @Transactional
     public void createFacility(RequestCreateFacilityDto requestCreateFacilityDto, List<MultipartFile> images,
-        List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
+        List<RequestFacilityImageUploadDto> facilityImageUploadDtoList, CustomUserDetails customUserDetails) {
         //setting facility data
         Facility facility = Facility.create(requestCreateFacilityDto);
         Facility savedFacility = facilityRepository.save(facility);
@@ -118,6 +120,17 @@ public class AdminFacilityService {
 
             facilityImageRepository.saveAll(image);
         }
+
+        //시설 생성자 owner 로 시설 관리자 등록
+        User user = userRepository.findById(customUserDetails.getId())
+            .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        FacilityManager facilityManager = FacilityManager.create(
+            savedFacility,
+            user,
+            ManagerRole.OWNER);
+
+        facilityManagerRepository.save(facilityManager);
+
     }
 
     public ResponseEntity<Slice<FacilityDto>> getAdminFacilityList(String keyword, long lastId, Pageable pageable) {
@@ -264,7 +277,6 @@ public class AdminFacilityService {
         if (!facilityManager.getFacility().getId().equals(facilityId)) {
             throw new IllegalArgumentException("시설 ID와 관리자 정보가 일치하지 않습니다.");
         }
-
         facilityManagerRepository.delete(facilityManager);
     }
 }
