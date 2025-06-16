@@ -46,6 +46,7 @@ spring:
       base-path: /tmp/test-uploads/
       profile-image: profileImage/
       facility-images: facilityImages/
+      review: review/
   cloud:
     aws:
       credentials:

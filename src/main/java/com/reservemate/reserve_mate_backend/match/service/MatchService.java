@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -38,6 +38,7 @@ import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyResponse;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
@@ -50,7 +51,6 @@ import com.reservemate.reserve_mate_backend.reservation.repository.ReserveReposi
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -70,7 +70,6 @@ public class MatchService {
     private final PaymentRepository paymentRepository;
     private final ReserveRepository reserveRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final JwtUtil jwtUtil;
 
     private final AmazonS3 amazonS3;
 
@@ -159,6 +158,58 @@ public class MatchService {
         }
     }
 
+    // 매치 이용 내역
+    public Slice<MatchHistroyResponse> getMatchHistory(Long userId, String matchStatus, int pageNum) {
+
+        Pageable pageable = PageRequest.of(pageNum, 6);
+
+        List<String> tabs = List.of("all", "upcoming", "completed", "canceled");
+        if (!tabs.contains(matchStatus)) {
+            throw new ApiException(ErrorCode.MISSING_QUERY_PARAM);
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        Slice<MatchPlayer> matchPlayers = matchPlayerRepository.findByUser(user, pageable);
+        if (matchStatus.equals("upcoming")) {
+            matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
+        } else if (matchStatus.equals("completed")) {
+            List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+                PlayerStatus.KICKED);
+            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+        } else if (matchStatus.equals("canceled")) {
+            List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
+            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+        }
+
+        List<MatchHistroyResponse> content = matchPlayers.stream()
+            .map(matchPlayer -> {
+                int playerCnt = getPlayerCnt(matchPlayer.getMatch());
+                return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
+            }).toList();
+
+        Slice<MatchHistroyResponse> sliceResponse = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
+
+        return sliceResponse;
+    }
+
+    // 매치 플레이어 카운트
+    private int getPlayerCnt(Match match) {
+
+        List<MatchStatus> beforeStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
+            MatchStatus.FINISH);
+        List<MatchStatus> afterStatus = List.of(MatchStatus.END, MatchStatus.CANCELLED);
+
+        List<PlayerStatus> playerStatus = null;
+        if (beforeStatus.contains(match.getMatchStatus())) {
+            playerStatus = List.of(PlayerStatus.READY);
+        } else if (match.getMatchStatus() == MatchStatus.ONGOING) {
+            playerStatus = List.of(PlayerStatus.ONGOING, PlayerStatus.KICKED);
+        } else if (afterStatus.contains(match.getMatchStatus())) {
+            playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.KICKED);
+        }
+        return matchPlayerRepository.countByMatchAndStatusIn(match, playerStatus);
+    }
+
     // s3 파일 업로드 테스트
     public String uploadFile(MultipartFile multipartFile) throws IOException {
         String filename = UUID.randomUUID().toString();
@@ -228,7 +279,6 @@ public class MatchService {
     /* 매치 조회(일반 사용자) */
     @Transactional
     public Slice<MatchesDto> getMatches(MatchSearchDto matchSearchDto) {
-        matchSearchDto.initSportType();
         matchSearchDto.initMatchDateIfNull();
 
         Pageable pageable = PageRequest.of(matchSearchDto.getPageNumber(), 6);
@@ -242,7 +292,6 @@ public class MatchService {
      */
     @Transactional
     public List<MatchDateDto> getMatchDates(MatchSearchDto matchSearchDto) {
-        matchSearchDto.initSportType();
 
         List<MatchDateDto> dateDtos = matchCustomRepository.getMatchesForDate(matchSearchDto);
 
@@ -271,14 +320,12 @@ public class MatchService {
     /*
      * 매치 상세
      */
-    public MatchDetailDto getMatch(HttpServletRequest request, Long matchId) {
+    public MatchDetailDto getMatch(Long userId, Long matchId) {
 
         User user = null;
         Payment payment = null;
 
-        String accessToken = request.getHeader("access");
-        if (accessToken != null) {
-            Long userId = jwtUtil.getId(accessToken);
+        if (userId != null) {
             user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 

@@ -20,7 +20,9 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(BAD_REQUEST, "유효하지 않은 입력값입니다."), SERVER_ERROR(INTERNAL_SERVER_ERROR, "서버 오류"), USER_NOT_FOUND(
         UNAUTHORIZED, "유저 정보를 찾을 수 없습니다"), UNAUTHORIZED_CODE(UNAUTHORIZED, "인증 정보가 올바르지 않습니다."), ADMIN_FORBIDDEN(
             FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다."), MISSING_QUERY_PARAM(BAD_REQUEST,
-                "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요.")
+                "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요."), BIG_SIZE_FILE(BAD_REQUEST,
+                    "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST, "최대 3개의 파일까지 업로드할 수 있습니다.")
+
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
         "겹치는 시간대에 매치가 존재합니다."), END_MATCH_ERROR(BAD_REQUEST, "이미 진행중 또는는 종료된 매치입니다."), FINISH_MATCH_ERROR(BAD_REQUEST,
@@ -70,7 +72,14 @@ public enum ErrorCode {
                                 "이미 취소된 예약입니다."), ALREADY_ENDED_RESERVATION(BAD_REQUEST,
                                     "이미 종료된 예약입니다."), ALREADY_PROCESSED_RESERVATION(BAD_REQUEST,
                                         "이미 완료되었거나 취소된 예약입니다."), NOT_CONFIRMED_RESERVATION(BAD_REQUEST,
-                                            "확정된 예약이 아닙니다."), NOT_CANCELLED_RESERVATION(BAD_REQUEST, "취소된 예약이 아닙니다.")
+
+                                            "확정된 예약이 아닙니다."), NOT_CANCELLED_RESERVATION(BAD_REQUEST,
+                                                "취소된 예약이 아닙니다."), NOT_COMPLETED_RESEVATION(BAD_REQUEST,
+                                                    "이용 완료된 예약이 아닙니다.")
+
+    // 리뷰 관련 에러
+    , EXIST_RESERVATION_REVIEW(CONFLICT, "이미 해당 예약에 대한 리뷰가 존재합니다."), NOT_FOUND_REVIEW(BAD_REQUEST, "리뷰가 존재하지 않습니다.")
+
     // 시설 매니저 관련 에러
     , FACILITY_MANAGER_ALREADY_REGISTERD(BAD_REQUEST,
         "이미 매니저로 등록되어 있는 회원입니다."), FACILITY_MANAGER_ALREADY_ASSIGED_TO_ANOTHER_FACILITY(BAD_REQUEST,

@@ -22,7 +22,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -56,7 +55,6 @@ import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @ExtendWith(MockitoExtension.class)
@@ -185,11 +183,11 @@ public class MatchServiceTest {
             .user(user)
             .build();
 
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        String fakeAccessToken = "mocked.jwt.token";
+        // HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        // String fakeAccessToken = "mocked.jwt.token";
 
-        given(request.getHeader("access")).willReturn(fakeAccessToken);
-        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+        // given(request.getHeader("access")).willReturn(fakeAccessToken);
+        // given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
         given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(paymentRepository.findByMatchIdAndUserId(match.getMatchId(), user.getId())).willReturn(Optional.of(
             payment));
@@ -199,7 +197,7 @@ public class MatchServiceTest {
         given(facilityImageRepository.findByFacility(facility)).willReturn(facilityImages);
 
         /* when */
-        MatchDetailDto matchDetailDto = matchService.getMatch(request, user.getId());
+        MatchDetailDto matchDetailDto = matchService.getMatch(user.getId(), user.getId());
 
         /* then */
         assertThat(matchDetailDto.getUserDataDto().getUserName()).isEqualTo(user.getName());

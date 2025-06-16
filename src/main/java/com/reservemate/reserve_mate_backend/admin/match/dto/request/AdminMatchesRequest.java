@@ -3,6 +3,7 @@ package com.reservemate.reserve_mate_backend.admin.match.dto.request;
 import java.time.LocalDate;
 
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,14 +20,9 @@ public class AdminMatchesRequest {  // 관리자 매치 목록 검색
 
     private String searchValue;     // 검색어
     private SportType sportType;    // 매치 종목
+    private MatchStatus matchStatus;// 매치 상태
     private LocalDate startDate;    // 검색 시작 날짜
     private LocalDate endDate;      // 검색 마지막 날짜
     private int pageNumber;         // 페이징
-
-    public void initSportType() {
-        if (this.sportType == SportType.ALL) {
-            this.sportType = null;
-        }
-    }
 
 }

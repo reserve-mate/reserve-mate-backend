@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.admin.match.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.lang.reflect.Field;
@@ -28,7 +27,6 @@ import org.springframework.data.domain.SliceImpl;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchDetailResponse;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.domain.Address;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -47,7 +45,6 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerReposito
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,8 +69,8 @@ public class AdminMatchServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private JwtUtil jwtUtil;
+    // @Mock
+    // private JwtUtil jwtUtil;
 
     @InjectMocks
     private AdminMatchService adminMatchService;
@@ -160,11 +157,11 @@ public class AdminMatchServiceTest {
         AdminMatchesRequest matchesRequest = AdminMatchesRequest.builder()
             .build();
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        String fakeAccessToken = "mock.fakeAccessToken";
+        // HttpServletRequest request = mock(HttpServletRequest.class);
+        // String fakeAccessToken = "mock.fakeAccessToken";
 
-        given(request.getHeader("access")).willReturn(fakeAccessToken);
-        given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
+        // given(request.getHeader("access")).willReturn(fakeAccessToken);
+        // given(jwtUtil.getId(fakeAccessToken)).willReturn(user.getId());
 
         Pageable pageable = PageRequest.of(0, 6);
 
@@ -174,7 +171,7 @@ public class AdminMatchServiceTest {
         given(matchCustomRepository.getAdminMatches(user.getId(), matchesRequest, pageable)).willReturn(sliceList);
 
         /* when */
-        Slice<AdminMatchesResponse> adminMatchesResponses = adminMatchService.getMatches(request, matchesRequest);
+        Slice<AdminMatchesResponse> adminMatchesResponses = adminMatchService.getMatches(user.getId(), matchesRequest);
 
         /* then */
         assertThat(adminMatchesResponses.getContent()).hasSize(sliceList.getSize());
