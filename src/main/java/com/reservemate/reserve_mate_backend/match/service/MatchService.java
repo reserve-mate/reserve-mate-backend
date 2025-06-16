@@ -2,7 +2,6 @@ package com.reservemate.reserve_mate_backend.match.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,17 +21,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
-import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
-import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
-import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
-import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.PlayerOngingRequest;
@@ -46,8 +40,6 @@ import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
-import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
-import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
@@ -61,14 +53,11 @@ import lombok.extern.log4j.Log4j2;
 public class MatchService {
 
     private final MatchRepository matchRepository;
-    private final CourtRepository courtRepository;
     private final UserRepository userRepository;
     private final MatchPlayerRepository matchPlayerRepository;
     private final FacilityImageRepository facilityImageRepository;
     private final MatchCustomRepository matchCustomRepository;
-    private final FacilityManagerRepository facilityManagerRepository;
     private final PaymentRepository paymentRepository;
-    private final ReserveRepository reserveRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private final AmazonS3 amazonS3;
@@ -340,55 +329,6 @@ public class MatchService {
         List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
 
         return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images, payment);
-    }
-
-    /*
-     * 매치 등록
-     */
-    @Transactional
-    public void registMatch(CreateMatchDto createMatchDto) {
-        createMatchDto.isOverMatchTime();
-
-        Court court = courtRepository.findById(createMatchDto.getCourtId())
-            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
-
-        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
-        List<Match> matches = matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(),
-            court, matchStatus);
-        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());    // 매치 시간대 검증
-
-        // 해당 시간대에 에약 있는지 검증
-        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
-        boolean isReservation = reserveRepository.existsReservationDateTime(
-            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
-                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status);
-
-        if (isReservation) {
-            throw new ApiException(ErrorCode.DUPLICATE_RESERVATION);
-        }
-
-        FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
-            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
-
-        // 해당 매니저가 다른 매치에도 배정되어있는지 검증
-        boolean isDupleMatchManager = false;
-
-        if (facilityManager.chkManagerRole()) {
-            isDupleMatchManager = matchCustomRepository.existConfilictMatch(createMatchDto.getMatchDate(),
-                facilityManager.getUserId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
-                    .getMatchEndTime());
-        } else {
-            isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
-                facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
-                    .getMatchEndTime());
-        }
-
-        if (isDupleMatchManager) {
-            throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);
-        }
-
-        Match match = createMatchDto.toEntity(createMatchDto, court, facilityManager);
-        matchRepository.save(match);
     }
 
 }

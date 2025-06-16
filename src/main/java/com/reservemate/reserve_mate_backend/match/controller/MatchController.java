@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
-import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
@@ -13,7 +12,6 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyRespon
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.service.MatchService;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -107,13 +105,6 @@ public class MatchController {
     public ResponseEntity<Void> modifyMatch(@PathVariable(name = "matchId") Long matchId,
         @RequestBody ModifyMatchDto modifyMatchDto) {
         matchService.modifyMatch(matchId, modifyMatchDto);
-        return ResponseEntity.ok().build();
-    }
-
-    /* 매치 등록 */
-    @PostMapping("/registMatch")
-    public ResponseEntity<Void> registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
-        matchService.registMatch(createMatchDto);
         return ResponseEntity.ok().build();
     }
 

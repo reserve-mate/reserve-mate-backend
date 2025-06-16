@@ -21,7 +21,8 @@ public enum ErrorCode {
         UNAUTHORIZED, "유저 정보를 찾을 수 없습니다"), UNAUTHORIZED_CODE(UNAUTHORIZED, "인증 정보가 올바르지 않습니다."), ADMIN_FORBIDDEN(
             FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다."), MISSING_QUERY_PARAM(BAD_REQUEST,
                 "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요."), BIG_SIZE_FILE(BAD_REQUEST,
-                    "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST, "최대 3개의 파일까지 업로드할 수 있습니다.")
+                    "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST,
+                        "최대 3개의 파일까지 업로드할 수 있습니다."), NOT_FORBIDDEN(FORBIDDEN, "데이터 접근 권한이 아닙니다.")
 
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,

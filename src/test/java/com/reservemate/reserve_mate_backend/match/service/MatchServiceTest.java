@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 
 import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,23 +33,18 @@ import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
-import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityImageRepository;
-import com.reservemate.reserve_mate_backend.facility.repository.FacilityManagerRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
-import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.request.ModifyMatchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDetailDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.domain.Payment;
 import com.reservemate.reserve_mate_backend.payment.repository.PaymentRepository;
-import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
-import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -65,9 +59,6 @@ public class MatchServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private CourtRepository courtRepository;
-
-    @Mock
     private FacilityRepository facilityRepository;
 
     @Mock
@@ -80,13 +71,7 @@ public class MatchServiceTest {
     private FacilityImageRepository facilityImageRepository;
 
     @Mock
-    private FacilityManagerRepository facilityManagerRepository;
-
-    @Mock
     private PaymentRepository paymentRepository;
-
-    @Mock
-    private ReserveRepository reserveRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -247,89 +232,6 @@ public class MatchServiceTest {
             .hasMessage("이미 진행중 또는는 종료된 매치입니다.");
     }
 
-    @Test
-    @DisplayName("매치 중복 테스트 - 예외처리가 되어야함")
-    void dupleMatchTest() {
-        /* given */
-        CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
-        List<Match> matches = getMatches(court, facilityManager);
-
-        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
-        given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
-            matchStatus))
-            .willReturn(matches);
-        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
-        given(reserveRepository.existsReservationDateTime(
-            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
-                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
-        given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
-        given(matchRepository.existsConflictManager(
-            createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
-            createMatchDto.getMatchEndTime())).willReturn(true);
-
-        assertThatThrownBy(() -> matchService.registMatch(createMatchDto))
-            .isInstanceOf(ApiException.class)
-            .hasMessage("해당 시간대에 이미 다른 코트에 매니저가 배정되어 있습니다.");
-    }
-
-    @Test
-    @DisplayName("매치 등록 테스트 - User와 Court 정보가 있어야함")
-    void testRegistMatch() {
-        /* given */
-        CreateMatchDto createMatchDto = getCreateMatchDto(facilityManager, court);
-        List<Match> matches = getMatches(court, facilityManager);
-
-        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
-        given(courtRepository.findById(court.getId())).willReturn(Optional.of(court));
-        given(matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(), court,
-            matchStatus))
-            .willReturn(matches);
-        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
-        given(reserveRepository.existsReservationDateTime(
-            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
-                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
-        given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
-        given(matchRepository.existsConflictManager(
-            createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
-            createMatchDto.getMatchEndTime())).willReturn(false);
-        ArgumentCaptor<Match> arguMatch = ArgumentCaptor.forClass(Match.class);
-
-        /* when */
-        matchService.registMatch(createMatchDto);
-
-        /* then */
-        verify(matchRepository, times(1)).save(arguMatch.capture());
-
-        Match saveMatch = arguMatch.getValue();
-
-        assertThat(saveMatch.getTeamCapacity()).isEqualTo(createMatchDto.getTeamCapacity());
-        assertThat(saveMatch.getMatchDate()).isEqualTo(createMatchDto.getMatchDate());
-        assertThat(saveMatch.getMatchTime()).isEqualTo(createMatchDto.getMatchTime());
-    }
-
-    private List<Match> getMatches(Court court, FacilityManager manager) {
-        List<Match> matches = new ArrayList<>();
-
-        for (int i = 1; i <= 2; i++) {
-            Match match = Match.builder()
-                .matchId(Long.valueOf(i))
-                .matchStatus(MatchStatus.APPLICABLE)
-                .teamCapacity(18)
-                .matchDate(LocalDate.now())
-                .matchTime(18)
-                .endTime(20)
-                .matchPrice(11000)
-                .court(court)
-                .facilityManager(manager)
-                .build();
-
-            matches.add(match);
-        }
-
-        return matches;
-    }
-
     private Match getMatch(Court court, FacilityManager manager) {
         Match match = Match.builder()
             .matchId(1L)
@@ -343,23 +245,6 @@ public class MatchServiceTest {
             .facilityManager(manager)
             .build();
         return match;
-    }
-
-    /* 매치 등로 데이터 세팅 */
-    private CreateMatchDto getCreateMatchDto(FacilityManager facilityManager, Court court) {
-
-        CreateMatchDto createMatchDto = CreateMatchDto.builder()
-            .matchName("매치")
-            .managerId(facilityManager.getId())
-            .teamCapacity(15)
-            .matchDate(LocalDate.of(2025, 12, 31))
-            .matchTime(22)
-            .matchEndTime(23)
-            .courtId(court.getId())
-            .matchPrice(11000)
-            .build();
-
-        return createMatchDto;
     }
 
     // 매니저 데이터 저장

@@ -9,7 +9,9 @@ import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatche
 import com.reservemate.reserve_mate_backend.admin.match.service.AdminMatchService;
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Slice;
@@ -30,13 +32,15 @@ public class AdminMatchController {
 
     private final AdminMatchService adminMatchService;
 
+    /* 매치 정보 수정 */
     @PutMapping("/edit/{matchId}")
-    public ResponseEntity<Void> postMethodName(@PathVariable("matchId") Long matchId,
+    public ResponseEntity<Void> updateMatch(@PathVariable("matchId") Long matchId,
         @RequestBody AdminMatchModifyRequest modifyRequest) {
         adminMatchService.adminMatchModify(matchId, modifyRequest);
         return ResponseEntity.ok().build();
     }
 
+    /* 관리자 매치 상태 변경 */
     @PutMapping("/status/{matchId}")
     public ResponseEntity<Void> updateMatchStat(@PathVariable("matchId") Long matchId,
         @RequestParam("status") MatchStatus status) {
@@ -44,14 +48,16 @@ public class AdminMatchController {
         return ResponseEntity.ok().build();
     }
 
+    /* 관리자 매치 취소 */
     @PostMapping("/delete/{matchId}")
     public ResponseEntity<Void> adminDeleteMatch(@PathVariable("matchId") Long matchId) {
         adminMatchService.deleteMatch(matchId);
         return ResponseEntity.ok().build();
     }
 
+    /* 관리자 매치 상세 */
     @GetMapping("/{matchId}")
-    public ResponseEntity<AdminMatchDetailResponse> getMethodName(@PathVariable("matchId") Long matchId) {
+    public ResponseEntity<AdminMatchDetailResponse> getMatch(@PathVariable("matchId") Long matchId) {
         return ResponseEntity.ok(adminMatchService.getAdminMatchDetail(matchId));
     }
 
@@ -61,6 +67,13 @@ public class AdminMatchController {
         @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestBody AdminMatchesRequest adminMatchesRequest) {
         return ResponseEntity.ok(adminMatchService.getMatches(customUserDetails.getId(), adminMatchesRequest));
+    }
+
+    /* 관리자 매치 등록 */
+    @PostMapping("/registMatch")
+    public ResponseEntity<Void> registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
+        adminMatchService.registMatch(createMatchDto);
+        return ResponseEntity.ok().build();
     }
 
 }
