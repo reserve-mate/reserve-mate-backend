@@ -7,6 +7,7 @@ import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.Request
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseFacilityManagerDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminFacilityService;
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.response.CourtNamsResponseDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,9 +74,11 @@ public class AdminFacilityController {
     public ResponseEntity<?> createFacility(
         @RequestPart("facilityData") RequestCreateFacilityDto requestCreateFacilityDto,
         @RequestPart(value = "images", required = false) List<MultipartFile> images,
-        @RequestPart(value = "imageMeta", required = false) List<RequestFacilityImageUploadDto> facilityImageUploadDtoList) {
+        @RequestPart(value = "imageMeta", required = false) List<RequestFacilityImageUploadDto> facilityImageUploadDtoList,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        adminFacilityService.createFacility(requestCreateFacilityDto, images, facilityImageUploadDtoList);
+        adminFacilityService.createFacility(requestCreateFacilityDto, images, facilityImageUploadDtoList,
+            customUserDetails);
         return ResponseEntity.ok().build();
     }
 
