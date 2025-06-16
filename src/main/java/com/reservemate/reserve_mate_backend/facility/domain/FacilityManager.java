@@ -99,4 +99,12 @@ public class FacilityManager extends BaseEntity {
             .managerRole(managersDto.getManagerRole())
             .build();
     }
+
+    public static FacilityManager create(Facility facility, User user, ManagerRole role) {
+        return FacilityManager.builder()
+            .facility(facility)
+            .user(user)
+            .managerRole(role)
+            .build();
+    }
 }

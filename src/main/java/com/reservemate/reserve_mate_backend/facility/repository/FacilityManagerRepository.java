@@ -27,4 +27,5 @@ public interface FacilityManagerRepository extends JpaRepository<FacilityManager
     boolean existsByUser_IdAndFacility_Id(Long userId, Long facilityId);
 
     long countByUser_Id(Long userId);
+
 }
