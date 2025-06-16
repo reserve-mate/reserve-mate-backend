@@ -38,6 +38,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
     private final JPAQueryFactory query;
 
     private QMatch match = QMatch.match;
+    QCourt court = QCourt.court;
+    QFacility facility = QFacility.facility;
 
     @Override
     public boolean existConfilictMatch(LocalDate matchDate, Long userId, Long courtId, int matchTime, int endTime) {
@@ -67,10 +69,12 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
         )
             .from(match)
+            .join(court).on(court.eq(match.court))
+            .join(facility).on(facility.eq(court.facility))
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
                 searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED),
-                matchStatusEq(matchSearchDto.getMatchStatus())
+                matchStatusEq(matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchDate)
             .fetch();
@@ -117,13 +121,17 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : null;
     }
 
+    // 지역 검색
+    private BooleanExpression cityEq(String city) {
+        return (city.equals("대전/세종")) ? facility.address.city.eq("대전").or(facility.address.city.eq("세종"))
+            : facility.address.city.eq(city);
+    }
+
     /* 사용자입장 매치 목록 조회 */
     @Override
     public Slice<MatchesDto> getMatches(Pageable pageable, MatchSearchDto matchSearchDto) {
 
         QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
-        QCourt court = QCourt.court;
-        QFacility facility = QFacility.facility;
 
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
             PlayerStatus.COMPLETED);
@@ -143,14 +151,14 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         )
             .from(match)
             .join(court).on(court.eq(match.court))
-            //.join(facility).on(facility.eq(court.facility))
+            .join(facility).on(facility.eq(court.facility))
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.eq(match), matchPlayer.status.in(playerStatus)
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
                     matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED), matchStatusEq(
-                        matchSearchDto.getMatchStatus())
+                        matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchId)
             .orderBy(match.matchTime.asc())
