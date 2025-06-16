@@ -5,6 +5,7 @@ import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.Request
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseAdminFacilityDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseFacilityManagerDto;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -31,6 +32,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -224,8 +226,16 @@ public class AdminFacilityService {
 
         boolean isRegistered = facilityManagerRepository.existsByUser_IdAndFacility_Id(user.getId(), id);
 
+        //시설에 이미 등록되어 있는경우
         if (isRegistered) {
             throw new ApiException(ErrorCode.FACILITY_MANAGER_ALREADY_REGISTERD);   //이미 매니저로 등록되어 있는 회원입니다.
+        }
+        //유저 롤이 관리자가 아닌 경우
+        if (!user.getRole().equals(UserRole.ROLE_ADMIN)) {
+            long facilityManagerCount = facilityManagerRepository.countByUser_Id(user.getId());
+            if (facilityManagerCount >= 1) {
+                throw new ApiException(ErrorCode.FACILITY_MANAGER_ALREADY_ASSIGED_TO_ANOTHER_FACILITY); //시설 매니저는 1개의 시설만 관리 할 수 있습니다.
+            }
         }
 
         FacilityManager facilityManager = FacilityManager.create(facility, user, assignManagersDto);
@@ -235,5 +245,26 @@ public class AdminFacilityService {
             user.updateRole(UserRole.ROLE_FACILITY_MANAGER);
         }
 
+    }
+
+    public List<ResponseFacilityManagerDto> getFacilityManagerList(Long id) {
+        Facility facility = facilityRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설이 존재하지 않습니다."));
+        List<FacilityManager> facilityManagers = facilityManagerRepository.findByFacility(facility);
+        return facilityManagers.stream()
+            .map(ResponseFacilityManagerDto::convertFacilityManager)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void removeFacilityManager(Long facilityId, Long id) {
+        FacilityManager facilityManager = facilityManagerRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("해당 시설 관리자가 존재하지 않습니다."));
+
+        if (!facilityManager.getFacility().getId().equals(facilityId)) {
+            throw new IllegalArgumentException("시설 ID와 관리자 정보가 일치하지 않습니다.");
+        }
+
+        facilityManagerRepository.delete(facilityManager);
     }
 }

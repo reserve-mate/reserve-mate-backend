@@ -1,9 +1,10 @@
 package com.reservemate.reserve_mate_backend.admin.facilities.controller;
 
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateCourtDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestCreateFacilityDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestFacilityImageUploadDto;
-import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
+import com.reservemate.reserve_mate_backend.admin.facilities.dto.response.ResponseFacilityManagerDto;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminCourtService;
 import com.reservemate.reserve_mate_backend.admin.facilities.service.AdminFacilityService;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
@@ -124,6 +125,19 @@ public class AdminFacilityController {
     public ResponseEntity<?> assignManager(@PathVariable(name = "facilityId") Long id,
         @RequestBody RequestAssignManagersDto assignManagersDto) {
         adminFacilityService.assignManager(id, assignManagersDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{facilityId}/get/managerList")
+    public ResponseEntity<List<ResponseFacilityManagerDto>> getFacilityManagerList(
+        @PathVariable(name = "facilityId") Long id) {
+        return ResponseEntity.ok(adminFacilityService.getFacilityManagerList(id));
+    }
+
+    @DeleteMapping("/{facilityId}/managers/{managerId}")
+    public ResponseEntity<?> removeFacilityManager(@PathVariable(name = "facilityId") Long facilityId,
+        @PathVariable(name = "managerId") Long id) {
+        adminFacilityService.removeFacilityManager(facilityId, id);
         return ResponseEntity.ok().build();
     }
 }
