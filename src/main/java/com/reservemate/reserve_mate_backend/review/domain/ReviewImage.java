@@ -1,5 +1,10 @@
 package com.reservemate.reserve_mate_backend.review.domain;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +15,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "review_images")
-public class ReviewImage {
+@SQLDelete(sql = "UPDATE review_images SET deleted = true WHERE review_image_id = ?")
+@SQLRestriction("deleted = false")
+public class ReviewImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +31,22 @@ public class ReviewImage {
     @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
+    @Column(name = "image_order")
+    private Integer imageOrder = 1;
+
     @Builder
-    public ReviewImage(String imageUrl, Review review) {
+    public ReviewImage(String imageUrl, Review review, Integer imageOrder) {
         this.imageUrl = imageUrl;
         this.review = review;
+        this.imageOrder = (imageOrder != null) ? imageOrder : 1;
     }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setReview(Review review) {
+        this.review = review;
+    }
+
 }

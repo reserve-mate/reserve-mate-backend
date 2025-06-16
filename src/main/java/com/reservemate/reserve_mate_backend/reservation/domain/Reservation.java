@@ -173,6 +173,13 @@ public class Reservation extends BaseEntity {
         }
     }
 
+    // 종료된 예약인지 검증 (positive)
+    public void isNotComplete() {
+        if (this.status != ReservationStatus.COMPLETED) {
+            throw new ApiException(ErrorCode.NOT_COMPLETED_RESEVATION);
+        }
+    }
+
     // 이미 완료되거나 취소된 예약인지 검증
     public void isCompleteOrCancel() {
         List<ReservationStatus> status = List.of(ReservationStatus.CANCELED, ReservationStatus.COMPLETED);
