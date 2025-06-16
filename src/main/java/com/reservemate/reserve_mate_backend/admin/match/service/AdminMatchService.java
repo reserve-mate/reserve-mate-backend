@@ -48,7 +48,7 @@ public class AdminMatchService {
 
     /* 매치 정보 수정 */
     @Transactional
-    public void adminMatchModify(Long matchId, AdminMatchModifyRequest modifyRequest) {
+    public void adminMatchModify(Long matchId, Long userId, AdminMatchModifyRequest modifyRequest) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
@@ -60,6 +60,10 @@ public class AdminMatchService {
 
         Court court = courtRepository.findById(modifyRequest.getFacilityCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+
+        FacilityManager managerRole = facilityManagerRepository.findByFacilityIdAndUserId(court.getFacilityId(), userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
+        managerRole.isStaff();
 
         FacilityManager manager = facilityManagerRepository.findById(modifyRequest.getManagerId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));

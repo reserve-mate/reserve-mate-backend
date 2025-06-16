@@ -112,4 +112,11 @@ public class FacilityManager extends BaseEntity {
             .managerRole(role)
             .build();
     }
+
+    /* 현재 매니저가 STAFF인지 검증 */
+    public void isStaff() {
+        if (this.managerRole == ManagerRole.STAFF) {
+            throw new ApiException(ErrorCode.NOT_FORBIDDEN);
+        }
+    }
 }

@@ -84,7 +84,7 @@ public enum ErrorCode {
     // 시설 매니저 관련 에러
     , FACILITY_MANAGER_ALREADY_REGISTERD(BAD_REQUEST,
         "이미 매니저로 등록되어 있는 회원입니다."), FACILITY_MANAGER_ALREADY_ASSIGED_TO_ANOTHER_FACILITY(BAD_REQUEST,
-            "시설 매니저는 1개의 시설만 관리 할 수 있습니다.");
+            "시설 매니저는 1개의 시설만 관리 할 수 있습니다."), NOT_FOUND_MANAGER(BAD_REQUEST, "매니저 정보가 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

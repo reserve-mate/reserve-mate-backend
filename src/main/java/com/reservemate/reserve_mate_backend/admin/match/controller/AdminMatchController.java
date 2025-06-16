@@ -35,8 +35,9 @@ public class AdminMatchController {
     /* 매치 정보 수정 */
     @PutMapping("/edit/{matchId}")
     public ResponseEntity<Void> updateMatch(@PathVariable("matchId") Long matchId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestBody AdminMatchModifyRequest modifyRequest) {
-        adminMatchService.adminMatchModify(matchId, modifyRequest);
+        adminMatchService.adminMatchModify(matchId, customUserDetails.getId(), modifyRequest);
         return ResponseEntity.ok().build();
     }
 
