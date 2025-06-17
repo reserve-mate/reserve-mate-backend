@@ -44,15 +44,17 @@ public class AdminMatchController {
     /* 관리자 매치 상태 변경 */
     @PutMapping("/status/{matchId}")
     public ResponseEntity<Void> updateMatchStat(@PathVariable("matchId") Long matchId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestParam("status") MatchStatus status) {
-        adminMatchService.matchStatusChange(matchId, status);
+        adminMatchService.matchStatusChange(matchId, status, customUserDetails.getId());
         return ResponseEntity.ok().build();
     }
 
     /* 관리자 매치 취소 */
     @PostMapping("/delete/{matchId}")
-    public ResponseEntity<Void> adminDeleteMatch(@PathVariable("matchId") Long matchId) {
-        adminMatchService.deleteMatch(matchId);
+    public ResponseEntity<Void> adminDeleteMatch(@PathVariable("matchId") Long matchId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        adminMatchService.deleteMatch(matchId, customUserDetails.getId());
         return ResponseEntity.ok().build();
     }
 
@@ -72,8 +74,10 @@ public class AdminMatchController {
 
     /* 관리자 매치 등록 */
     @PostMapping("/registMatch")
-    public ResponseEntity<Void> registMatch(@Valid @RequestBody CreateMatchDto createMatchDto) {
-        adminMatchService.registMatch(createMatchDto);
+    public ResponseEntity<Void> registMatch(@Valid @RequestBody CreateMatchDto createMatchDto,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        adminMatchService.registMatch(createMatchDto, customUserDetails.getId());
         return ResponseEntity.ok().build();
     }
 

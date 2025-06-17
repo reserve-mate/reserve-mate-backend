@@ -61,9 +61,7 @@ public class AdminMatchService {
         Court court = courtRepository.findById(modifyRequest.getFacilityCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
 
-        FacilityManager managerRole = facilityManagerRepository.findByFacilityIdAndUserId(court.getFacilityId(), userId)
-            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
-        managerRole.isStaff();
+        isStaff(court.getFacilityId(), userId);
 
         FacilityManager manager = facilityManagerRepository.findById(modifyRequest.getManagerId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
@@ -89,11 +87,13 @@ public class AdminMatchService {
 
     /* 매치 상태 변경 */
     @Transactional
-    public void matchStatusChange(Long matchId, MatchStatus matchStatus) {
+    public void matchStatusChange(Long matchId, MatchStatus matchStatus, Long userId) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isAvailableStatChg();
+
+        isStaff(match.getFacilityId(), userId);
 
         if (matchStatus == MatchStatus.END) {
             match.isEndMatch();
@@ -117,11 +117,14 @@ public class AdminMatchService {
 
     // 관리자 매치 삭제
     @Transactional
-    public void deleteMatch(Long matchId) {
+    public void deleteMatch(Long matchId, Long userId) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isDeletable();
+
+        isStaff(match.getFacilityId(), userId);
+
         List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
         if (!matchPlayers.isEmpty()) {
@@ -129,6 +132,13 @@ public class AdminMatchService {
         }
 
         match.matchCancel();
+    }
+
+    /* 매니저 권한 검증 */
+    private void isStaff(Long facilityId, Long userId) {
+        FacilityManager facilityManager = facilityManagerRepository.findByFacilityIdAndUserId(facilityId, userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
+        facilityManager.isStaff();
     }
 
     /* 관리자 매치 상세 */
@@ -158,7 +168,7 @@ public class AdminMatchService {
      * 매치 등록
      */
     @Transactional
-    public void registMatch(CreateMatchDto createMatchDto) {
+    public void registMatch(CreateMatchDto createMatchDto, Long userId) {
         createMatchDto.isOverMatchTime();
 
         Court court = courtRepository.findById(createMatchDto.getCourtId())
@@ -179,8 +189,10 @@ public class AdminMatchService {
             throw new ApiException(ErrorCode.DUPLICATE_RESERVATION);
         }
 
+        isStaff(court.getFacilityId(), userId);
+
         FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
-            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
 
         // 해당 매니저가 다른 매치에도 배정되어있는지 검증
         boolean isDupleMatchManager = false;

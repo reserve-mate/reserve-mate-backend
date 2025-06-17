@@ -105,7 +105,8 @@ public class AdminMatchServiceTest {
     void testDeleteMatch() throws Exception, SecurityException {
         /* given */
         given(matchRepository.findById(match.getMatchId())).willReturn(Optional.of(match));
-
+        given(facilityManagerRepository.findByFacilityIdAndUserId(facility.getId(), user.getId())).willReturn(Optional
+            .of(facilityManager));
         // Field field = BaseEntity.class.getDeclaredField("deleted");
         // field.setAccessible(true);
         // field.set(match, true);
@@ -122,7 +123,7 @@ public class AdminMatchServiceTest {
         given(matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY)).willReturn(matchPlayers);
 
         /* when */
-        adminMatchService.deleteMatch(match.getMatchId());
+        adminMatchService.deleteMatch(match.getMatchId(), user.getId());
 
         /* then */
         assertThat(match.getMatchStatus()).isEqualTo(MatchStatus.CANCELLED);
@@ -204,12 +205,14 @@ public class AdminMatchServiceTest {
         given(reserveRepository.existsReservationDateTime(
             createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
                 .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
+        given(facilityManagerRepository.findByFacilityIdAndUserId(facility.getId(), user.getId())).willReturn(Optional
+            .of(facilityManager));
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(
             createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
             createMatchDto.getMatchEndTime())).willReturn(true);
 
-        assertThatThrownBy(() -> adminMatchService.registMatch(createMatchDto))
+        assertThatThrownBy(() -> adminMatchService.registMatch(createMatchDto, user.getId()))
             .isInstanceOf(ApiException.class)
             .hasMessage("해당 시간대에 이미 다른 코트에 매니저가 배정되어 있습니다.");
     }
@@ -230,6 +233,8 @@ public class AdminMatchServiceTest {
         given(reserveRepository.existsReservationDateTime(
             createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
                 .getMatchEndTime(), 0), createMatchDto.getCourtId(), status)).willReturn(false);
+        given(facilityManagerRepository.findByFacilityIdAndUserId(facility.getId(), user.getId())).willReturn(Optional
+            .of(facilityManager));
         given(facilityManagerRepository.findById(facilityManager.getId())).willReturn(Optional.of(facilityManager));
         given(matchRepository.existsConflictManager(
             createMatchDto.getMatchDate(), facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(),
@@ -237,7 +242,7 @@ public class AdminMatchServiceTest {
         ArgumentCaptor<Match> arguMatch = ArgumentCaptor.forClass(Match.class);
 
         /* when */
-        adminMatchService.registMatch(createMatchDto);
+        adminMatchService.registMatch(createMatchDto, user.getId());
 
         /* then */
         verify(matchRepository, times(1)).save(arguMatch.capture());
