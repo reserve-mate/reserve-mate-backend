@@ -65,6 +65,9 @@ public class MatchService {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Value("${spring.app.file.base-path}")
+    private String fileBasepath;
+
     // /* 시간이 지난 날짜 종료 처리 */
     @Transactional
     public void endBeforeMatch() {
@@ -328,7 +331,7 @@ public class MatchService {
 
         List<FacilityImage> images = facilityImageRepository.findByFacility(match.getFacility());
 
-        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images, payment);
+        return MatchDetailDto.toMatchDetailDto(match, user, matchPlayers, images, payment, fileBasepath);
     }
 
 }
