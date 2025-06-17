@@ -2,8 +2,6 @@ package com.reservemate.reserve_mate_backend.review.domain;
 
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
-import com.reservemate.reserve_mate_backend.match.domain.Match;
-import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -29,24 +27,15 @@ public class Review extends BaseEntity {
     @Column(name = "rating", nullable = false)
     private Integer rating;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "review_type", nullable = false)
-    private ReviewType reviewType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "match_id")
-    private Match match;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reservation_id")
-    private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id", nullable = false)
@@ -56,21 +45,17 @@ public class Review extends BaseEntity {
     private Boolean isVisible = true;
 
     @Builder
-    public Review(Integer rating, String content, ReviewType reviewType, User user, Facility facility,
-        Reservation reservation, Match match,
+    public Review(Integer rating, String title, String content, User user, Facility facility,
         Boolean isVisible) {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
         this.rating = rating;
+        this.title = title;
         this.content = content;
-        this.reviewType = reviewType;
         this.user = user;
-        this.reservation = reservation;
-        this.match = match;
         this.facility = facility;
         this.isVisible = isVisible != null ? isVisible : true;
-        this.reservation = reservation;
     }
 
     public void update(Integer rating, String content) {

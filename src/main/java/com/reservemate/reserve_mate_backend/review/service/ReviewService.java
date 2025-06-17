@@ -2,8 +2,7 @@ package com.reservemate.reserve_mate_backend.review.service;
 
 import org.springframework.stereotype.Service;
 
-import com.reservemate.reserve_mate_backend.review.repository.ReviewImageRepository;
-import com.reservemate.reserve_mate_backend.review.repository.ReviewRepository;
+import com.reservemate.reserve_mate_backend.review.repository.ReviewCustomRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -11,7 +10,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final ReviewRepository reviewRepository;
-    private final ReviewImageRepository reviewImageRepository;
+    private final ReviewCustomRepository reviewCustomRepository;
+
+    /* 시설 리뷰 목록 조회 */
+    public void getReviews(Long facilityId, Long userId) {
+
+    }
 
 }
