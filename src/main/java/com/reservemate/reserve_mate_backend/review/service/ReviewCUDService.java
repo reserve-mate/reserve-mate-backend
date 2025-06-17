@@ -121,7 +121,7 @@ public class ReviewCUDService {
         List<ReviewImage> reviewImages = IntStream.range(0, imagePaths.size())
             .mapToObj(i -> {
                 String path = imagePaths.get(i);
-                return new ReviewImage(path, saveReview, (i + i));//reviewRequestDto.toReviewImageEntity(path, saveReview, (i + 1));
+                return new ReviewImage(path, saveReview, (i + i));
             }).toList();
 
         reviewImageRepository.saveAll(reviewImages);
