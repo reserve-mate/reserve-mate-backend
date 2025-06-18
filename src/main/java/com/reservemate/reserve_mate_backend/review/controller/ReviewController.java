@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.review.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,18 +9,22 @@ import org.springframework.web.multipart.MultipartFile;
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.service.ReviewCUDService;
+import com.reservemate.reserve_mate_backend.review.service.ReviewService;
 
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/review")
@@ -27,6 +32,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class ReviewController {
 
     private final ReviewCUDService reviewCUDService;
+    private final ReviewService reviewService;
+
+    /* 리뷰 목록 조회 */
+    @GetMapping("/{facilityId}/reviews")
+    public ResponseEntity<Slice<ReviewListResponse>> getFacilityReviews(@PathVariable("facilityId") Long facilityId,
+        @RequestParam("pageNum") Integer pageNum) {
+        return ResponseEntity.ok(reviewService.getFacilityReviews(facilityId, pageNum));
+    }
 
     /* 리뷰 삭제 */
     @DeleteMapping("/delete/{reviewId}")

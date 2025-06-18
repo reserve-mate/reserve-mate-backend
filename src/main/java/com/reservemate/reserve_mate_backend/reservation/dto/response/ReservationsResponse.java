@@ -22,6 +22,7 @@ public class ReservationsResponse {
 
     private Long reservationId;                     // 예약 번호
     private ReservationStatus reservationStatus;    // 예약 상태
+    private Long facilityId;                        // 예약 시설 번호
     private String facilityName;                    // 예약 시설 이름
     private String courtName;                       // 예약 코트 이름
     private SportType sportType;                    // 운동 종목
@@ -43,6 +44,7 @@ public class ReservationsResponse {
         ReservationsResponse response = ReservationsResponse.builder()
             .reservationId(reservation.getId())
             .reservationStatus(reservation.getStatus())
+            .facilityId(reservation.getCourt().getFacilityId())
             .facilityName(reservation.getCourt().getFacility().getName())
             .courtName(reservation.getCourt().getName())
             .sportType(reservation.getCourt().getSportType())

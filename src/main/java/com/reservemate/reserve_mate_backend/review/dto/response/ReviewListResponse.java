@@ -23,6 +23,17 @@ public class ReviewListResponse {
     private LocalDateTime reviewDate;
     private String reviewTitle;
     private String reviewContent;
-    private List<String> reviewImage;
+    private List<ReviewImageResponse> reviewImages;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @Builder
+    public static class ReviewImageResponse {
+
+        private String imageUrl;
+        private Integer imageOrder;
+    }
 
 }

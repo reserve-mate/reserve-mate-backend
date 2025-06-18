@@ -14,9 +14,15 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${spring.app.file.profile-image}")
     private String profileImagePath;
 
+    @Value("${spring.app.file.review}")
+    private String reviewImage;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/" + profileImagePath + "**")
             .addResourceLocations("file:" + basePath + profileImagePath);
+
+        registry.addResourceHandler("/" + reviewImage + "**")
+            .addResourceLocations("file:" + basePath + reviewImage);
     }
 }

@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.facility.controller;
 
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
 import com.reservemate.reserve_mate_backend.facility.service.FacilityService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class FacilityController {
 
     private final FacilityService facilityService;
+
+    @GetMapping("/review/{facilityId}")
+    public ResponseEntity<ReviewFacilitResponse> getReviewFacility(@PathVariable("facilityId") Long facilityId) {
+        return ResponseEntity.ok(facilityService.getReviewFacility(facilityId));
+    }
 
     @GetMapping("/name/type/{id}")
 //    @PreAuthorize("hasAnyRole('ADMIN','FACILITY_MANAGER')")

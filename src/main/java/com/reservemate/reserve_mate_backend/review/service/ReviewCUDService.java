@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
-import com.reservemate.reserve_mate_backend.facility.domain.Court;
-import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
+import com.reservemate.reserve_mate_backend.facility.domain.Facility;
+import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
@@ -30,7 +30,7 @@ public class ReviewCUDService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
-    private final CourtRepository courtRepository;
+    private final FacilityRepository facilityRepository;
     private final UserRepository userRepository;
     private final FileService fileService;
 
@@ -101,12 +101,13 @@ public class ReviewCUDService {
     @Transactional
     public void createReview(Long userId, ReviewRequestDto reviewRequestDto, List<MultipartFile> files) {
 
-        Court court = courtRepository.findById(reviewRequestDto.getCourtId()).orElseThrow(() -> new ApiException(
-            ErrorCode.INVALID_INPUT_VALUE));
+        Facility facility = facilityRepository.findById(reviewRequestDto.getFacilityId()).orElseThrow(
+            () -> new ApiException(
+                ErrorCode.INVALID_INPUT_VALUE));
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        Review review = reviewRequestDto.toEntity(court, user);
+        Review review = reviewRequestDto.toEntity(facility, user);
         Review saveReview = reviewRepository.save(review);
 
         if (files == null || files.isEmpty()) {
