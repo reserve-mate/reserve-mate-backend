@@ -34,15 +34,20 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
     @Override
     public Slice<ReviewListResponse> getReviewListResponses(Long facilityId, Pageable pageable) {
 
+        List<Long> reviewIds = pagingIds(facilityId, pageable);
+
+        boolean hasNext = reviewIds.size() > pageable.getPageSize();
+        if (hasNext) {
+            reviewIds.remove(pageable.getPageSize());
+        }
+
         List<Tuple> tuples = queryFactory.select(
             review.id, review.user.id, review.user.name, review.rating, review.createdAt, review.title, review.content,
             reviewImage.imageUrl, reviewImage.imageOrder
         ).from(review)
             .leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
-            .where(review.facility.id.eq(facilityId))
+            .where(review.id.in(reviewIds))
             .orderBy(review.id.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize() + 1)  // 한개를 더 가져와서 hasNext 판단
             .fetch();
 
         Map<Long, ReviewListResponse> responseMap = new LinkedHashMap<>();
@@ -77,16 +82,20 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
             response.getReviewImages().sort(Comparator.comparingInt(ReviewImageResponse::getImageOrder));
         });
 
-        return checkEndPage(pageable, responses);
+        return new SliceImpl<>(responses, pageable, hasNext); //checkEndPage(pageable, responses, reviewIds);
     }
 
-    private <T> Slice<T> checkEndPage(Pageable pageable, List<T> reviews) {
-        boolean hasNext = false;
-        if (reviews.size() > pageable.getPageSize()) {
-            hasNext = true;
-            reviews.remove(pageable.getPageSize()); // 한개 더 가져온 데이터를 삭제
-        }
-        return new SliceImpl<>(reviews, pageable, hasNext);
+    // 리뷰 ID만 가져오기(페이징 전용)
+    private List<Long> pagingIds(Long facilityId, Pageable pageable) {
+        List<Long> reviewIds = queryFactory.select(review.id)
+            .from(review)
+            .where(review.facility.id.eq(facilityId))
+            .orderBy(review.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize() + 1)
+            .fetch();
+
+        return reviewIds;
     }
 
 }
