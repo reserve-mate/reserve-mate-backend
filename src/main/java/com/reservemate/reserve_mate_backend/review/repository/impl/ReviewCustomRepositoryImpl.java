@@ -12,9 +12,11 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import com.reservemate.reserve_mate_backend.review.domain.QReviewImage;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse.ReviewImageResponse;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewCustomRepository;
@@ -29,6 +31,20 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
     private QReview review = QReview.review;
     private QReviewImage reviewImage = QReviewImage.reviewImage;
+
+    /* 해당 시설의 리뷰 정보 조회 */
+    @Override
+    public ReviewCountResponse getReviewInfo(Long facilityId) {
+
+        ReviewCountResponse response = queryFactory.select(
+            Projections.fields(ReviewCountResponse.class, review.facility.name.as("facilityName"), review.facility.id
+                .count().as("reviewCnt"), review.rating.avg().coalesce(0.0).as("rating"))
+        ).from(review)
+            .where(review.facility.id.eq(facilityId))
+            .fetchOne();
+
+        return response;
+    }
 
     /* 리뷰 목록 조회 */
     @Override

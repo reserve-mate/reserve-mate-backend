@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.service.ReviewCUDService;
 import com.reservemate.reserve_mate_backend.review.service.ReviewService;
@@ -33,6 +34,11 @@ public class ReviewController {
 
     private final ReviewCUDService reviewCUDService;
     private final ReviewService reviewService;
+
+    @GetMapping("/{facilityId}/reviewInfo")
+    public ResponseEntity<ReviewCountResponse> getReviewInfo(@PathVariable("facilityId") Long facilityId) {
+        return ResponseEntity.ok(reviewService.getFacilityReviewCnt(facilityId));
+    }
 
     /* 리뷰 목록 조회 */
     @GetMapping("/{facilityId}/reviews")
