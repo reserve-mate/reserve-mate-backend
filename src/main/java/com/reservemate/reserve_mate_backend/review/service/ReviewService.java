@@ -26,9 +26,10 @@ public class ReviewService {
     }
 
     /* 시설 리뷰 목록 조회 */
-    public Slice<ReviewListResponse> getFacilityReviews(Long facilityId, Integer pageNum) {
+    public Slice<ReviewListResponse> getFacilityReviews(Long facilityId, Integer pageNum, Long userId) {
         Pageable pageable = PageRequest.of(pageNum, 6);
-        Slice<ReviewListResponse> response = reviewCustomRepository.getReviewListResponses(facilityId, pageable);
+        Slice<ReviewListResponse> response = reviewCustomRepository.getReviewListResponses(facilityId, userId,
+            pageable);
         return response;
     }
 

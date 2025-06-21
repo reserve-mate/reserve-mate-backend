@@ -23,6 +23,7 @@ public class ReviewListResponse {
     private LocalDateTime reviewDate;
     private String reviewTitle;
     private String reviewContent;
+    private boolean isWrite;
     private List<ReviewImageResponse> reviewImages;
 
     @NoArgsConstructor

@@ -56,7 +56,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
             .authorizeHttpRequests(
                 auth -> auth.requestMatchers("/login", "/", "/users/register", "/match/matcheDates", "/match/matches",
-                    "/match/matches/*", "/reserve/reserveHours", "/review/*/reviews")
+                    "/match/matches/*", "/reserve/reserveHours", "/review/*/reviews", "/review/*/reviewInfo")
                     .permitAll()
                     .requestMatchers(
                         "/mail/send/authCode",
@@ -78,7 +78,7 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**")
                     .permitAll()
-                    .requestMatchers("/profileImage/**", "/review/**").permitAll()
+                    .requestMatchers("/profileImage/**", "/reviewImage/**").permitAll()
                     //admin/** 경로는 ROLE_ADMIN 또는 ROLE_FACILITY_MANAGER 만 가능
                     //TODO: 임시로 USER 등록함, 추후 삭제 요망
                     .requestMatchers("/admin/**").hasAnyRole("ADMIN", "FACILITY_MANAGER", "USER")

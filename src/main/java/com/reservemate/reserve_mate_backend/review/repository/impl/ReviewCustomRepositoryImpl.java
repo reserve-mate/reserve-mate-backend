@@ -48,7 +48,7 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
     /* 리뷰 목록 조회 */
     @Override
-    public Slice<ReviewListResponse> getReviewListResponses(Long facilityId, Pageable pageable) {
+    public Slice<ReviewListResponse> getReviewListResponses(Long facilityId, Long userId, Pageable pageable) {
 
         List<Long> reviewIds = pagingIds(facilityId, pageable);
 
@@ -72,6 +72,12 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
             Long reviewId = tuple.get(review.id);
 
             ReviewListResponse listResponse = responseMap.computeIfAbsent(reviewId, id -> {
+
+                boolean isWrite = false;
+                if (userId != null && tuple.get(review.user.id) == userId) {
+                    isWrite = true;
+                }
+
                 ReviewListResponse response = ReviewListResponse.builder()
                     .reviewId(id)
                     .userId(tuple.get(review.user.id))
@@ -80,6 +86,7 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
                     .reviewDate(tuple.get(review.createdAt))
                     .reviewTitle(tuple.get(review.title))
                     .reviewContent(tuple.get(review.content))
+                    .isWrite(isWrite)
                     .reviewImages(new ArrayList<>())
                     .build();
                 return response;

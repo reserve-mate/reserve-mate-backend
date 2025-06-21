@@ -43,8 +43,15 @@ public class ReviewController {
     /* 리뷰 목록 조회 */
     @GetMapping("/{facilityId}/reviews")
     public ResponseEntity<Slice<ReviewListResponse>> getFacilityReviews(@PathVariable("facilityId") Long facilityId,
-        @RequestParam("pageNum") Integer pageNum) {
-        return ResponseEntity.ok(reviewService.getFacilityReviews(facilityId, pageNum));
+        @RequestParam("pageNum") Integer pageNum, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Long userId = null;
+
+        if (customUserDetails != null) { // 로그인 한 유저인 경우
+            userId = customUserDetails.getId();
+        }
+
+        return ResponseEntity.ok(reviewService.getFacilityReviews(facilityId, pageNum, userId));
     }
 
     /* 리뷰 삭제 */

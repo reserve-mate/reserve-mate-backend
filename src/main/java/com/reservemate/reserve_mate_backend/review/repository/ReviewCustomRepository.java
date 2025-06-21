@@ -9,7 +9,7 @@ import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListRespon
 public interface ReviewCustomRepository {
 
     /* 리뷰 목록 조회 */
-    Slice<ReviewListResponse> getReviewListResponses(Long facilityId, Pageable pageable);
+    Slice<ReviewListResponse> getReviewListResponses(Long facilityId, Long userId, Pageable pageable);
 
     /* 해당 시설의 리뷰 정보 조회 */
     ReviewCountResponse getReviewInfo(Long facilityId);
