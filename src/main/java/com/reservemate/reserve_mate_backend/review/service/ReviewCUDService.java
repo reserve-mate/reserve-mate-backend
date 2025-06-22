@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
+import com.reservemate.reserve_mate_backend.common.file.validator.FileValidator;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
@@ -86,6 +87,8 @@ public class ReviewCUDService {
             throw new ApiException(ErrorCode.MAX_FILE_COUNT3);
         }
 
+        FileValidator.validatorFiles(files); // 파일 확장자 검사
+
         List<String> imagePaths = fileService.uploadFiles(files, reviewImagePath);
         List<ReviewImage> newImages = IntStream.range(0, imagePaths.size())
             .mapToObj(i -> {
@@ -117,6 +120,8 @@ public class ReviewCUDService {
         if (files.size() > MAX_FILE_COUNT) {
             throw new ApiException(ErrorCode.MAX_FILE_COUNT3);
         }
+
+        FileValidator.validatorFiles(files);    // 파일 확장자 검사
 
         List<String> imagePaths = fileService.uploadFiles(files, reviewImagePath);
         List<ReviewImage> reviewImages = IntStream.range(0, imagePaths.size())
