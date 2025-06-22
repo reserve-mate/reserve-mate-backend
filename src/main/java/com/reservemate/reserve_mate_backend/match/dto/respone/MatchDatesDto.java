@@ -1,6 +1,5 @@
 package com.reservemate.reserve_mate_backend.match.dto.respone;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;

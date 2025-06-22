@@ -23,4 +23,7 @@ public interface ReviewImageRepository extends JpaRepository<ReviewImage, Long> 
     /* 해당 리뷰와 관련된 이미지 목록(이미지 번호 오름차순) */
     List<ReviewImage> findByReviewOrderByImageOrderAsc(Review review);
 
+    /* 해당 리뷰와 관련된 이미지 목록 */
+    List<ReviewImage> findByReview(Review review);
+
 }

@@ -17,8 +17,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import com.reservemate.reserve_mate_backend.review.domain.QReviewImage;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewImageResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
-import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse.ReviewImageResponse;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewCustomRepository;
 
 import lombok.RequiredArgsConstructor;

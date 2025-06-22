@@ -26,15 +26,4 @@ public class ReviewListResponse {
     private boolean isWrite;
     private List<ReviewImageResponse> reviewImages;
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Getter
-    @Setter
-    @Builder
-    public static class ReviewImageResponse {
-
-        private String imageUrl;
-        private Integer imageOrder;
-    }
-
 }
