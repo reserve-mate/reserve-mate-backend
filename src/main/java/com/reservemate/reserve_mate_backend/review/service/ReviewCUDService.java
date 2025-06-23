@@ -11,16 +11,14 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.file.validator.FileValidator;
-import com.reservemate.reserve_mate_backend.facility.domain.Facility;
-import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewImageRepository;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewRepository;
-import com.reservemate.reserve_mate_backend.user.domain.User;
-import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +29,9 @@ public class ReviewCUDService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
-    private final FacilityRepository facilityRepository;
-    private final UserRepository userRepository;
     private final FileService fileService;
+
+    private final Validator validator;
 
     @Value("${spring.app.file.review}")
     private String reviewImagePath;
@@ -97,17 +95,14 @@ public class ReviewCUDService {
         reviewImageRepository.saveAll(newImages);
     }
 
-    /* 리뷰 등록 */
+    /* 예약 리뷰 등록 */
     @Transactional
     public void createReview(Long userId, ReviewRequestDto reviewRequestDto, List<MultipartFile> files) {
 
-        Facility facility = facilityRepository.findById(reviewRequestDto.getFacilityId()).orElseThrow(
-            () -> new ApiException(
-                ErrorCode.INVALID_INPUT_VALUE));
+        Reservation reservation = validator.reservationCompleteChk(reviewRequestDto.getReservationId(), reviewRequestDto
+            .getCourtId(), userId);
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        Review review = reviewRequestDto.toEntity(facility, user);
+        Review review = reviewRequestDto.toEntity(reservation);
         Review saveReview = reviewRepository.save(review);
 
         if (files == null || files.isEmpty()) {

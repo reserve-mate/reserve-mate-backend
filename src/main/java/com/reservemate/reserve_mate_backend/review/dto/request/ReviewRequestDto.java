@@ -1,8 +1,8 @@
 package com.reservemate.reserve_mate_backend.review.dto.request;
 
-import com.reservemate.reserve_mate_backend.facility.domain.Facility;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
-import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,19 +17,22 @@ import lombok.Setter;
 @Setter
 public class ReviewRequestDto {
 
-    private Long facilityId;
+    private Long courtId;
     private Integer rating;
     private String title;
     private String content;
+    private Long reservationId;
+    private ReviewType reviewType;
 
-    // 리뷰 Entity
-    public Review toEntity(Facility facility, User user) {
+    public Review toEntity(Reservation reservation) {
         return Review.builder()
             .rating(this.rating)
             .title(this.title)
             .content(this.content)
-            .facility(facility)
-            .user(user)
+            .facility(reservation.getCourt().getFacility())
+            .user(reservation.getUser())
+            .reservation(reservation)
+            .reviewType(this.reviewType)
             .build();
     }
 

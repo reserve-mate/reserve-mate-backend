@@ -19,7 +19,7 @@ import lombok.Setter;
 public class ReviewReservationResponse {
 
     private Long courtId;               // 코트 번호
-    private String reservationNumber;   // 예약 번호
+    private String courtName;           // 코트 명
     private SportType sportType;        // 스포츠 타입
     private String facilityName;        // 시설 이름
     private LocalDate useDateDate;      // 이용 날짜
@@ -27,9 +27,9 @@ public class ReviewReservationResponse {
     /* 리뷰 작성시 예약 일부 내용 반환 값 */
     public static ReviewReservationResponse toResponse(Reservation reservation) {
         return ReviewReservationResponse.builder()
-            .reservationNumber(reservation.getReservationNumber())
             .useDateDate(reservation.getReserveDate())
             .courtId(reservation.getCourtId())
+            .courtName(reservation.getCourt().getName())
             .sportType(reservation.getCourt().getSportType())
             .facilityName(reservation.getCourt().getFacility().getName())
             .build();
