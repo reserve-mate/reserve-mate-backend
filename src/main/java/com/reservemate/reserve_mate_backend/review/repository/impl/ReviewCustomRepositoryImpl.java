@@ -59,6 +59,7 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
         List<Tuple> tuples = queryFactory.select(
             review.id, review.user.id, review.user.name, review.rating, review.createdAt, review.title, review.content,
+            review.reviewType,
             reviewImage.imageUrl, reviewImage.imageOrder
         ).from(review)
             .leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
@@ -87,6 +88,7 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
                     .reviewTitle(tuple.get(review.title))
                     .reviewContent(tuple.get(review.content))
                     .isWrite(isWrite)
+                    .reviewType(tuple.get(review.reviewType))
                     .reviewImages(new ArrayList<>())
                     .build();
                 return response;

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
+import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
@@ -36,9 +37,11 @@ public class ReviewController {
     private final ReviewCUDService reviewCUDService;
     private final ReviewService reviewService;
 
+    /* 리뷰 상세 */
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewDetailResponse> getReviewDetail(@PathVariable("reviewId") Long reviewId) {
-        return ResponseEntity.ok(reviewService.getReviewDetail(reviewId));
+    public ResponseEntity<ReviewDetailResponse> getReviewDetail(@PathVariable("reviewId") Long reviewId,
+        @RequestParam("reviewType") ReviewType reviewType) {
+        return ResponseEntity.ok(reviewService.getReviewDetail(reviewId, reviewType));
     }
 
     /* 해당 시설의 리뷰 정보 */

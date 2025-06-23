@@ -11,6 +11,7 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
+import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewDetailResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
@@ -29,13 +30,13 @@ public class ReviewService {
     private final ReviewImageRepository reviewImageRepository;
 
     // 리뷰 상세
-    public ReviewDetailResponse getReviewDetail(Long reviewId) {
+    public ReviewDetailResponse getReviewDetail(Long reviewId, ReviewType reviewType) {
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ApiException(
             ErrorCode.NOT_FOUND_REVIEW));
 
         List<ReviewImage> images = reviewImageRepository.findByReview(review);
 
-        ReviewDetailResponse response = ReviewDetailResponse.toResponse(review, images);
+        ReviewDetailResponse response = ReviewDetailResponse.toResponse(review, images, reviewType);
 
         return response;
     }
