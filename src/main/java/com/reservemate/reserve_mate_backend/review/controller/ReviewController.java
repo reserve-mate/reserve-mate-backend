@@ -69,11 +69,11 @@ public class ReviewController {
     }
 
     /* 리뷰 수정 */
-    @PutMapping("/modify/{id}")
+    @PutMapping("/modify/{reviewId}")
     public ResponseEntity<Void> modifyReview(@PathVariable("reviewId") Long reviewId,
         @RequestPart("modifyRequest") ReviewModifyRequest modifyRequest,
         @RequestPart(name = "files", required = false) List<MultipartFile> files) {
-        reviewCUDService.modifyReview(modifyRequest, files);
+        reviewCUDService.modifyReview(reviewId, modifyRequest, files);
         return ResponseEntity.ok().build();
     }
 

@@ -57,20 +57,17 @@ public class ReviewCUDService {
 
     /* 리뷰 수정 */
     @Transactional
-    public void modifyReview(ReviewModifyRequest modifyRequest, List<MultipartFile> files) {
-        if (files.size() > MAX_FILE_COUNT) {
-            throw new ApiException(ErrorCode.MAX_FILE_COUNT3);
-        }
+    public void modifyReview(Long reviewId, ReviewModifyRequest modifyRequest, List<MultipartFile> files) {
 
-        Review review = reviewRepository.findById(modifyRequest.getReviewId()).orElseThrow(() -> new ApiException(
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ApiException(
             ErrorCode.NOT_FOUND_REVIEW));
-        review.update(modifyRequest.getRating(), modifyRequest.getContent());
+        review.update(modifyRequest.getRating(), modifyRequest.getTitle(), modifyRequest.getContent());
 
         List<ReviewImage> existingImages = reviewImageRepository.findByReviewOrderByImageOrderAsc(review);
 
         List<Integer> delOrderIds = modifyRequest.getDelOrderIds();
         if (!delOrderIds.isEmpty()) { // 삭제된 파일이 있는 경우
-            reviewImageRepository.deleteReviewImage(modifyRequest.getDelOrderIds(), modifyRequest.getReviewId());
+            reviewImageRepository.deleteReviewImage(modifyRequest.getDelOrderIds(), reviewId);
             // 조건에 맞는 요소 제거
             existingImages.removeIf(image -> delOrderIds.contains(image.getImageOrder()));
         }

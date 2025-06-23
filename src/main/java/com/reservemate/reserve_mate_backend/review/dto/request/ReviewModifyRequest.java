@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReviewModifyRequest {
 
-    private Long reviewId;
     private Integer rating;
+    private String title;
     private String content;
     private List<Integer> delOrderIds;
 

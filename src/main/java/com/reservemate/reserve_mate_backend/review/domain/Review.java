@@ -58,13 +58,18 @@ public class Review extends BaseEntity {
         this.isVisible = isVisible != null ? isVisible : true;
     }
 
-    public void update(Integer rating, String content) {
+    public void update(Integer rating, String title, String content) {
         if (rating != null) {
             if (rating < 1 || rating > 5) {
                 throw new IllegalArgumentException("Rating must be between 1 and 5");
             }
             this.rating = rating;
         }
+
+        if (title != null) {
+            this.title = title;
+        }
+
         if (content != null) {
             this.content = content;
         }
