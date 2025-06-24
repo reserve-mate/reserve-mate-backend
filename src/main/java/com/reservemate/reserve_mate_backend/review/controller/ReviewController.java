@@ -14,6 +14,7 @@ import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntRespo
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewDetailResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewInfoResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.service.ReviewCUDService;
 import com.reservemate.reserve_mate_backend.review.service.ReviewService;
@@ -38,6 +39,13 @@ public class ReviewController {
 
     private final ReviewCUDService reviewCUDService;
     private final ReviewService reviewService;
+
+    /* 리뷰 시설 이용 정보 */
+    @GetMapping("/rentInfo/{rentId}")
+    public ResponseEntity<ReviewInfoResponse> getFacilityRentInfo(@PathVariable("rentId") Long rentId,
+        @RequestParam("reviewType") ReviewType reviewType) {
+        return ResponseEntity.ok(reviewService.getFacilityUseInfo(rentId, reviewType));
+    }
 
     /* 내가 쓴 리뷰 목록 */
     @GetMapping("/myReviews")

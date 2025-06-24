@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
+import com.reservemate.reserve_mate_backend.match.domain.Match;
+import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
+import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
@@ -16,6 +20,7 @@ import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntRespo
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewDetailResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.ReviewInfoResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewCustomRepository;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewImageRepository;
@@ -30,6 +35,25 @@ public class ReviewService {
     private final ReviewCustomRepository reviewCustomRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReserveRepository reserveRepository;
+    private final MatchRepository matchRepository;
+
+    /* 시설 사용 정보 */
+    public ReviewInfoResponse getFacilityUseInfo(Long rentId, ReviewType reviewType) {
+        ReviewInfoResponse response = null;
+
+        if (reviewType == ReviewType.RESERVATION) {
+            Reservation reservation = reserveRepository.findById(rentId).orElseThrow(() -> new ApiException(
+                ErrorCode.NOT_FOUND_RESERVATION));
+            response = ReviewInfoResponse.toResponse(reservation);
+        } else if (reviewType == ReviewType.MATCH) {
+            Match match = matchRepository.findById(rentId).orElseThrow(() -> new ApiException(
+                ErrorCode.NO_MATCH_ERROR));
+            response = ReviewInfoResponse.toResponse(match);
+        }
+
+        return response;
+    }
 
     /* 내가 작성한 리뷰 카운트 */
     public List<MyReviewCntResponse> getMyReviewCnt(Long userId) {

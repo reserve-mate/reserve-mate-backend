@@ -11,10 +11,13 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.file.service.FileService;
 import com.reservemate.reserve_mate_backend.common.file.validator.FileValidator;
+import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
+import com.reservemate.reserve_mate_backend.match.validator.MatchValidator;
 import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
+import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
 import com.reservemate.reserve_mate_backend.review.repository.ReviewImageRepository;
@@ -32,6 +35,7 @@ public class ReviewCUDService {
     private final FileService fileService;
 
     private final Validator validator;
+    private final MatchValidator matchValidator;
 
     @Value("${spring.app.file.review}")
     private String reviewImagePath;
@@ -95,14 +99,24 @@ public class ReviewCUDService {
         reviewImageRepository.saveAll(newImages);
     }
 
+    public void createMatchReview() {
+
+    }
+
     /* 예약 리뷰 등록 */
     @Transactional
     public void createReview(Long userId, ReviewRequestDto reviewRequestDto, List<MultipartFile> files) {
 
-        Reservation reservation = validator.reservationCompleteChk(reviewRequestDto.getReservationId(), reviewRequestDto
-            .getCourtId(), userId);
+        Review review = null;
+        if (reviewRequestDto.getReviewType() == ReviewType.RESERVATION) {
+            Reservation reservation = validator.reservationCompleteChk(reviewRequestDto.getRentId(), reviewRequestDto
+                .getCourtId(), userId);
+            review = reviewRequestDto.toEntity(reservation);
+        } else if (reviewRequestDto.getReviewType() == ReviewType.MATCH) {
+            MatchPlayer matchPlayer = matchValidator.getMatchCompleteChk(reviewRequestDto.getRentId(), userId);
+            review = reviewRequestDto.toEntity(matchPlayer);
+        }
 
-        Review review = reviewRequestDto.toEntity(reservation);
         Review saveReview = reviewRepository.save(review);
 
         if (files == null || files.isEmpty()) {

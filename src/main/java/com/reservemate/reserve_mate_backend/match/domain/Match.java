@@ -209,6 +209,12 @@ public class Match extends BaseEntity {
         }
     }
 
+    public void isNotEndMatch() {
+        if (this.matchStatus != MatchStatus.END) {
+            throw new ApiException(ErrorCode.NOT_END_MATCH);
+        }
+    }
+
     public Facility getFacility() { // 시설 엔티티 가져오기
         return this.getCourt().getFacility();
     }

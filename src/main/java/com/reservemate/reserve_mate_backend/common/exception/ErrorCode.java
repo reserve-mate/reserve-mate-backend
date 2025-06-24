@@ -42,7 +42,9 @@ public enum ErrorCode {
                                                     "현재 참가 인원보다 작은 최대 팀원 수로 변경할 수 없습니다."), UPDATE_NOT_ALLOWED_MATCH(
                                                         CONFLICT, "수정이 불가능한 상태의 매치입니다."), MATCH_NOT_MANAGER(BAD_REQUEST,
                                                             "매치의 매니저만 수행할 수 있는 작업입니다."), MATCH_TIME_ALREADY_PASSED(
-                                                                BAD_REQUEST, "이미 지난 시간의 매치는 등록할 수 없습니다.")
+                                                                BAD_REQUEST,
+                                                                "이미 지난 시간의 매치는 등록할 수 없습니다."), NOT_END_MATCH(BAD_REQUEST,
+                                                                    "종료된 매치가 아닙니다.")
 
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,

@@ -27,7 +27,6 @@ import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
-import com.reservemate.reserve_mate_backend.reservation.dto.response.ReviewReservationResponse;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -46,13 +45,6 @@ public class ReserveService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-
-    /* 리뷰 작성 전 리뷰 데이터 가져오기 */
-    public ReviewReservationResponse getReviewReservationInfo(Long reservationId) {
-        Reservation reservation = reserveRepository.findById(reservationId).orElseThrow(() -> new ApiException(
-            ErrorCode.NOT_FOUND_RESERVATION));
-        return ReviewReservationResponse.toResponse(reservation);
-    }
 
     /* 예약 가능 여부 */
     public boolean verifyReservation(Long reservationId) {
