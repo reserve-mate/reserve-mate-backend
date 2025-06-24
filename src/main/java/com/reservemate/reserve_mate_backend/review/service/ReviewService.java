@@ -12,6 +12,8 @@ import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.review.domain.Review;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewImage;
 import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
+import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewDetailResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
@@ -28,6 +30,17 @@ public class ReviewService {
     private final ReviewCustomRepository reviewCustomRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+
+    /* 내가 작성한 리뷰 카운트 */
+    public List<MyReviewCntResponse> getMyReviewCnt(Long userId) {
+        return reviewCustomRepository.getMyReviewFacilityCnt(userId);
+    }
+
+    /* 내가 작성한 리뷰 */
+    public Slice<MyReviewListResponse> getMyReviews(Long userId, Integer pageNum) {
+        Pageable pageable = PageRequest.of(pageNum, 6);
+        return reviewCustomRepository.getMyReviewList(userId, pageable);
+    }
 
     // 리뷰 상세
     public ReviewDetailResponse getReviewDetail(Long reviewId, ReviewType reviewType) {

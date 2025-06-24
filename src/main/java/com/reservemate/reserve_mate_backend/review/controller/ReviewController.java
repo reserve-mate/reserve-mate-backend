@@ -10,6 +10,8 @@ import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetail
 import com.reservemate.reserve_mate_backend.review.domain.ReviewType;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewModifyRequest;
 import com.reservemate.reserve_mate_backend.review.dto.request.ReviewRequestDto;
+import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewDetailResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
@@ -36,6 +38,20 @@ public class ReviewController {
 
     private final ReviewCUDService reviewCUDService;
     private final ReviewService reviewService;
+
+    /* 내가 쓴 리뷰 목록 */
+    @GetMapping("/myReviews")
+    public ResponseEntity<Slice<MyReviewListResponse>> getMyReviews(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestParam("pageNum") Integer pageNum) {
+        return ResponseEntity.ok(reviewService.getMyReviews(customUserDetails.getId(), pageNum));
+    }
+
+    /* 내가 쓴 리뷰 카운트 */
+    @GetMapping("/myReviewCnt")
+    public ResponseEntity<List<MyReviewCntResponse>> getMyReviewCnt(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(reviewService.getMyReviewCnt(customUserDetails.getId()));
+    }
 
     /* 리뷰 상세 */
     @GetMapping("/{reviewId}")
