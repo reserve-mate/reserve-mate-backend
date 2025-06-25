@@ -99,10 +99,6 @@ public class ReviewCUDService {
         reviewImageRepository.saveAll(newImages);
     }
 
-    public void createMatchReview() {
-
-    }
-
     /* 예약 리뷰 등록 */
     @Transactional
     public void createReview(Long userId, ReviewRequestDto reviewRequestDto, List<MultipartFile> files) {

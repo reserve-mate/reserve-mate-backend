@@ -30,6 +30,7 @@ public class ReservationsResponse {
     private LocalDate reservationDate;              // 예약 날짜
     private LocalTime startTime;                    // 예약 시간
     private LocalTime endTime;                      // 종료 시간
+    private Long reviewId;                          // 리뷰 번호
 
     /* 예약 목록 */
 
