@@ -117,4 +117,9 @@ public class MatchPlayer extends BaseEntity {
             .distinct().toList();
     }
 
+    // 관련된 매치가 종료된 매치인지 검증
+    public void isNotEndMatch() {
+        this.match.isNotEndMatch();
+    }
+
 }

@@ -28,6 +28,7 @@ public class MatchHistroyResponse {
     private SportType sportType;
     private PlayerStatus playerStatus;
     private MatchStatus matchStatus;
+    private Long facilityId;
     private String facilityName;
     private String address;
     private LocalDate matchDate;
@@ -35,7 +36,8 @@ public class MatchHistroyResponse {
     private Integer endTime;
     private Integer matchPrice;
     private Integer teamCapacity;
-    private Integer playerCnt;
+    private Long playerCnt;
+    private Long reviewId;
 
     private EjectionReason ejectReason;
 
@@ -50,6 +52,7 @@ public class MatchHistroyResponse {
             .sportType(match.getCourt().getSportType())
             .playerStatus(matchPlayer.getStatus())
             .matchStatus(match.getMatchStatus())
+            .facilityId(match.getFacility().getId())
             .facilityName(match.getFacility().getName())
             .address(match.getFacility().getAddress().getFullAddress())
             .matchDate(match.getMatchDate())
@@ -57,7 +60,7 @@ public class MatchHistroyResponse {
             .endTime(match.getEndTime())
             .matchPrice(match.getMatchPrice())
             .teamCapacity(match.getTeamCapacity())
-            .playerCnt(playerCnt)
+            .playerCnt(Long.valueOf(playerCnt))
             .ejectReason(matchPlayer.getRemovalReason())
             .build();
     }

@@ -9,8 +9,11 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
@@ -24,8 +27,10 @@ import com.reservemate.reserve_mate_backend.match.domain.QMatch;
 import com.reservemate.reserve_mate_backend.match.domain.QMatchPlayer;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyResponse;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
+import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import com.reservemate.reserve_mate_backend.user.domain.QUser;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
@@ -38,8 +43,66 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
     private final JPAQueryFactory query;
 
     private QMatch match = QMatch.match;
-    QCourt court = QCourt.court;
-    QFacility facility = QFacility.facility;
+    private QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
+    private QCourt court = QCourt.court;
+    private QFacility facility = QFacility.facility;
+
+    /* 완료한 매치 이력 조회 */
+    @Override
+    public Slice<MatchHistroyResponse> getMatchHistory(Long userId, List<PlayerStatus> playerStatus,
+        Pageable pageable) {
+
+        QReview review = QReview.review;
+
+        List<MatchHistroyResponse> response = query.select(
+            Projections.fields(MatchHistroyResponse.class,
+                match.matchId.as("matchId"), matchPlayer.playerId.as("playerId"), match.matchName.as("matchName"),
+                facility.sportType.as("sportType"), matchPlayer.status.as("playerStatus"), match.matchStatus.as(
+                    "matchStatus"), facility.id.as("facilityId"), facility.name.as("facilityName"),
+                facility.address.city
+                    .concat(" ")
+                    .concat(facility.address.district.stringValue())
+                    .concat(" ")
+                    .concat(facility.address.streetAddress.stringValue()).as("address"), match.matchDate.as(
+                        "matchDate"), match.matchTime.as("matchTime"), match.endTime.as("endTime"), match.matchPrice.as(
+                            "matchPrice"), match.teamCapacity.as("teamCapacity"), ExpressionUtils.as(getPlayerCnt(
+                                playerStatus), "playerCnt"), review.id.max().as("reviewId"), matchPlayer.removalReason
+                                    .as("ejectReason")
+            )
+        ).from(matchPlayer)
+            .join(match).on(match.matchId.eq(matchPlayer.match.matchId))
+            .join(court).on(match.court.id.eq(court.id))
+            .join(facility).on(facility.id.eq(court.facility.id))
+            .leftJoin(review).on(review.match.matchId.eq(match.matchId))
+            .where(matchPlayer.user.id.eq(userId), wherePlayerStatus(matchPlayer, playerStatus))
+            .groupBy(matchPlayer.match.matchId, match.matchName, matchPlayer.playerId, matchPlayer.status,
+                match.matchStatus, facility.id, facility.name, match.teamCapacity
+            )
+            .orderBy(matchPlayer.match.matchDate.desc(), matchPlayer.match.matchTime.asc(), matchPlayer.match.matchId
+                .desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize() + 1)
+            .fetch();
+
+        return checkEndPage(pageable, response);
+    }
+
+    /* 참가자 상태 where */
+    private BooleanExpression wherePlayerStatus(QMatchPlayer matchPlayer, List<PlayerStatus> playerStatus) {
+        return (playerStatus != null) ? matchPlayer.status.in(playerStatus) : null;
+    }
+
+    /* 매치 이력 플레이어 카운트 서브쿼리 */
+    private Expression<Long> getPlayerCnt(List<PlayerStatus> playerStatus) {
+        if (playerStatus == null)
+            playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+                PlayerStatus.KICKED, PlayerStatus.READY);
+        QMatchPlayer subPlayer = QMatchPlayer.matchPlayer;
+        Expression<Long> playerCnt = JPAExpressions.select(subPlayer.count())
+            .from(subPlayer)
+            .where(subPlayer.match.matchId.eq(match.matchId), wherePlayerStatus(subPlayer, playerStatus));
+        return playerCnt;
+    }
 
     @Override
     public boolean existConfilictMatch(LocalDate matchDate, Long userId, Long courtId, int matchTime, int endTime) {
@@ -131,8 +194,6 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
     @Override
     public Slice<MatchesDto> getMatches(Pageable pageable, MatchSearchDto matchSearchDto) {
 
-        QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
-
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
             PlayerStatus.COMPLETED);
 
@@ -189,7 +250,6 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         QFacilityManager adminManager = QFacilityManager.facilityManager;   // user아이디와 관련된 facility 매핑 테이블
         QUser user = QUser.user;
         QCourt court = QCourt.court;
-        QMatchPlayer matchPlayer = QMatchPlayer.matchPlayer;
         QFacility facility = QFacility.facility;
 
         List<UserRole> roles = Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_FACILITY_MANAGER);

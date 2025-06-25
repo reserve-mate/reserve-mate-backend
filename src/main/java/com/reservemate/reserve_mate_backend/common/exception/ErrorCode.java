@@ -21,7 +21,9 @@ public enum ErrorCode {
         UNAUTHORIZED, "유저 정보를 찾을 수 없습니다"), UNAUTHORIZED_CODE(UNAUTHORIZED, "인증 정보가 올바르지 않습니다."), ADMIN_FORBIDDEN(
             FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다."), MISSING_QUERY_PARAM(BAD_REQUEST,
                 "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요."), BIG_SIZE_FILE(BAD_REQUEST,
-                    "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST, "최대 3개의 파일까지 업로드할 수 있습니다.")
+                    "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST,
+                        "최대 3개의 파일까지 업로드할 수 있습니다."), NO_EXTENTION(BAD_REQUEST, "파일 이름에 확장자가 없습니다."), INVALID_EXTENSION(
+                            BAD_REQUEST, "허용되지 않은 확장자입니다."), INVALID_MIMETYPE(BAD_REQUEST, "잘못된 MIME 타입입니다.")
 
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
@@ -40,7 +42,9 @@ public enum ErrorCode {
                                                     "현재 참가 인원보다 작은 최대 팀원 수로 변경할 수 없습니다."), UPDATE_NOT_ALLOWED_MATCH(
                                                         CONFLICT, "수정이 불가능한 상태의 매치입니다."), MATCH_NOT_MANAGER(BAD_REQUEST,
                                                             "매치의 매니저만 수행할 수 있는 작업입니다."), MATCH_TIME_ALREADY_PASSED(
-                                                                BAD_REQUEST, "이미 지난 시간의 매치는 등록할 수 없습니다.")
+                                                                BAD_REQUEST,
+                                                                "이미 지난 시간의 매치는 등록할 수 없습니다."), NOT_END_MATCH(BAD_REQUEST,
+                                                                    "종료된 매치가 아닙니다.")
 
     // 매치 플레이어 관련 에러 처리
     , EXIST_MATCH_PLAYER_ERROR(CONFLICT, "이미 해당 매치에 신청한 이력이 존재합니다."), NOT_FOUND_PLAYER(BAD_REQUEST,

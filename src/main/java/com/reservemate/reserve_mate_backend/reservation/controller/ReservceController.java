@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
-import com.reservemate.reserve_mate_backend.reservation.dto.response.ReviewReservationResponse;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveCUDService;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveService;
 
@@ -34,13 +33,7 @@ public class ReservceController {
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
 
-    /* 리뷰 작성시 예약 일부 내용 가져오기 */
-    @GetMapping("/review/{reservationId}")
-    public ResponseEntity<ReviewReservationResponse> getReviewReservationInfo(
-        @PathVariable("reservationId") Long reservationId) {
-        return ResponseEntity.ok(reserveService.getReviewReservationInfo(reservationId));
-    }
-
+    /* 예약 취소 */
     @PutMapping("/cancel/{reservationId}")
     public ResponseEntity<String> putMethodName(@PathVariable("reservationId") Long id,
         @RequestParam("cancelReason") String cancelReason) {

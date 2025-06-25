@@ -69,4 +69,9 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     // 매치 플레이어 참가자 및 퇴장자 조회(여러 매치)
     int countByMatchInAndStatusIn(List<Match> matches, List<PlayerStatus> playerStatus);
 
+    /* 해당 매치의 유저 상태 검사 */
+    @Query("select mp from MatchPlayer mp where mp.match.matchId = :matchId and mp.user.id = :userId and mp.status = :status")
+    Optional<MatchPlayer> findByMatchIdAndUserIdAndStatus(@Param("matchId") Long matchId, @Param("userId") Long userId,
+        @Param("status") PlayerStatus completed);
+
 }
