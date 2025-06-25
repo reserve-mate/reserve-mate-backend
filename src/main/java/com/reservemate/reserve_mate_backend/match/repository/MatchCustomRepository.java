@@ -8,11 +8,15 @@ import org.springframework.data.domain.Slice;
 
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.AdminMatchesRequest;
 import com.reservemate.reserve_mate_backend.admin.match.dto.response.AdminMatchesResponse;
+import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
 import com.reservemate.reserve_mate_backend.match.dto.request.MatchSearchDto;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchDateDto;
+import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyResponse;
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 
 public interface MatchCustomRepository {
+
+    Slice<MatchHistroyResponse> getMatchHistory(Long userId, List<PlayerStatus> playerStatus, Pageable pageable);
 
     Slice<MatchesDto> getMatches(Pageable pageable, MatchSearchDto matchSearchDto);
 
