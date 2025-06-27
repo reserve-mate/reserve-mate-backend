@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
@@ -161,7 +162,9 @@ public class MatchService {
     // 매치 이용 내역
     public Slice<MatchHistroyResponse> getMatchHistory(Long userId, String matchStatus, int pageNum) {
 
-        Pageable pageable = PageRequest.of(pageNum, 6);
+        Pageable pageable = PageRequest.of(pageNum, 6, Sort.by(
+            Sort.Order.desc("match.matchDate"), Sort.Order.asc("match.matchTime"), Sort.Order.desc("match.matchId")
+        ));
 
         List<String> tabs = List.of("all", "upcoming", "completed", "canceled");
         if (!tabs.contains(matchStatus)) {
@@ -169,27 +172,54 @@ public class MatchService {
         }
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        Slice<MatchPlayer> matchPlayers = matchPlayerRepository.findByUser(user, pageable);
-        if (matchStatus.equals("upcoming")) {
-            matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
-        } else if (matchStatus.equals("completed")) {
-            List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
-                PlayerStatus.KICKED);
-            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
-        } else if (matchStatus.equals("canceled")) {
-            List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
-            matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+
+        Slice<MatchHistroyResponse> response = null;
+        if (matchStatus.equals("upcoming") || matchStatus.equals("canceled")) {
+            Slice<MatchPlayer> matchPlayers = null;//matchPlayerRepository.findByUser(user, pageable);
+
+            if (matchStatus.equals("upcoming")) {
+                matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
+            } else if (matchStatus.equals("canceled")) {
+                List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
+                matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+            }
+
+            List<MatchHistroyResponse> content = matchPlayers.stream()
+                .map(matchPlayer -> {
+                    int playerCnt = getPlayerCnt(matchPlayer.getMatch());
+                    return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
+                }).toList();
+
+            response = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
+        } else if (matchStatus.equals("all") || matchStatus.equals("completed")) {
+            List<PlayerStatus> playerStatus = null;
+            if (matchStatus.equals("completed")) {
+                playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+                    PlayerStatus.KICKED);
+            }
+            response = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
         }
 
-        List<MatchHistroyResponse> content = matchPlayers.stream()
-            .map(matchPlayer -> {
-                int playerCnt = getPlayerCnt(matchPlayer.getMatch());
-                return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
-            }).toList();
+        // if (matchStatus.equals("upcoming")) {
+        //     matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
+        // } else if (matchStatus.equals("completed")) {
+        //     List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+        //         PlayerStatus.KICKED);
+        //     matchPlayers = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
+        // } else if (matchStatus.equals("canceled")) {
+        //     List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
+        //     matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
+        // }
 
-        Slice<MatchHistroyResponse> sliceResponse = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
+        // List<MatchHistroyResponse> content = matchPlayers.stream()
+        //     .map(matchPlayer -> {
+        //         int playerCnt = getPlayerCnt(matchPlayer.getMatch());
+        //         return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
+        //     }).toList();
 
-        return sliceResponse;
+        // Slice<MatchHistroyResponse> sliceResponse = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
+
+        return response;
     }
 
     // 매치 플레이어 카운트

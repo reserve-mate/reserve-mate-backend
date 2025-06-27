@@ -33,6 +33,7 @@ public class ReservceController {
     private final ReserveService reserveService;
     private final ReserveCUDService reserveCUDService;
 
+    /* 예약 취소 */
     @PutMapping("/cancel/{reservationId}")
     public ResponseEntity<String> putMethodName(@PathVariable("reservationId") Long id,
         @RequestParam("cancelReason") String cancelReason) {

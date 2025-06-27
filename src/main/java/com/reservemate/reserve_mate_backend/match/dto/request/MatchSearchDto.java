@@ -23,6 +23,7 @@ public class MatchSearchDto {
     private int pageNumber;
 
     private String searchValue;
+    private String region;
     private SportType sportType;
     private MatchStatus matchStatus;
 
