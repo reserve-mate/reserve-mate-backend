@@ -106,7 +106,7 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
         @Param("facilityId") Long facilityId);
 
     /* 예약 확인 */
-    @Query("select r from Reservation r where r.reservationNumber = :reservationNumber and r.court.id = :courtId and r.user.id = :userId")
-    Optional<Reservation> findByReservationNumberAndCourtId(@Param("reservationNumber") String reservationNumber,
+    @Query("select r from Reservation r where r.id = :reservationId and r.court.id = :courtId and r.user.id = :userId")
+    Optional<Reservation> findByReservationIdAndCourtIdAndUserId(@Param("reservationId") Long reservationId,
         @Param("courtId") Long courtId, @Param("userId") Long userId);
 }

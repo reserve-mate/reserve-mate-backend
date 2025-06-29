@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
@@ -19,7 +21,10 @@ import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
+import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReservationCustomRepository;
+import com.reservemate.reserve_mate_backend.review.domain.QReview;
+import com.reservemate.reserve_mate_backend.user.domain.QUser;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +38,36 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     QCourt court = QCourt.court;
     QFacility facility = QFacility.facility;
     QFacilityManager facilityManager = QFacilityManager.facilityManager;
+    QUser user = QUser.user;
+
+    /* 예약 내역 (past) */
+    @Override
+    public Slice<ReservationsResponse> findByUserAndStatusIn(Long userId, List<ReservationStatus> status,
+        Pageable pageable) {
+
+        QReview review = QReview.review;
+
+        List<ReservationsResponse> responses = queryFactory.select(
+            Projections.fields(ReservationsResponse.class,
+                reservation.id.as("reservationId"), reservation.status.as("reservationStatus"), facility.id.as(
+                    "facilityId"), facility.name.as("facilityName"), court.name.as("courtName"), facility.sportType.as(
+                        "sportType"), facilityFullAddress().as("address"), reservation.reserveDate.as(
+                            "reservationDate"), reservation.startTime.as("startTime"), reservation.endTime.as(
+                                "endTime"), review.id.as("reviewId")
+            )
+        ).from(reservation)
+            .join(court).on(reservation.court.id.eq(court.id))
+            .join(facility).on(facility.id.eq(court.facility.id))
+            .join(user).on(user.id.eq(reservation.user.id))
+            .leftJoin(review).on(reservation.id.eq(review.reservation.id))
+            .where(reservation.user.id.eq(userId), reservation.status.in(status))
+            .orderBy(reservation.reserveDate.desc(), reservation.startTime.asc(), reservation.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize() + 1)
+            .fetch();
+
+        return checkEndPage(pageable, responses);
+    }
 
     /* 관리자 예약 현황 */
     @Override
@@ -59,6 +94,11 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
             .fetch();
 
         return checkEndPage(pageable, responses);
+    }
+
+    private StringExpression facilityFullAddress() {
+        return Expressions.stringTemplate("concat_ws(' ', {0}, {1}, {2}, {3})", facility.address.city,
+            facility.address.district, facility.address.streetAddress, facility.address.detailAddress);
     }
 
     // 무한스크롤

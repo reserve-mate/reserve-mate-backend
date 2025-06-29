@@ -9,6 +9,7 @@ import org.springframework.data.domain.Slice;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.AdminReservationResponse;
 import com.reservemate.reserve_mate_backend.admin.reservation.dto.response.DashboardReservationResponse;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
+import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
 
 public interface ReservationCustomRepository {
 
@@ -19,5 +20,8 @@ public interface ReservationCustomRepository {
     // 대시보드 최근 예약
     List<DashboardReservationResponse> getDashboardReservationResponse(Long userId, Long facilityId, Integer year,
         Integer month);
+
+    /* 예약 내역 (past) */
+    Slice<ReservationsResponse> findByUserAndStatusIn(Long userId, List<ReservationStatus> status, Pageable pageable);
 
 }

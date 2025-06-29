@@ -44,8 +44,8 @@ public class Validator {
     }
 
     // 해당 예약이 완료된 예약인지 체크
-    public Reservation reservationCompleteChk(String reservationNumber, Long courtId, Long userId) {
-        Reservation reservation = reserveRepository.findByReservationNumberAndCourtId(reservationNumber, courtId,
+    public Reservation reservationCompleteChk(Long reservationId, Long courtId, Long userId) {
+        Reservation reservation = reserveRepository.findByReservationIdAndCourtIdAndUserId(reservationId, courtId,
             userId).orElseThrow(
                 () -> new ApiException(ErrorCode.NOT_FOUND_RESERVATION));
         reservation.isNotComplete();

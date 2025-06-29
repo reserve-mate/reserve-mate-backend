@@ -27,7 +27,7 @@ import com.reservemate.reserve_mate_backend.reservation.domain.Reservation;
 import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
-import com.reservemate.reserve_mate_backend.reservation.dto.response.ReviewReservationResponse;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReservationCustomRepository;
 import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
@@ -45,15 +45,8 @@ public class ReserveService {
     private final OperationHourRepository operationHourRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final ReservationCustomRepository reservationCustomRepository;
     private final JwtUtil jwtUtil;
-
-    /* 리뷰 작성시 예약 일부 내용 가져오기 */
-    public ReviewReservationResponse getReviewReservationInfo(Long reservationId) {
-        Reservation reservation = reserveRepository.findById(reservationId).orElseThrow(() -> new ApiException(
-            ErrorCode.NOT_FOUND_RESERVATION));
-        reservation.isNotComplete();    // 종료된 예약인지 검증
-        return ReviewReservationResponse.toResponse(reservation);
-    }
 
     /* 예약 가능 여부 */
     public boolean verifyReservation(Long reservationId) {
@@ -77,20 +70,22 @@ public class ReserveService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        List<ReservationStatus> status = null;
-        if (type.equals("upcoming")) {
-            status = List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
-        } else if (type.equals("past")) {
-            status = List.of(ReservationStatus.COMPLETED, ReservationStatus.CANCELED);
-        }
-
         Pageable pageable = PageRequest.of(pageNum, 6, Sort.by(
             Sort.Order.desc("reserveDate"), Sort.Order.asc("startTime"), Sort.Order.desc("id")
         )
         );
-        Slice<Reservation> reservationSlice = reserveRepository.findByUserAndStatusIn(user, status, pageable);
 
-        return ReservationsResponse.toReservationsSlice(reservationSlice);
+        Slice<ReservationsResponse> response = null;
+        if (type.equals("upcoming")) {
+            List<ReservationStatus> status = List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
+            Slice<Reservation> reservationSlice = reserveRepository.findByUserAndStatusIn(user, status, pageable);
+            response = ReservationsResponse.toReservationsSlice(reservationSlice);
+        } else if (type.equals("past")) {
+            List<ReservationStatus> status = List.of(ReservationStatus.COMPLETED, ReservationStatus.CANCELED);
+            response = reservationCustomRepository.findByUserAndStatusIn(userId, status, pageable);
+        }
+
+        return response;
     }
 
     /* 예약 상세 조회 */
