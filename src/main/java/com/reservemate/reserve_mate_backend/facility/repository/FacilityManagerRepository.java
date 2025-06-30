@@ -28,4 +28,8 @@ public interface FacilityManagerRepository extends JpaRepository<FacilityManager
 
     long countByUser_Id(Long userId);
 
+    @Query("select fm from FacilityManager fm where fm.facility.id = :facilityId and fm.user.id = :userId")
+    Optional<FacilityManager> findByFacilityIdAndUserId(@Param("facilityId") Long facilityId,
+        @Param("userId") Long userId);
+
 }

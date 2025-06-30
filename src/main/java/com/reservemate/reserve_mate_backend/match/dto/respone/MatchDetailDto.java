@@ -33,21 +33,21 @@ public class MatchDetailDto {
     private UserDataDto userDataDto;
 
     public static MatchDetailDto toMatchDetailDto(Match match, User user,
-        List<MatchPlayer> matchPlayers, List<FacilityImage> images, Payment payment) {
+        List<MatchPlayer> matchPlayers, List<FacilityImage> images, Payment payment, String fileBasepath) {
 
         MatchDetailDto detailDto = null;
 
         if (user == null) {
             detailDto = MatchDetailDto.builder()
                 .matchDataDto(MatchDataDto.toMatchDataDto(match))
-                .facilityDataDto(FacilityDataDto.toFacilityDataDto(match, images))
+                .facilityDataDto(FacilityDataDto.toFacilityDataDto(match, images, fileBasepath))
                 .playerCnt(matchPlayers.size())
                 .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
                 .build();
         } else {
             detailDto = MatchDetailDto.builder()
                 .matchDataDto(MatchDataDto.toMatchDataDto(match))
-                .facilityDataDto(FacilityDataDto.toFacilityDataDto(match, images))
+                .facilityDataDto(FacilityDataDto.toFacilityDataDto(match, images, fileBasepath))
                 .playerCnt(matchPlayers.size())
                 .playerDtos(MatchPlayerDto.toMatchPlayerDtos(matchPlayers))
                 .userDataDto(UserDataDto.toUserDataDto(user, matchPlayers, payment))
@@ -108,7 +108,7 @@ public class MatchDetailDto {
         private SportType sportType;            // 종목
         private List<String> imageDtos;         // 시설 이미지 목록
 
-        public static FacilityDataDto toFacilityDataDto(Match match, List<FacilityImage> images) {
+        public static FacilityDataDto toFacilityDataDto(Match match, List<FacilityImage> images, String fileBasepath) {
 
             Address address = match.getCourt().getFacility().getAddress();
 
@@ -117,15 +117,17 @@ public class MatchDetailDto {
                 .address(address.getFullAddress())
                 .courtName(match.getCourt().getName())
                 .sportType(match.getCourt().getFacility().getSportType())
-                .imageDtos(getFacilityImages(images))
+                .imageDtos(getFacilityImages(images, fileBasepath))
                 .build();
 
             return facilityDto;
         }
 
-        private static List<String> getFacilityImages(List<FacilityImage> images) {
+        private static List<String> getFacilityImages(List<FacilityImage> images, String fileBasepath) {
             List<String> facilityImages = images.stream()
-                .map(image -> image.getImageUrl()).toList();
+                .map(image -> fileBasepath + image.getImageUrl())
+                .toList();
+
             return facilityImages;
         }
     }

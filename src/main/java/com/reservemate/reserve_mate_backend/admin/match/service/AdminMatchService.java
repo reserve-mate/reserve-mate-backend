@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.admin.match.service;
 
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,10 +23,13 @@ import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchPlayer;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.match.domain.PlayerStatus;
+import com.reservemate.reserve_mate_backend.match.dto.request.CreateMatchDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchPlayerRepository;
 import com.reservemate.reserve_mate_backend.match.repository.MatchRepository;
 import com.reservemate.reserve_mate_backend.payment.dto.request.MatchCancelPaymentRequest;
+import com.reservemate.reserve_mate_backend.reservation.domain.ReservationStatus;
+import com.reservemate.reserve_mate_backend.reservation.repository.ReserveRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,11 +43,12 @@ public class AdminMatchService {
     private final MatchPlayerRepository matchPlayerRepository;
     private final CourtRepository courtRepository;
     private final FacilityManagerRepository facilityManagerRepository;
+    private final ReserveRepository reserveRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     /* 매치 정보 수정 */
     @Transactional
-    public void adminMatchModify(Long matchId, AdminMatchModifyRequest modifyRequest) {
+    public void adminMatchModify(Long matchId, Long userId, AdminMatchModifyRequest modifyRequest) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
@@ -55,6 +60,8 @@ public class AdminMatchService {
 
         Court court = courtRepository.findById(modifyRequest.getFacilityCourtId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+
+        isStaff(court.getFacilityId(), userId);
 
         FacilityManager manager = facilityManagerRepository.findById(modifyRequest.getManagerId())
             .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
@@ -80,11 +87,13 @@ public class AdminMatchService {
 
     /* 매치 상태 변경 */
     @Transactional
-    public void matchStatusChange(Long matchId, MatchStatus matchStatus) {
+    public void matchStatusChange(Long matchId, MatchStatus matchStatus, Long userId) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isAvailableStatChg();
+
+        isStaff(match.getFacilityId(), userId);
 
         if (matchStatus == MatchStatus.END) {
             match.isEndMatch();
@@ -108,11 +117,14 @@ public class AdminMatchService {
 
     // 관리자 매치 삭제
     @Transactional
-    public void deleteMatch(Long matchId) {
+    public void deleteMatch(Long matchId, Long userId) {
 
         Match match = matchRepository.findById(matchId)
             .orElseThrow(() -> new ApiException(ErrorCode.NO_MATCH_ERROR));
         match.isDeletable();
+
+        isStaff(match.getFacilityId(), userId);
+
         List<MatchPlayer> matchPlayers = matchPlayerRepository.findByMatchAndStatus(match, PlayerStatus.READY);
 
         if (!matchPlayers.isEmpty()) {
@@ -120,6 +132,13 @@ public class AdminMatchService {
         }
 
         match.matchCancel();
+    }
+
+    /* 매니저 권한 검증 */
+    private void isStaff(Long facilityId, Long userId) {
+        FacilityManager facilityManager = facilityManagerRepository.findByFacilityIdAndUserId(facilityId, userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
+        facilityManager.isStaff();
     }
 
     /* 관리자 매치 상세 */
@@ -143,6 +162,57 @@ public class AdminMatchService {
             adminMatchesRequest, pageable);
 
         return matchesResponses;
+    }
+
+    /*
+     * 매치 등록
+     */
+    @Transactional
+    public void registMatch(CreateMatchDto createMatchDto, Long userId) {
+        createMatchDto.isOverMatchTime();
+
+        Court court = courtRepository.findById(createMatchDto.getCourtId())
+            .orElseThrow(() -> new ApiException(ErrorCode.INVALID_INPUT_VALUE));
+
+        List<MatchStatus> matchStatus = List.of(MatchStatus.CANCELLED, MatchStatus.END);
+        List<Match> matches = matchRepository.findByMatchDateAndCourtAndMatchStatusNotIn(createMatchDto.getMatchDate(),
+            court, matchStatus);
+        Match.isTimeConfilict(matches, createMatchDto.getMatchTime(), createMatchDto.getMatchEndTime());    // 매치 시간대 검증
+
+        // 해당 시간대에 에약 있는지 검증
+        List<ReservationStatus> status = List.of(ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED);
+        boolean isReservation = reserveRepository.existsReservationDateTime(
+            createMatchDto.getMatchDate(), LocalTime.of(createMatchDto.getMatchTime(), 0), LocalTime.of(createMatchDto
+                .getMatchEndTime(), 0), createMatchDto.getCourtId(), status);
+
+        if (isReservation) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESERVATION);
+        }
+
+        isStaff(court.getFacilityId(), userId);
+
+        FacilityManager facilityManager = facilityManagerRepository.findById(createMatchDto.getManagerId())
+            .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_MANAGER));
+
+        // 해당 매니저가 다른 매치에도 배정되어있는지 검증
+        boolean isDupleMatchManager = false;
+
+        if (facilityManager.chkManagerRole()) {
+            isDupleMatchManager = matchCustomRepository.existConfilictMatch(createMatchDto.getMatchDate(),
+                facilityManager.getUserId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
+                    .getMatchEndTime());
+        } else {
+            isDupleMatchManager = matchRepository.existsConflictManager(createMatchDto.getMatchDate(),
+                facilityManager.getId(), court.getId(), createMatchDto.getMatchTime(), createMatchDto
+                    .getMatchEndTime());
+        }
+
+        if (isDupleMatchManager) {
+            throw new ApiException(ErrorCode.MANAGER_ALREADY_ASSIGNED);
+        }
+
+        Match match = createMatchDto.toEntity(createMatchDto, court, facilityManager);
+        matchRepository.save(match);
     }
 
 }

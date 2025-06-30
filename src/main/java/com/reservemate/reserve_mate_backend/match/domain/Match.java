@@ -219,6 +219,11 @@ public class Match extends BaseEntity {
         return this.getCourt().getFacility();
     }
 
+    // 시설 아이디 가져오기
+    public Long getFacilityId() {
+        return getFacility().getId();
+    }
+
     public LocalDateTime getFullMatchDateTime() {
         LocalTime matchTime = LocalTime.parse(this.matchTime + ":00:00", DateTimeFormatter.ofPattern("HH:mm:ss"));
         LocalDateTime matchDateTime = LocalDateTime.of(this.matchDate, matchTime);
