@@ -2,6 +2,8 @@ package com.reservemate.reserve_mate_backend.facility.domain;
 
 import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.RequestAssignManagersDto;
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
@@ -68,6 +70,9 @@ public class FacilityManager extends BaseEntity {
         boolean result = true;
 
         if (this.user.getRole() == UserRole.ROLE_FACILITY_MANAGER) {
+            if (this.managerRole == ManagerRole.STAFF) {
+                throw new ApiException(ErrorCode.NOT_FORBIDDEN);
+            }
             result = false;
         } else if (this.user.getRole() == UserRole.ROLE_ADMIN) {
             result = true;
@@ -106,5 +111,12 @@ public class FacilityManager extends BaseEntity {
             .user(user)
             .managerRole(role)
             .build();
+    }
+
+    /* 현재 매니저가 STAFF인지 검증 */
+    public void isStaff() {
+        if (this.managerRole == ManagerRole.STAFF) {
+            throw new ApiException(ErrorCode.NOT_FORBIDDEN);
+        }
     }
 }

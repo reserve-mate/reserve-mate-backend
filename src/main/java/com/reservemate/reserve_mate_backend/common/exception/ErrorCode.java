@@ -22,8 +22,9 @@ public enum ErrorCode {
             FORBIDDEN, "관리자 권한이 아닙니다."), GONE_DATA(GONE, "이미 삭제된 데이터입니다."), MISSING_QUERY_PARAM(BAD_REQUEST,
                 "요청에 필수 파라미터가 누락되었습니다. 값을 확인해주세요."), BIG_SIZE_FILE(BAD_REQUEST,
                     "파일은 최대 10MB까지 업로드 할 수 있습니다."), MAX_FILE_COUNT3(BAD_REQUEST,
-                        "최대 3개의 파일까지 업로드할 수 있습니다."), NO_EXTENTION(BAD_REQUEST, "파일 이름에 확장자가 없습니다."), INVALID_EXTENSION(
-                            BAD_REQUEST, "허용되지 않은 확장자입니다."), INVALID_MIMETYPE(BAD_REQUEST, "잘못된 MIME 타입입니다.")
+                        "최대 3개의 파일까지 업로드할 수 있습니다."), NOT_FORBIDDEN(FORBIDDEN, "데이터 접근 권한이 아닙니다."), NO_EXTENTION(
+                            BAD_REQUEST, "파일 이름에 확장자가 없습니다."), INVALID_EXTENSION(
+                                BAD_REQUEST, "허용되지 않은 확장자입니다."), INVALID_MIMETYPE(BAD_REQUEST, "잘못된 MIME 타입입니다.")
 
     // 매치 관련 에러 처리
     , EXIST_MATCH_ERROR(CONFLICT, "중복된 매치가 존재합니다."), EXIST_MATCH_TIME_ERROR(CONFLICT,
@@ -87,7 +88,7 @@ public enum ErrorCode {
     // 시설 매니저 관련 에러
     , FACILITY_MANAGER_ALREADY_REGISTERD(BAD_REQUEST,
         "이미 매니저로 등록되어 있는 회원입니다."), FACILITY_MANAGER_ALREADY_ASSIGED_TO_ANOTHER_FACILITY(BAD_REQUEST,
-            "시설 매니저는 1개의 시설만 관리 할 수 있습니다.");
+            "시설 매니저는 1개의 시설만 관리 할 수 있습니다."), NOT_FOUND_MANAGER(BAD_REQUEST, "매니저 정보가 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
