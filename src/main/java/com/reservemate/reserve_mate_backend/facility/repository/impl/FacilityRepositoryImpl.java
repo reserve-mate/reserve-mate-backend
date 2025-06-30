@@ -1,11 +1,13 @@
 package com.reservemate.reserve_mate_backend.facility.repository.impl;
 
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
+import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.repository.CustomFacilityRepository;
@@ -59,7 +61,10 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
 //            .leftJoin(reservation).on(reservation.court.eq(court))
             .where(
                 eqLastId(requestFacilitySearchDto.getLastId()),
-                keywordContains(requestFacilitySearchDto.getKeyword())
+                keywordContains(requestFacilitySearchDto.getKeyword()),
+                eqSportType(requestFacilitySearchDto.getSportType()),
+                existsCourtFeeBetween(facility, requestFacilitySearchDto.getMinPrice(), requestFacilitySearchDto
+                    .getMaxPrice())
             )
 //            .groupBy(facility.id)
             .orderBy(facility.id.desc())
@@ -91,4 +96,27 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
                 .concat(QFacility.facility.address.district).concat(" ")
                 .concat(QFacility.facility.address.streetAddress).containsIgnoreCase(keyword));
     }
+
+    private BooleanExpression eqSportType(SportType sportType) {
+        if (sportType == null) {
+            return null;
+        }
+
+        return QFacility.facility.sportType.eq(sportType);
+    }
+
+    private Predicate existsCourtFeeBetween(QFacility facility, Integer minPrice, Integer maxPrice) {
+        QCourt court = QCourt.court;
+
+        return JPAExpressions
+            .selectOne()
+            .from(court)
+            .where(
+                court.facility.eq(facility),
+                court.fee.goe(minPrice),
+                court.fee.loe(maxPrice)
+            )
+            .exists();
+    }
+
 }
