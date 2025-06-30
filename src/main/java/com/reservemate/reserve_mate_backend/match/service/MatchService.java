@@ -192,25 +192,6 @@ public class MatchService {
             response = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
         }
 
-        // if (matchStatus.equals("upcoming")) {
-        //     matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
-        // } else if (matchStatus.equals("completed")) {
-        //     List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
-        //         PlayerStatus.KICKED);
-        //     matchPlayers = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
-        // } else if (matchStatus.equals("canceled")) {
-        //     List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
-        //     matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
-        // }
-
-        // List<MatchHistroyResponse> content = matchPlayers.stream()
-        //     .map(matchPlayer -> {
-        //         int playerCnt = getPlayerCnt(matchPlayer.getMatch());
-        //         return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
-        //     }).toList();
-
-        // Slice<MatchHistroyResponse> sliceResponse = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
-
         return response;
     }
 
