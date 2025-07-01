@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -72,6 +73,7 @@ public interface ReserveRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByUserAndStatusIn(User user, List<ReservationStatus> status);
 
     /* 상태에 따른 사용자의 예약 목록 조회(무한 스크롤 페이징) */
+    @EntityGraph(attributePaths = {"court", "court.facility"})
     Slice<Reservation> findByUserAndStatusIn(User user, List<ReservationStatus> status, Pageable pageable);
 
     /* 시간대 겹치는 예약 중 CONFIRM 상태 있는지 확인 */
