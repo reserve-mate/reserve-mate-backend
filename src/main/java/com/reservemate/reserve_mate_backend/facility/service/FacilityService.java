@@ -4,6 +4,9 @@ import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
+import com.reservemate.reserve_mate_backend.facility.domain.SportType;
+import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
@@ -11,6 +14,9 @@ import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,5 +47,20 @@ public class FacilityService {
         Facility facility = facilityRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("해당 시설이 존재하지 않습니다."));
         return ResponseFacilitySportTypeDto.getNameAndSportType(facility);
+    }
+
+    public ResponseEntity<Slice<FacilityDto>> getSearchFacilities(SportType sportType, int minPrice, int maxPrice,
+        String keyword, Long lastId, Pageable pageable) {
+        RequestFacilitySearchDto facilitySearchDto = RequestFacilitySearchDto.builder()
+            .keyword(keyword)
+            .sportType(sportType)
+            .minPrice(minPrice)
+            .maxPrice(maxPrice)
+            .lastId(lastId == 0 ? null : lastId)
+            .size(pageable.getPageSize())
+            .build();
+
+        Slice<FacilityDto> facilities = facilityRepository.findAllByCursor(facilitySearchDto, pageable);
+        return ResponseEntity.ok(facilities);
     }
 }
