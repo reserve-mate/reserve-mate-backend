@@ -73,8 +73,10 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
                 eqLastId(requestFacilitySearchDto.getLastId()),
                 keywordContains(requestFacilitySearchDto.getKeyword()),
                 eqSportType(requestFacilitySearchDto.getSportType()),
-                existsCourtFeeBetween(facility, requestFacilitySearchDto.getMinPrice(), requestFacilitySearchDto
-                    .getMaxPrice())
+                courtFeeFilterNeeded(requestFacilitySearchDto)
+                    ? existsCourtFeeBetween(facility, requestFacilitySearchDto.getMinPrice(), requestFacilitySearchDto
+                        .getMaxPrice())
+                    : null  //없는 경우 조건 미포함 처리
             )
 //            .groupBy(facility.id)
             .orderBy(facility.id.desc())
@@ -129,4 +131,7 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
             .exists();
     }
 
+    private boolean courtFeeFilterNeeded(RequestFacilitySearchDto requestFacilitySearchDto) {
+        return requestFacilitySearchDto.getMinPrice() != null || requestFacilitySearchDto.getMaxPrice() != null;
+    }
 }
