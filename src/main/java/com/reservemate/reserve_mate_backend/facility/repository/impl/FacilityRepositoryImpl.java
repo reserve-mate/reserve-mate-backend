@@ -7,6 +7,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
+import com.reservemate.reserve_mate_backend.facility.domain.QFacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
@@ -30,6 +31,7 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
         QFacility facility = QFacility.facility;
         QCourt court = QCourt.court;
         QReservation reservation = QReservation.reservation;
+        QFacilityImage image = QFacilityImage.facilityImage;
 
         List<FacilityDto> results = jpaQueryFactory
             .select(Projections.constructor(FacilityDto.class,
@@ -52,9 +54,17 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
                     .select(reservation.countDistinct())
                     .from(reservation)
                     .join(reservation.court, court)
-                    .where(court.facility.eq(facility))
+                    .where(court.facility.eq(facility)),
 //                court.id.countDistinct(),
 //                reservation.id.countDistinct()
+                JPAExpressions
+                    .select(image.imageUrl)
+                    .from(image)
+                    .where(
+                        image.facility.eq(facility),
+                        image.main.isTrue()
+                    )
+                    .limit(1)
             ))
             .from(facility)
 //            .leftJoin(court).on(court.facility.eq(facility))
