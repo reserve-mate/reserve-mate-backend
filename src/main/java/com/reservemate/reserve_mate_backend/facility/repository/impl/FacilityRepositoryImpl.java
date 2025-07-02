@@ -11,6 +11,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.QFacilityImage;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
 import com.reservemate.reserve_mate_backend.facility.repository.CustomFacilityRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
 import java.util.List;
@@ -25,6 +26,57 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
 
     public FacilityRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
+    }
+
+    public Slice<ResponseFacilitiesDto> findAllCourtsByCursor(RequestFacilitySearchDto facilitySearchDto,
+        Pageable pageable) {
+        QFacility facility = QFacility.facility;
+        QCourt court = QCourt.court;
+        QReservation reservation = QReservation.reservation;
+        QFacilityImage image = QFacilityImage.facilityImage;
+
+        List<ResponseFacilitiesDto> results = jpaQueryFactory
+            .select(Projections.constructor(ResponseFacilitiesDto.class,
+                facility.id,
+                facility.name,
+                facility.sportType.stringValue(),
+                facility.address.city.concat(" ")
+                    .concat(facility.address.district.stringValue())
+                    .concat(" ").concat(facility.address.streetAddress.stringValue())
+                    .concat(" ").concat(facility.address.detailAddress.stringValue())
+                    .as("address"),
+                court.id,
+                court.name,
+                court.fee,
+                JPAExpressions
+                    .select(image.imageUrl)
+                    .from(image)
+                    .where(image.facility.eq(facility), image.main.isTrue())
+                    .limit(1)
+            ))
+            .from(court)
+            .join(court.facility, facility)
+            .where(
+                eqLastCourtId(facilitySearchDto.getLastId()),
+                keywordContains(facilitySearchDto.getKeyword()),
+                eqSportType(facilitySearchDto.getSportType()),
+                court.fee.goe(facilitySearchDto.getMinPrice() != null ? facilitySearchDto.getMinPrice() : 0),
+                court.fee.loe(facilitySearchDto.getMaxPrice() != null ? facilitySearchDto.getMaxPrice() : 999_999_999)
+            )
+            .orderBy(court.id.desc())
+            .limit(facilitySearchDto.getSize() + 1)
+            .fetch();
+
+        boolean hasNext = results.size() > pageable.getPageSize();
+
+        if (hasNext) {
+            results.remove(pageable.getPageSize());
+        }
+        return new SliceImpl<>(results, pageable, hasNext);
+    }
+
+    private BooleanExpression eqLastCourtId(Long lastId) {
+        return lastId != null ? QCourt.court.id.lt(lastId) : null;
     }
 
     public Slice<FacilityDto> findAllByCursor(RequestFacilitySearchDto requestFacilitySearchDto, Pageable pageable) {
