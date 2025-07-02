@@ -132,8 +132,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
         )
             .from(match)
-            .join(court).on(court.eq(match.court))
-            .join(facility).on(facility.eq(court.facility))
+            .join(match.court, court)
+            .join(court.facility, facility)
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
                 searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED),
@@ -168,7 +168,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     // sportType 조회
     private BooleanExpression sportTypeEq(SportType sportType) {
-        return (sportType != null) ? match.court.facility.sportType.eq(sportType) : null;
+        return (sportType != null) ? facility.sportType.eq(sportType) : null;
     }
 
     // 검색어로 조회
@@ -211,8 +211,8 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
         )
             .from(match)
-            .join(court).on(court.eq(match.court))
-            .join(facility).on(facility.eq(court.facility))
+            .join(match.court, court)
+            .join(court.facility, facility)
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.eq(match), matchPlayer.status.in(playerStatus)
             )
