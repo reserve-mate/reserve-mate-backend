@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -151,63 +150,35 @@ public class MatchService {
     // 매치 이용 내역
     public Slice<MatchHistroyResponse> getMatchHistory(Long userId, String matchStatus, int pageNum) {
 
+        List<PlayerStatus> playerStatus = null;
+        switch (matchStatus) {
+            case "all":
+                playerStatus = null;
+                break;
+
+            case "upcoming":
+                playerStatus = List.of(PlayerStatus.READY);
+                break;
+
+            case "canceled":
+                playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
+                break;
+
+            case "completed":
+                playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
+                    PlayerStatus.KICKED);
+                break;
+            default:
+                throw new ApiException(ErrorCode.MISSING_QUERY_PARAM);
+        }
+
         Pageable pageable = PageRequest.of(pageNum, 6, Sort.by(
             Sort.Order.desc("match.matchDate"), Sort.Order.asc("match.matchTime"), Sort.Order.desc("match.matchId")
         ));
 
-        List<String> tabs = List.of("all", "upcoming", "completed", "canceled");
-        if (!tabs.contains(matchStatus)) {
-            throw new ApiException(ErrorCode.MISSING_QUERY_PARAM);
-        }
-
-        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        Slice<MatchHistroyResponse> response = null;
-        if (matchStatus.equals("upcoming") || matchStatus.equals("canceled")) {
-            Slice<MatchPlayer> matchPlayers = null;//matchPlayerRepository.findByUser(user, pageable);
-
-            if (matchStatus.equals("upcoming")) {
-                matchPlayers = matchPlayerRepository.findByUserAndStatus(user, PlayerStatus.READY, pageable);
-            } else if (matchStatus.equals("canceled")) {
-                List<PlayerStatus> playerStatus = List.of(PlayerStatus.CANCEL, PlayerStatus.MATCH_CANCELLED);
-                matchPlayers = matchPlayerRepository.findByUserAndStatusIn(user, playerStatus, pageable);
-            }
-
-            List<MatchHistroyResponse> content = matchPlayers.stream()
-                .map(matchPlayer -> {
-                    int playerCnt = getPlayerCnt(matchPlayer.getMatch());
-                    return MatchHistroyResponse.getMatchHistroyResponse(matchPlayer, playerCnt);
-                }).toList();
-
-            response = new SliceImpl<>(content, pageable, matchPlayers.hasNext());
-        } else if (matchStatus.equals("all") || matchStatus.equals("completed")) {
-            List<PlayerStatus> playerStatus = null;
-            if (matchStatus.equals("completed")) {
-                playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING,
-                    PlayerStatus.KICKED);
-            }
-            response = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
-        }
+        Slice<MatchHistroyResponse> response = matchCustomRepository.getMatchHistory(userId, playerStatus, pageable);
 
         return response;
-    }
-
-    // 매치 플레이어 카운트
-    private int getPlayerCnt(Match match) {
-
-        List<MatchStatus> beforeStatus = List.of(MatchStatus.APPLICABLE, MatchStatus.CLOSE_TO_DEADLINE,
-            MatchStatus.FINISH);
-        List<MatchStatus> afterStatus = List.of(MatchStatus.END, MatchStatus.CANCELLED);
-
-        List<PlayerStatus> playerStatus = null;
-        if (beforeStatus.contains(match.getMatchStatus())) {
-            playerStatus = List.of(PlayerStatus.READY);
-        } else if (match.getMatchStatus() == MatchStatus.ONGOING) {
-            playerStatus = List.of(PlayerStatus.ONGOING, PlayerStatus.KICKED);
-        } else if (afterStatus.contains(match.getMatchStatus())) {
-            playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.KICKED);
-        }
-        return matchPlayerRepository.countByMatchAndStatusIn(match, playerStatus);
     }
 
     // s3 파일 업로드 테스트

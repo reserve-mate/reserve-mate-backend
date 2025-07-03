@@ -216,7 +216,7 @@ public class Match extends BaseEntity {
     }
 
     public Facility getFacility() { // 시설 엔티티 가져오기
-        return this.getCourt().getFacility();
+        return this.court.getFacility();
     }
 
     // 시설 아이디 가져오기
