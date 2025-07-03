@@ -1,9 +1,11 @@
 package com.reservemate.reserve_mate_backend.admin.payment.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Lists;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.FacilityManager;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
@@ -36,10 +38,34 @@ public class AdminPaymentService {
         List<Reservation> reservations = validator.getCourtsReservations(courts, year, month, facilityId);   // 예약 리스트
         List<Match> matches = matchValidator.getCourtsMatches(courts, year, month, facilityId);              // 매치 리스트
 
-        List<Payment> reservationPayments = paymentRepository.findByReservationIn(reservations);
-        List<Payment> matchPayments = paymentRepository.findByMatchIn(matches);
+        List<Payment> reservationPayments = getReservationPayments(reservations);
+        List<Payment> matchPayments = getMatchPayments(matches);
 
         return Payment.getTotalRevenues(reservationPayments) + Payment.getTotalRevenues(matchPayments);
+    }
+
+    /* 매치 목록 chunk 처리 */
+    private List<Payment> getMatchPayments(List<Match> matches) {
+        List<List<Match>> chunks = Lists.partition(matches, 50);
+        List<Payment> results = new ArrayList<>();
+
+        for (List<Match> chunk : chunks) {
+            results.addAll(paymentRepository.findByMatchIn(chunk));
+        }
+
+        return results;
+    }
+
+    /* 예약 목록 chunk 처리 */
+    private List<Payment> getReservationPayments(List<Reservation> reservations) {
+        List<List<Reservation>> chunks = Lists.partition(reservations, 50);
+        List<Payment> results = new ArrayList<>();
+
+        for (List<Reservation> chunk : chunks) {
+            results.addAll(paymentRepository.findByReservationIn(chunk));
+        }
+
+        return results;
     }
 
 }
