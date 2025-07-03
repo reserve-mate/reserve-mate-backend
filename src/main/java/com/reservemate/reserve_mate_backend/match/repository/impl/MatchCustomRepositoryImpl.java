@@ -70,9 +70,9 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                                     .as("ejectReason")
             )
         ).from(matchPlayer)
-            .join(match).on(match.matchId.eq(matchPlayer.match.matchId))
-            .join(court).on(match.court.id.eq(court.id))
-            .join(facility).on(facility.id.eq(court.facility.id))
+            .join(matchPlayer.match, match)
+            .join(match.court, court)
+            .join(court.facility, facility)
             .leftJoin(review).on(review.match.matchId.eq(match.matchId))
             .where(matchPlayer.user.id.eq(userId), wherePlayerStatus(matchPlayer, playerStatus))
             .groupBy(matchPlayer.match.matchId, match.matchName, matchPlayer.playerId, matchPlayer.status,
