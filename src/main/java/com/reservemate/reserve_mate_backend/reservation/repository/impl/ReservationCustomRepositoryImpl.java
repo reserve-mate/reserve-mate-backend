@@ -58,7 +58,6 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
         ).from(reservation)
             .join(court).on(reservation.court.id.eq(court.id))
             .join(facility).on(facility.id.eq(court.facility.id))
-            .join(user).on(user.id.eq(reservation.user.id))
             .leftJoin(review).on(reservation.id.eq(review.reservation.id))
             .where(reservation.user.id.eq(userId), reservation.status.in(status))
             .orderBy(reservation.reserveDate.desc(), reservation.startTime.asc(), reservation.id.desc())
