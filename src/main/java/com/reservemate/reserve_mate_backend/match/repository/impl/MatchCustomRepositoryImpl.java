@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -31,8 +30,6 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyRespon
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
-import com.reservemate.reserve_mate_backend.user.domain.QUser;
-import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -175,7 +172,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
     private BooleanExpression searchValueLike(String searchValue) {
         String likeSearch = "%" + searchValue + "%";
         return (searchValue != null) ? match.matchName.like(likeSearch).or(
-            match.court.facility.name.like(likeSearch))
+            facility.name.like(likeSearch))
             : null;
     }
 
@@ -247,12 +244,9 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         Pageable pageable) {
 
         QFacilityManager facilityManager = QFacilityManager.facilityManager; // 기본 관리자 테이블
-        QFacilityManager adminManager = QFacilityManager.facilityManager;   // user아이디와 관련된 facility 매핑 테이블
-        QUser user = QUser.user;
-        QCourt court = QCourt.court;
-        QFacility facility = QFacility.facility;
+        // QCourt court = QCourt.court;
+        // QFacility facility = QFacility.facility;
 
-        List<UserRole> roles = Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_FACILITY_MANAGER);
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
             PlayerStatus.COMPLETED);
 
@@ -263,13 +257,11 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                 facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.countDistinct().as(
                     "playerCnt"), match.matchStatus.as("matchStatus")
             )
-        ).distinct()
+        )
             .from(facilityManager)
-            .join(adminManager).on(facilityManager.facility.id.eq(adminManager.facility.id))
-            .join(facility).on(facility.id.eq(adminManager.facility.id))
-            .join(user).on(adminManager.user.id.eq(user.id), user.role.in(roles))
-            .join(court).on(facility.id.eq(court.facility.id))
-            .join(match).on(match.court.id.eq(court.id))
+            .join(facilityManager.facility, facility)
+            .join(court).on(court.facility.id.eq(facilityManager.facility.id))
+            .join(match).on(match.courtId.eq(court.id))
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.in(playerStatus)
             )

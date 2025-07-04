@@ -86,6 +86,9 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "court_id")
     private Court court;
 
+    @Column(name = "court_id", insertable = false, updatable = false) // 읽기 전용
+    private Long courtId;
+
     public Match(int start, int end, FacilityManager facilityManager, Court court) {
         this.matchTime = start;
         this.endTime = end;
