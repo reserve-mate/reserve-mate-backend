@@ -6,8 +6,8 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
-import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
@@ -49,18 +49,20 @@ public class FacilityService {
         return ResponseFacilitySportTypeDto.getNameAndSportType(facility);
     }
 
-    public ResponseEntity<Slice<FacilityDto>> getSearchFacilities(SportType sportType, int minPrice, int maxPrice,
+    public ResponseEntity<Slice<ResponseFacilitiesDto>> getSearchFacilities(String sportType, int minPrice,
+        int maxPrice,
         String keyword, Long lastId, Pageable pageable) {
         RequestFacilitySearchDto facilitySearchDto = RequestFacilitySearchDto.builder()
             .keyword(keyword)
-            .sportType(sportType)
+            .sportType(SportType.valueOf(sportType))
             .minPrice(minPrice)
             .maxPrice(maxPrice)
             .lastId(lastId == 0 ? null : lastId)
             .size(pageable.getPageSize())
             .build();
 
-        Slice<FacilityDto> facilities = facilityRepository.findAllByCursor(facilitySearchDto, pageable);
+        Slice<ResponseFacilitiesDto> facilities = facilityRepository.findAllCourtsByCursor(facilitySearchDto, pageable);
+//        Slice<FacilityDto> facilities = facilityRepository.findAllByCursor(facilitySearchDto, pageable);
         return ResponseEntity.ok(facilities);
     }
 }
