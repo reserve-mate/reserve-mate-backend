@@ -49,12 +49,12 @@ public class FacilityService {
         return ResponseFacilitySportTypeDto.getNameAndSportType(facility);
     }
 
-    public ResponseEntity<Slice<ResponseFacilitiesDto>> getSearchFacilities(SportType sportType, int minPrice,
+    public ResponseEntity<Slice<ResponseFacilitiesDto>> getSearchFacilities(String sportType, int minPrice,
         int maxPrice,
         String keyword, Long lastId, Pageable pageable) {
         RequestFacilitySearchDto facilitySearchDto = RequestFacilitySearchDto.builder()
             .keyword(keyword)
-            .sportType(sportType)
+            .sportType(SportType.valueOf(sportType))
             .minPrice(minPrice)
             .maxPrice(maxPrice)
             .lastId(lastId == 0 ? null : lastId)
