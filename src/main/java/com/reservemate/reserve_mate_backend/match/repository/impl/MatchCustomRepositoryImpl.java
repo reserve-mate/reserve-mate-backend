@@ -268,7 +268,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                     adminMatchesRequest.getSportType()), betweenDate(adminMatchesRequest.getStartDate(),
                         adminMatchesRequest.getEndDate()), matchStatusEq(adminMatchesRequest.getMatchStatus())
             )
-            .groupBy(match.matchId)
+            .groupBy(match.matchDate, match.matchTime, match.matchId)
             .offset(pageable.getOffset())
             .orderBy(match.matchDate.desc(), match.matchTime.desc(), match.matchId.desc())
             .limit(pageable.getPageSize() + 1)
