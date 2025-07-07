@@ -244,8 +244,6 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         Pageable pageable) {
 
         QFacilityManager facilityManager = QFacilityManager.facilityManager; // 기본 관리자 테이블
-        // QCourt court = QCourt.court;
-        // QFacility facility = QFacility.facility;
 
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
             PlayerStatus.COMPLETED);
@@ -254,7 +252,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             Projections.fields(AdminMatchesResponse.class,
                 match.matchId.as("matchId"), match.matchName.as("matchName"), match.matchDate.as(("matchDate")),
                 match.matchTime.as("matchTime"), match.endTime.as("endTime"), facility.sportType.as("sportType"),
-                facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.countDistinct().as(
+                facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.count().as(
                     "playerCnt"), match.matchStatus.as("matchStatus")
             )
         )
