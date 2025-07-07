@@ -18,6 +18,7 @@ public interface FacilityManagerRepository extends JpaRepository<FacilityManager
     @EntityGraph(attributePaths = {"facility"})
     List<FacilityManager> findByUserId(@Param("userId") Long userId);
 
+    @EntityGraph(attributePaths = {"user"})
     List<FacilityManager> findByFacility(Facility facility);
 
     List<FacilityManager> findByUser(User user);
