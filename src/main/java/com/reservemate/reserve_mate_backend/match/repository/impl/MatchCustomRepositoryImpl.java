@@ -134,7 +134,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
                 searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED),
-                matchStatusEq(matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
+                matchStatusEqUser(matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchDate)
             .fetch();
@@ -181,6 +181,10 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : null;
     }
 
+    private BooleanExpression matchStatusEqUser(MatchStatus matchStatus) {
+        return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : match.matchStatus.ne(MatchStatus.CANCELLED);
+    }
+
     // 지역 검색
     private BooleanExpression cityEq(String city) {
         return (city.equals("대전/세종")) ? facility.address.city.eq("대전").or(facility.address.city.eq("세종"))
@@ -215,7 +219,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
-                    matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED), matchStatusEq(
+                    matchSearchDto.getSearchValue()), matchStatusEqUser(
                         matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchId)
