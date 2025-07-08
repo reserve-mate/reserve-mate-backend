@@ -82,7 +82,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
                     reservation.totalPrice.as("totalPrice"))
             )
             .from(reservation)
-            .join(court).on(reservation.court.id.eq(court.id))
+            .join(reservation.court, court)
             .join(facility).on(facility.id.eq(court.facility.id))
             .join(facilityManager).on(facilityManager.facility.id.eq(facility.id), facilityManager.user.id.eq(userId))
             .where(whereSearchTerm(searchTerm), whereReservationStatus(reservationStatus), whereReservationDate(

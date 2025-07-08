@@ -52,6 +52,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     void updateOngoinPlayer(@Param("playerIds") List<Long> playerIds, @Param("playerStatus") PlayerStatus playerStatus);
 
     // 매치 플레이어 참가자 및 퇴장자 조회
+    @EntityGraph(attributePaths = {"user"})
     List<MatchPlayer> findByMatchAndStatusIn(Match match, List<PlayerStatus> playerStatus);
 
     // 유저 조회
