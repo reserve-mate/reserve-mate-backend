@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import com.reservemate.reserve_mate_backend.review.domain.QReviewImage;
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntResponse;
@@ -96,11 +97,13 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
     /* 내가 쓴 리뷰 목록 페이징 */
     private List<Long> myReviewIds(Long userId, Pageable pageable) {
 
+        QFacility facility = QFacility.facility;
+
         List<Long> pagingIds = queryFactory.select(review.id)
             .from(review)
-            .join(review.facility)
+            //.join(review.facility)
             .where(review.user.id.eq(userId))
-            .orderBy(review.facility.id.asc(), review.id.desc())
+            .orderBy(facility.id.asc(), review.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();

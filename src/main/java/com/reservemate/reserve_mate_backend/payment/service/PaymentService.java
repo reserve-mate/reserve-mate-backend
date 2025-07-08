@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Lists;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
@@ -126,10 +127,33 @@ public class PaymentService {
 
         List<Reservation> reservations = reserveRepository.findByUser(user);
 
-        int matchPaymentCnt = paymentRepository.countByMatchInAndUser(matchIds, user);
-        int reservationPaymentCnt = paymentRepository.countByReservationInAndUser(reservations, user);
+        int matchPaymentCnt = getMatchPaymentCnt(matchIds, user);
+        int reservationPaymentCnt = getReservationPaymentCnt(reservations, user);
 
         return new PaymentHistCntResponse(matchPaymentCnt, reservationPaymentCnt);
+    }
+
+    /* 에약 결제 수 카운트 */
+    private Integer getReservationPaymentCnt(List<Reservation> reservations, User user) {
+        List<List<Reservation>> chunks = Lists.partition(reservations, 50);
+
+        int totalCnt = 0;
+        for (List<Reservation> chunk : chunks) {
+            totalCnt += paymentRepository.countByReservationInAndUser(chunk, user);
+        }
+        return totalCnt;
+    }
+
+    /* 매치 결제 수 카운트 */
+    private Integer getMatchPaymentCnt(List<Match> matchIds, User user) {
+        List<List<Match>> chunks = Lists.partition(matchIds, 50);
+
+        int totalCnt = 0;
+        for (List<Match> chunk : chunks) {
+            totalCnt += paymentRepository.countByMatchInAndUser(chunk, user);
+        }
+
+        return totalCnt;
     }
 
     /* 결제 내역 */
