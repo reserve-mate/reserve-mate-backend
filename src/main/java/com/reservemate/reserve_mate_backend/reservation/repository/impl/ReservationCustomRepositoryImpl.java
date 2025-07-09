@@ -87,7 +87,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
             .join(facilityManager).on(facilityManager.facility.id.eq(facility.id), facilityManager.user.id.eq(userId))
             .where(whereSearchTerm(searchTerm), whereReservationStatus(reservationStatus), whereReservationDate(
                 searchDate), whereFacility(facilityId))
-            .orderBy(reservation.id.desc())
+            .orderBy(reservation.reserveDate.desc(), reservation.startTime.asc(), reservation.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();
