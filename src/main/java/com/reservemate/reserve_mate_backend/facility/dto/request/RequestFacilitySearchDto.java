@@ -26,4 +26,5 @@ public class RequestFacilitySearchDto {
         this.minPrice = minPrice;
         this.maxPrice = maxPrice;
     }
+
 }

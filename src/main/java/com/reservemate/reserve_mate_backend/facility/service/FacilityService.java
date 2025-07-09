@@ -54,7 +54,7 @@ public class FacilityService {
         String keyword, Long lastId, Pageable pageable) {
         RequestFacilitySearchDto facilitySearchDto = RequestFacilitySearchDto.builder()
             .keyword(keyword)
-            .sportType(SportType.valueOf(sportType))
+            .sportType(sportType != null ? SportType.valueOf(sportType) : null)
             .minPrice(minPrice)
             .maxPrice(maxPrice)
             .lastId(lastId == 0 ? null : lastId)
@@ -62,7 +62,6 @@ public class FacilityService {
             .build();
 
         Slice<ResponseFacilitiesDto> facilities = facilityRepository.findAllCourtsByCursor(facilitySearchDto, pageable);
-//        Slice<FacilityDto> facilities = facilityRepository.findAllByCursor(facilitySearchDto, pageable);
         return ResponseEntity.ok(facilities);
     }
 }
