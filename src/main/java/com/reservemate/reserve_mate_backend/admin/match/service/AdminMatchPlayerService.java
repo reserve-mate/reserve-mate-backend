@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Lists;
 import com.reservemate.reserve_mate_backend.admin.match.dto.request.PlayerEjectRequest;
 import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
@@ -39,11 +40,18 @@ public class AdminMatchPlayerService {
         List<Court> courts = courtRepository.findByFacilityIds(facilityIds);
 
         List<Match> matches = matchValidator.getCourtsMatches(courts, year, month, facilityId);   // 매치 리스트
+
+        List<List<Match>> chunks = Lists.partition(matches, 50);
+
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.COMPLETED, PlayerStatus.ONGOING, PlayerStatus.READY,
             PlayerStatus.KICKED);
-        int matchPlayerCnt = matchPlayerRepository.countByMatchInAndStatusIn(matches, playerStatus);
 
-        return matchPlayerCnt;
+        int totalPlayerCnt = 0;
+        for (List<Match> chunk : chunks) {
+            totalPlayerCnt += matchPlayerRepository.countByMatchInAndStatusIn(chunk, playerStatus);
+        }
+
+        return totalPlayerCnt;
     }
 
     /* 매치 퇴장 */

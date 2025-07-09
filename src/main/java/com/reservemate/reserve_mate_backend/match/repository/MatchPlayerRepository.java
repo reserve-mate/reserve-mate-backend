@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,8 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
 
     int countByMatchAndStatus(Match match, PlayerStatus ready);
 
+    /* 해당 매치의 참가자 조회 */
+    @EntityGraph(attributePaths = {"user"})
     List<MatchPlayer> findByMatchAndStatus(Match match, PlayerStatus ready);
 
     @Modifying(clearAutomatically = true)
@@ -49,6 +52,7 @@ public interface MatchPlayerRepository extends JpaRepository<MatchPlayer, Long> 
     void updateOngoinPlayer(@Param("playerIds") List<Long> playerIds, @Param("playerStatus") PlayerStatus playerStatus);
 
     // 매치 플레이어 참가자 및 퇴장자 조회
+    @EntityGraph(attributePaths = {"user"})
     List<MatchPlayer> findByMatchAndStatusIn(Match match, List<PlayerStatus> playerStatus);
 
     // 유저 조회

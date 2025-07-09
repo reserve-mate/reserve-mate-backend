@@ -1,7 +1,6 @@
 package com.reservemate.reserve_mate_backend.match.repository.impl;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -31,8 +30,6 @@ import com.reservemate.reserve_mate_backend.match.dto.respone.MatchHistroyRespon
 import com.reservemate.reserve_mate_backend.match.dto.respone.MatchesDto;
 import com.reservemate.reserve_mate_backend.match.repository.MatchCustomRepository;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
-import com.reservemate.reserve_mate_backend.user.domain.QUser;
-import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -70,9 +67,9 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                                     .as("ejectReason")
             )
         ).from(matchPlayer)
-            .join(match).on(match.matchId.eq(matchPlayer.match.matchId))
-            .join(court).on(match.court.id.eq(court.id))
-            .join(facility).on(facility.id.eq(court.facility.id))
+            .join(matchPlayer.match, match)
+            .join(match.court, court)
+            .join(court.facility, facility)
             .leftJoin(review).on(review.match.matchId.eq(match.matchId))
             .where(matchPlayer.user.id.eq(userId), wherePlayerStatus(matchPlayer, playerStatus))
             .groupBy(matchPlayer.match.matchId, match.matchName, matchPlayer.playerId, matchPlayer.status,
@@ -132,12 +129,12 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
         )
             .from(match)
-            .join(court).on(court.eq(match.court))
-            .join(facility).on(facility.eq(court.facility))
+            .join(match.court, court)
+            .join(court.facility, facility)
             .where(
                 betweenTwoWeek(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()),
                 searchValueLike(matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED),
-                matchStatusEq(matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
+                matchStatusEqUser(matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchDate)
             .fetch();
@@ -168,20 +165,24 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     // sportType 조회
     private BooleanExpression sportTypeEq(SportType sportType) {
-        return (sportType != null) ? match.court.facility.sportType.eq(sportType) : null;
+        return (sportType != null) ? facility.sportType.eq(sportType) : null;
     }
 
     // 검색어로 조회
     private BooleanExpression searchValueLike(String searchValue) {
         String likeSearch = "%" + searchValue + "%";
         return (searchValue != null) ? match.matchName.like(likeSearch).or(
-            match.court.facility.name.like(likeSearch))
+            facility.name.like(likeSearch))
             : null;
     }
 
     // 매치 상태 조회
     private BooleanExpression matchStatusEq(MatchStatus matchStatus) {
         return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : null;
+    }
+
+    private BooleanExpression matchStatusEqUser(MatchStatus matchStatus) {
+        return (matchStatus != null) ? match.matchStatus.eq(matchStatus) : match.matchStatus.ne(MatchStatus.CANCELLED);
     }
 
     // 지역 검색
@@ -211,14 +212,14 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             )
         )
             .from(match)
-            .join(court).on(court.eq(match.court))
-            .join(facility).on(facility.eq(court.facility))
+            .join(match.court, court)
+            .join(court.facility, facility)
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.eq(match), matchPlayer.status.in(playerStatus)
             )
             .where(
                 matchDateEq(matchSearchDto.getMatchDate()), sportTypeEq(matchSearchDto.getSportType()), searchValueLike(
-                    matchSearchDto.getSearchValue()), match.matchStatus.ne(MatchStatus.CANCELLED), matchStatusEq(
+                    matchSearchDto.getSearchValue()), matchStatusEqUser(
                         matchSearchDto.getMatchStatus()), cityEq(matchSearchDto.getRegion())
             )
             .groupBy(match.matchId)
@@ -247,12 +248,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
         Pageable pageable) {
 
         QFacilityManager facilityManager = QFacilityManager.facilityManager; // 기본 관리자 테이블
-        QFacilityManager adminManager = QFacilityManager.facilityManager;   // user아이디와 관련된 facility 매핑 테이블
-        QUser user = QUser.user;
-        QCourt court = QCourt.court;
-        QFacility facility = QFacility.facility;
 
-        List<UserRole> roles = Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_FACILITY_MANAGER);
         List<PlayerStatus> playerStatus = List.of(PlayerStatus.READY, PlayerStatus.ONGOING, PlayerStatus.KICKED,
             PlayerStatus.COMPLETED);
 
@@ -260,16 +256,14 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
             Projections.fields(AdminMatchesResponse.class,
                 match.matchId.as("matchId"), match.matchName.as("matchName"), match.matchDate.as(("matchDate")),
                 match.matchTime.as("matchTime"), match.endTime.as("endTime"), facility.sportType.as("sportType"),
-                facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.countDistinct().as(
+                facility.name.as("facilityName"), match.teamCapacity.as("teamCapacity"), matchPlayer.count().as(
                     "playerCnt"), match.matchStatus.as("matchStatus")
             )
-        ).distinct()
+        )
             .from(facilityManager)
-            .join(adminManager).on(facilityManager.facility.id.eq(adminManager.facility.id))
-            .join(facility).on(facility.id.eq(adminManager.facility.id))
-            .join(user).on(adminManager.user.id.eq(user.id), user.role.in(roles))
-            .join(court).on(facility.id.eq(court.facility.id))
-            .join(match).on(match.court.id.eq(court.id))
+            .join(facilityManager.facility, facility)
+            .join(court).on(court.facility.id.eq(facilityManager.facility.id))
+            .join(match).on(match.courtId.eq(court.id))
             .leftJoin(matchPlayer).on(
                 matchPlayer.match.matchId.eq(match.matchId), matchPlayer.status.in(playerStatus)
             )
@@ -278,7 +272,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
                     adminMatchesRequest.getSportType()), betweenDate(adminMatchesRequest.getStartDate(),
                         adminMatchesRequest.getEndDate()), matchStatusEq(adminMatchesRequest.getMatchStatus())
             )
-            .groupBy(match.matchId)
+            .groupBy(match.matchDate, match.matchTime, match.matchId)
             .offset(pageable.getOffset())
             .orderBy(match.matchDate.desc(), match.matchTime.desc(), match.matchId.desc())
             .limit(pageable.getPageSize() + 1)
