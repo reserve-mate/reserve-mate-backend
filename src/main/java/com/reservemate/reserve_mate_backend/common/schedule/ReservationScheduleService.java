@@ -18,7 +18,7 @@ public class ReservationScheduleService {
     /* 시간마다 예약 상태 변경 */
     @Scheduled(cron = "0 0 6-23 * * *", zone = "Asia/Seoul")
     public void chgConfirm() {
-        reserveCUDService.chgConfirm();
+        reserveCUDService.chgTimeReservation();
     }
 
 }
