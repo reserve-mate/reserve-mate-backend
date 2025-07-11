@@ -39,19 +39,45 @@ public class ReserveCUDService {
 
     private final JwtUtil jwtUtil;
 
-    // 확정된 COMPLETE 수정
+    private static final int BATCH_TIMES = 1000;
+
+    /* 시간별 예약 */
     @Transactional
-    public void chgConfirm() {
+    public void chgTimeReservation() {
         LocalTime nowTime = LocalTime.of(Utils.getNowTime(), 0);
+        chgCancel(nowTime);
+        chgConfirm(nowTime);
+    }
+
+    // 확정된 COMPLETE 수정
+    public void chgConfirm(LocalTime nowTime) {
         List<Reservation> reservations = reserveRepository.findByReserveDateAndStartTimeAndStatus(LocalDate.now(),
             nowTime, ReservationStatus.CONFIRMED);
 
         if (!reservations.isEmpty()) {
-            int batch = 1000;
-            for (int i = 0; i < reservations.size(); i += batch) {
-                List<Reservation> batchList = reservations.subList(i, Math.min(i + batch, reservations.size()));
+            for (int i = 0; i < reservations.size(); i += BATCH_TIMES) {
+                List<Reservation> batchList = reservations.subList(i, Math.min(i + BATCH_TIMES, reservations.size()));
                 confirmBatchProcess(batchList); // 확정된 COMPLETE 수정
             }
+        }
+    }
+
+    public void chgCancel(LocalTime nowTime) {
+        List<Reservation> reservations = reserveRepository.findByReserveDateAndStartTimeAndStatus(LocalDate.now(),
+            nowTime, ReservationStatus.PENDING);
+
+        if (!reservations.isEmpty()) {
+            for (int i = 0; i < reservations.size(); i += BATCH_TIMES) {
+                List<Reservation> batchList = reservations.subList(i, Math.min(i + BATCH_TIMES, reservations.size()));
+                cancelBatchProcess(batchList);
+            }
+        }
+    }
+
+    // 해당 시간의 대기중인 예약 취소 처리
+    private void cancelBatchProcess(List<Reservation> batchList) {
+        for (Reservation reservation : batchList) {
+            reservation.cancel("일정 시간 내에 결제가 완료되지 않아 예약이 자동으로 취소되었습니다.");
         }
     }
 
