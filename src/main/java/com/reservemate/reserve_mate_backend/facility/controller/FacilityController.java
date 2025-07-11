@@ -1,6 +1,7 @@
 package com.reservemate.reserve_mate_backend.facility.controller;
 
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
 import com.reservemate.reserve_mate_backend.facility.service.FacilityService;
@@ -44,5 +45,10 @@ public class FacilityController {
         @RequestParam(required = false) String keyword, @RequestParam(required = false, defaultValue = "0") Long lastId,
         Pageable pageable) {
         return facilityService.getSearchFacilities(sportType, minPrice, maxPrice, keyword, lastId, pageable);
+    }
+
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<ResponseFacilityDetailDto> getFacilityDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(facilityService.getDetailFacilityDetail(id));
     }
 }

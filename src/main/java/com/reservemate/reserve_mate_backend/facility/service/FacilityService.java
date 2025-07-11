@@ -8,6 +8,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
@@ -63,5 +64,9 @@ public class FacilityService {
 
         Slice<ResponseFacilitiesDto> facilities = facilityRepository.findAllCourtsByCursor(facilitySearchDto, pageable);
         return ResponseEntity.ok(facilities);
+    }
+
+    public ResponseFacilityDetailDto getDetailFacilityDetail(Long id) {
+        return facilityRepository.findFacilityDetailByCourtId(id);
     }
 }

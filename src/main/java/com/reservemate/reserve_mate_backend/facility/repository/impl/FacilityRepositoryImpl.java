@@ -8,12 +8,19 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityImage;
+import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
+import com.reservemate.reserve_mate_backend.facility.domain.QOperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseReviewFacilityDto;
 import com.reservemate.reserve_mate_backend.facility.repository.CustomFacilityRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
+import com.reservemate.reserve_mate_backend.review.domain.QReview;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -185,5 +192,85 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
 
     private boolean courtFeeFilterNeeded(RequestFacilitySearchDto requestFacilitySearchDto) {
         return requestFacilitySearchDto.getMinPrice() != null || requestFacilitySearchDto.getMaxPrice() != null;
+    }
+
+    public ResponseFacilityDetailDto findFacilityDetailByCourtId(Long courtId) {
+        QCourt court = QCourt.court;
+        QFacility facility = QFacility.facility;
+        QOperatingHour operatingHour = QOperatingHour.operatingHour;
+        QFacilityManager manager = QFacilityManager.facilityManager;
+        QFacilityImage image = QFacilityImage.facilityImage;
+        QReview review = QReview.review;
+
+        ResponseFacilityDetailDto result = jpaQueryFactory
+            .select(Projections.constructor(ResponseFacilityDetailDto.class,
+                facility.id,
+                facility.name,
+                facility.sportType,
+                facility.address.city.concat(" ").concat(facility.address.district)
+                    .concat(" ").concat(facility.address.streetAddress)
+                    .concat(" ").concat(facility.address.detailAddress),
+                facility.description,
+                operatingHour.dayOfWeek,
+                operatingHour.openTime,
+                operatingHour.closeTime,
+                operatingHour.holiday,
+                manager.user.phone,
+                image.imageUrl
+            ))
+            .from(court)
+            .join(court.facility, facility)
+            .leftJoin(operatingHour).on(operatingHour.facility.eq(facility))
+            .leftJoin(manager).on(manager.facility.eq(facility))
+            .where(court.id.eq(courtId))
+            .fetchOne();
+
+        if (result == null) {
+            throw new EntityNotFoundException("해당 코트에 대한 시설을 찾을 수 없습니다.");
+        }
+
+        Long facilityId = result.getFacilityId();
+
+        List<ResponseCourtDto> courts = jpaQueryFactory
+            .select(Projections.constructor(ResponseCourtDto.class,
+                court.id,
+                court.name,
+                court.courtType,
+                court.width,
+                court.height,
+                court.indoor,
+                court.active,
+                court.fee
+            ))
+            .from(court)
+            .where(court.facility.id.eq(facilityId))
+            .fetch();
+
+        List<ResponseReviewFacilityDto> reviews = jpaQueryFactory
+            .select(Projections.constructor(ResponseReviewFacilityDto.class,
+                review.id,
+                review.rating,
+                review.title,
+                review.content
+            ))
+            .from(review)
+            .where(review.facility.id.eq(facilityId))
+            .fetch();
+
+        return ResponseFacilityDetailDto.builder()
+            .facilityId(facilityId)
+            .facilityName(result.getFacilityName())
+            .sportType(result.getSportType())
+            .address(result.getAddress())
+            .description(result.getDescription())
+            .dayOfWeek(result.getDayOfWeek())
+            .openTime(result.getOpenTime())
+            .closeTime(result.getCloseTime())
+            .holiday(result.isHoliday())
+            .courts(courts)
+            .reviews(reviews)
+            .managerPhoneNumber(result.getManagerPhoneNumber())
+            .imageUrl(result.getImageUrl())
+            .build();
     }
 }
