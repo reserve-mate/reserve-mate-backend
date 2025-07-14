@@ -12,4 +12,11 @@ public class ResponseReviewFacilityDto {
     private String userName;
     private Long reservationId;
 
+    public ResponseReviewFacilityDto(Long id, Integer rating, String title, String content) {
+        this.id = id;
+        this.rating = rating;
+        this.title = title;
+        this.content = content;
+    }
+
 }

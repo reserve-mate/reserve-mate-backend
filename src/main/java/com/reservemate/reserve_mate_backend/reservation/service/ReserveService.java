@@ -11,7 +11,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
@@ -32,7 +31,6 @@ import com.reservemate.reserve_mate_backend.reservation.repository.ReserveReposi
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -46,7 +44,6 @@ public class ReserveService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final ReservationCustomRepository reservationCustomRepository;
-    private final JwtUtil jwtUtil;
 
     /* 예약 가능 여부 */
     public boolean verifyReservation(Long reservationId) {
@@ -59,14 +56,7 @@ public class ReserveService {
     }
 
     /* 예약 목록 조회 */
-    public Slice<ReservationsResponse> getReservations(HttpServletRequest request, String type, Integer pageNum) {
-
-        if (!type.equals("upcoming") && !type.equals("past")) {
-            throw new ApiException(ErrorCode.INVALID_RESERVATION_SCOPE);
-        }
-
-        String accessToken = request.getHeader("access");
-        Long userId = jwtUtil.getId(accessToken);
+    public Slice<ReservationsResponse> getReservations(Long userId, String type, Integer pageNum) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
@@ -76,13 +66,22 @@ public class ReserveService {
         );
 
         Slice<ReservationsResponse> response = null;
-        if (type.equals("upcoming")) {
-            List<ReservationStatus> status = List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
-            Slice<Reservation> reservationSlice = reserveRepository.findByUserAndStatusIn(user, status, pageable);
-            response = ReservationsResponse.toReservationsSlice(reservationSlice);
-        } else if (type.equals("past")) {
-            List<ReservationStatus> status = List.of(ReservationStatus.COMPLETED, ReservationStatus.CANCELED);
-            response = reservationCustomRepository.findByUserAndStatusIn(userId, status, pageable);
+        List<ReservationStatus> status = List.of();
+
+        switch (type) {
+            case "upcoming":
+                status = List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
+                Slice<Reservation> reservationSlice = reserveRepository.findByUserAndStatusIn(user, status, pageable);
+                response = ReservationsResponse.toReservationsSlice(reservationSlice);
+                break;
+
+            case "past":
+                status = List.of(ReservationStatus.COMPLETED, ReservationStatus.CANCELED);
+                response = reservationCustomRepository.findByUserAndStatusIn(userId, status, pageable);
+                break;
+
+            default:
+                throw new ApiException(ErrorCode.INVALID_RESERVATION_SCOPE);
         }
 
         return response;
