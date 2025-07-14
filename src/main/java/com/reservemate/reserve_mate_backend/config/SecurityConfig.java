@@ -79,6 +79,7 @@ public class SecurityConfig {
                         "/webjars/**")
                     .permitAll()
                     .requestMatchers("/profileImage/**", "/reviewImage/**", "/facilityImages/**").permitAll()
+                    .requestMatchers("/facility/list", "/facility/*/detail").permitAll()
                     //admin/** 경로는 ROLE_ADMIN 또는 ROLE_FACILITY_MANAGER 만 가능
                     //TODO: 임시로 USER 등록함, 추후 삭제 요망
                     .requestMatchers("/admin/**").hasAnyRole("ADMIN", "FACILITY_MANAGER", "USER")
