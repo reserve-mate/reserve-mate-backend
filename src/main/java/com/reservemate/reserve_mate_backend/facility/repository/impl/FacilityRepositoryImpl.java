@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.reservemate.reserve_mate_backend.facility.domain.ManagerRole;
 import com.reservemate.reserve_mate_backend.facility.domain.QCourt;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacilityImage;
@@ -219,7 +220,7 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
             .from(court)
             .join(court.facility, facility)
             //.leftJoin(operatingHour).on(operatingHour.facility.eq(facility))
-            .leftJoin(manager).on(manager.facility.eq(facility))
+            .leftJoin(manager).on(manager.facility.eq(facility), manager.managerRole.eq(ManagerRole.OWNER))
             .leftJoin(image).on(image.facility.eq(facility))
             .leftJoin(review).on(review.facility.eq(facility))
             .where(court.id.eq(courtId))
