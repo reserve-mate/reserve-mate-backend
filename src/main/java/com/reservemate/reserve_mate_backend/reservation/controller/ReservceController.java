@@ -2,6 +2,7 @@ package com.reservemate.reserve_mate_backend.reservation.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.reservemate.reserve_mate_backend.common.auth.service.CustomUserDetails;
 import com.reservemate.reserve_mate_backend.reservation.dto.request.CreateReservation;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationDetailResponse;
 import com.reservemate.reserve_mate_backend.reservation.dto.response.ReservationsResponse;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,9 +50,10 @@ public class ReservceController {
 
     /* 예약 목록 조회 */
     @GetMapping("/reservations")
-    public ResponseEntity<Slice<ReservationsResponse>> getMethodName(HttpServletRequest request,
+    public ResponseEntity<Slice<ReservationsResponse>> getMethodName(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestParam("type") String type, @RequestParam("pageNum") Integer pageNum) {
-        return ResponseEntity.ok(reserveService.getReservations(request, type, pageNum));
+        return ResponseEntity.ok(reserveService.getReservations(customUserDetails.getId(), type, pageNum));
     }
 
     /* 예약 상세 */

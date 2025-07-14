@@ -92,6 +92,28 @@ public class Reservation extends BaseEntity {
         //this.waitingList = waitingList;
     }
 
+    public Reservation(
+        Long id,
+        LocalTime startTime,
+        LocalTime endTime,
+        Integer totalPrice,
+        User user,
+        Court court,
+        LocalDate reserveDate,
+        String reservationNumber) {
+        this.id = id;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = ReservationStatus.PENDING;
+        this.totalPrice = totalPrice;
+        this.user = user;
+        this.court = court;
+        this.reserveDate = reserveDate;
+        this.status = ReservationStatus.PENDING;
+        this.reservationNumber = reservationNumber;
+        //this.waitingList = waitingList;
+    }
+
     public void confirm() {
         this.status = ReservationStatus.CONFIRMED;
     }

@@ -1,12 +1,13 @@
 package com.reservemate.reserve_mate_backend.facility.dto.response;
 
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
-import java.time.DayOfWeek;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class ResponseFacilityDetailDto {
 
     private Long facilityId;
@@ -15,11 +16,9 @@ public class ResponseFacilityDetailDto {
     private SportType sportType;
     private String address;
     private String description;
-    private DayOfWeek dayOfWeek;
 
-    private String openTime;
-    private String closeTime;
-    private boolean holiday;
+    private List<ResponseOperatingHourDto> hours;
+
     private List<ResponseCourtDto> courts;
 
     private List<ResponseReviewFacilityDto> reviews;
@@ -28,24 +27,24 @@ public class ResponseFacilityDetailDto {
 
     private String imageUrl;
 
+    private double rating;
+
     @Builder
     public ResponseFacilityDetailDto(Long facilityId, String facilityName, SportType sportType,
-        String address, String description, DayOfWeek dayOfWeek, String openTime, String closeTime,
-        boolean holiday, List<ResponseCourtDto> courts, List<ResponseReviewFacilityDto> reviews,
-        String managerPhoneNumber, String imageUrl) {
+        String address, String description, List<ResponseOperatingHourDto> hours, List<ResponseCourtDto> courts,
+        List<ResponseReviewFacilityDto> reviews,
+        String managerPhoneNumber, String imageUrl, double rating) {
         this.facilityId = facilityId;
         this.facilityName = facilityName;
         this.sportType = sportType;
         this.address = address;
         this.description = description;
-        this.dayOfWeek = dayOfWeek;
-        this.openTime = openTime;
-        this.closeTime = closeTime;
-        this.holiday = holiday;
+        this.hours = hours;
         this.courts = courts;
         this.reviews = reviews;
         this.managerPhoneNumber = managerPhoneNumber;
         this.imageUrl = imageUrl;
+        this.rating = rating;
     }
 
 }

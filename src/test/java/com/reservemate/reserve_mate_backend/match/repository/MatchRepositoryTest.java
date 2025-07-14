@@ -14,8 +14,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.reservemate.reserve_mate_backend.common.domain.Address;
+import com.reservemate.reserve_mate_backend.common.exception.ApiException;
+import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
 import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.CourtType;
@@ -28,6 +31,7 @@ import com.reservemate.reserve_mate_backend.facility.repository.FacilityReposito
 import com.reservemate.reserve_mate_backend.match.domain.Match;
 import com.reservemate.reserve_mate_backend.match.domain.MatchStatus;
 import com.reservemate.reserve_mate_backend.user.domain.User;
+import com.reservemate.reserve_mate_backend.user.domain.UserRole;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -49,6 +53,9 @@ public class MatchRepositoryTest {
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private FacilityManagerRepository facilityManagerRepository;
 
     private User user;
@@ -65,6 +72,80 @@ public class MatchRepositoryTest {
         facilityManager = getFacilityManager(user, facility);
         match = getMatch(court, facilityManager);
     }
+
+    // @Test
+    // @DisplayName("매치 인서트")
+    // public void insertMatch() {
+    //     for (int i = 0; i < 2; i++) {
+    //         FacilityManager facilityManager = facilityManagerRepository.findById(22L + i).orElseThrow(
+    //             () -> new ApiException(ErrorCode.ADMIN_FORBIDDEN));
+    //         for (int j = 0; j < 15; j++) {
+    //             Court court = courtRepository.findById(17L + i).orElseThrow(() -> new ApiException(
+    //                 ErrorCode.INVALID_EXTENSION));
+    //             matchRepository.save(createMatch(j, court, facilityManager));
+    //         }
+    //     }
+    // }
+
+    // private Match createMatch(int i, Court court, FacilityManager manager) {
+    //     return Match.builder()
+    //         .court(court)
+    //         .facilityManager(manager)
+    //         .matchDate(LocalDate.of(2025, 7, 9 + i))
+    //         .matchName("매치" + i)
+    //         .matchPrice(11000)
+    //         .matchTime(18)
+    //         .endTime(20)
+    //         .matchStatus(MatchStatus.APPLICABLE)
+    //         .description("test Match")
+    //         .teamCapacity(18)
+    //         .build();
+    // }
+
+    // @Test
+    // @DisplayName("매니저 인서트")
+    // public void insertFacilityManager() {
+    //     Facility facility = facilityRepository.findById(9L).orElseThrow(() -> new ApiException(
+    //         ErrorCode.INVALID_EXTENSION));
+    //     for (int i = 0; i < 2; i++) {
+    //         User user = userRepository.findById(135L + i).orElseThrow(() -> new ApiException(
+    //             ErrorCode.ADMIN_FORBIDDEN));
+    //         facilityManagerRepository.save(createFacilityManager(i, facility, user));
+    //     }
+    // }
+
+    // private FacilityManager createFacilityManager(int i, Facility facility, User user) {
+    //     return FacilityManager.builder()
+    //         .facility(facility)
+    //         .user(user)
+    //         .managerRole(ManagerRole.MANAGER)
+    //         .build();
+    // }
+
+    // @Test
+    // @DisplayName("유저 생성")
+    // void insertUser() {
+    //     for (int i = 16; i <= 30; i++) {
+    //         userRepository.save(userCreate(i));
+    //     }
+    // }
+
+    // private User userCreate(int i) {
+    //     String phone = "010-0002-000" + i;
+    //     if (i > 9) {
+    //         phone = "010-0002-00" + i;
+    //     } else if (i > 99) {
+    //         phone = "010-0002-0" + i;
+    //     }
+
+    //     return User.builder()
+    //         .email("manager" + i + "@example.com")
+    //         .password(passwordEncoder.encode("1234"))
+    //         .phone(phone)
+    //         .name("매니저" + i)
+    //         .role(UserRole.ROLE_FACILITY_MANAGER)
+    //         .build();
+    // }
 
     @Test
     @DisplayName("시간 지난 매치 상태 업데이트")

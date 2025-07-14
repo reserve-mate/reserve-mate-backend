@@ -16,6 +16,7 @@ import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseOperatingHourDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseReviewFacilityDto;
 import com.reservemate.reserve_mate_backend.facility.repository.CustomFacilityRepository;
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
@@ -203,26 +204,28 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
         QReview review = QReview.review;
 
         ResponseFacilityDetailDto result = jpaQueryFactory
-            .select(Projections.constructor(ResponseFacilityDetailDto.class,
-                facility.id,
-                facility.name,
-                facility.sportType,
+            .select(Projections.fields(ResponseFacilityDetailDto.class,
+                facility.id.as("facilityId"),
+                facility.name.as("facilityName"),
+                facility.sportType.as("sportType"),
                 facility.address.city.concat(" ").concat(facility.address.district)
                     .concat(" ").concat(facility.address.streetAddress)
-                    .concat(" ").concat(facility.address.detailAddress),
-                facility.description,
-                operatingHour.dayOfWeek,
-                operatingHour.openTime,
-                operatingHour.closeTime,
-                operatingHour.holiday,
-                manager.user.phone,
-                image.imageUrl
+                    .concat(" ").concat(facility.address.detailAddress).as("address"),
+                facility.description.as("description"),
+                manager.user.phone.as("managerPhoneNumber"),
+                image.imageUrl.as("imageUrl"),
+                review.rating.avg().coalesce(0.0).as("rating")
             ))
             .from(court)
             .join(court.facility, facility)
-            .leftJoin(operatingHour).on(operatingHour.facility.eq(facility))
+            //.leftJoin(operatingHour).on(operatingHour.facility.eq(facility))
             .leftJoin(manager).on(manager.facility.eq(facility))
+            .leftJoin(image).on(image.facility.eq(facility))
+            .leftJoin(review).on(review.facility.eq(facility))
             .where(court.id.eq(courtId))
+            .groupBy(
+                facility.id, manager.user.phone, image.imageUrl
+            )
             .fetchOne();
 
         if (result == null) {
@@ -230,6 +233,17 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
         }
 
         Long facilityId = result.getFacilityId();
+
+        List<ResponseOperatingHourDto> hours = jpaQueryFactory.select(
+            Projections.fields(ResponseOperatingHourDto.class,
+                operatingHour.dayOfWeek.as("dayOfWeek"),
+                operatingHour.openTime.as("openTime"),
+                operatingHour.closeTime.as("closeTime"),
+                operatingHour.holiday.as("holiday")
+            )
+        ).from(operatingHour)
+            .where(operatingHour.facility.id.eq(facilityId))
+            .fetch();
 
         List<ResponseCourtDto> courts = jpaQueryFactory
             .select(Projections.constructor(ResponseCourtDto.class,
@@ -255,6 +269,7 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
             ))
             .from(review)
             .where(review.facility.id.eq(facilityId))
+            .limit(2)
             .fetch();
 
         return ResponseFacilityDetailDto.builder()
@@ -262,15 +277,12 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
             .facilityName(result.getFacilityName())
             .sportType(result.getSportType())
             .address(result.getAddress())
-            .description(result.getDescription())
-            .dayOfWeek(result.getDayOfWeek())
-            .openTime(result.getOpenTime())
-            .closeTime(result.getCloseTime())
-            .holiday(result.isHoliday())
+            .hours(hours)
             .courts(courts)
             .reviews(reviews)
             .managerPhoneNumber(result.getManagerPhoneNumber())
             .imageUrl(result.getImageUrl())
+            .rating(result.getRating())
             .build();
     }
 }
