@@ -57,7 +57,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 auth -> auth.requestMatchers("/login", "/", "/users/register", "/match/matcheDates", "/match/matches",
                     "/match/matches/*", "/reserve/reserveHours", "/review/*/reviews", "/review/*/reviewInfo",
-                    "/facility/list", "/facility/*/detail")
+                    "/facility/list", "/facility/*/detail", "/reserve/reserveHours")
                     .permitAll()
                     .requestMatchers(
                         "/mail/send/authCode",
