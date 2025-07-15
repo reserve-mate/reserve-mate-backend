@@ -132,7 +132,7 @@ public class ReserveService {
             throw new ApiException(ErrorCode.NO_AVAILABLE_TIME_ON_DAY);
         }
 
-        return OperatingHour.getAvailableHours(operatingHours.get(0), matchTimes, reserveTimes);
+        return OperatingHour.getAvailableHours(reserveDate, operatingHours.get(0), matchTimes, reserveTimes);
     }
 
 }

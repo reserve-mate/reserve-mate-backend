@@ -9,7 +9,6 @@ import com.reservemate.reserve_mate_backend.reservation.dto.response.Reservation
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveCUDService;
 import com.reservemate.reserve_mate_backend.reservation.service.ReserveService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
@@ -65,10 +64,9 @@ public class ReservceController {
 
     /* 예약(대기) 생성 */
     @PostMapping("/saveReservation")
-    public ResponseEntity<Void> postMethodName(HttpServletRequest request,
+    public ResponseEntity<Long> postMethodName(@AuthenticationPrincipal CustomUserDetails customUserDetails,
         @RequestBody CreateReservation CreateReservation) {
-        reserveCUDService.createReservation(request, CreateReservation);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(reserveCUDService.createReservation(customUserDetails.getId(), CreateReservation));
     }
 
     /* 사용 가능한 시간대 조회 */

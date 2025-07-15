@@ -4,6 +4,7 @@ import com.reservemate.reserve_mate_backend.admin.facilities.dto.request.Request
 import com.reservemate.reserve_mate_backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -94,7 +95,8 @@ public class OperatingHour extends BaseEntity {
     }
 
     // 사용 가능한 시간대
-    public static List<LocalTime> getAvailableHours(OperatingHour operatingHour, List<LocalTime> matchTimes,
+    public static List<LocalTime> getAvailableHours(LocalDate reserveDate, OperatingHour operatingHour,
+        List<LocalTime> matchTimes,
         List<LocalTime> reserveTimes) {
         // 해당 요일 날짜 시간대 List
         List<LocalTime> operationHours = getOperationHours(operatingHour.getOpenTime(), operatingHour.getCloseTime());
@@ -102,18 +104,22 @@ public class OperatingHour extends BaseEntity {
         // 겹치는 시간대 List
         List<LocalTime> overLappingTimes = getOverlappingTimes(matchTimes, reserveTimes);
 
-        return getUnionHoursWithout(operationHours, overLappingTimes);
+        return getUnionHoursWithout(reserveDate, operationHours, overLappingTimes);
     }
 
     // 사용 가능한 시간대 List
-    private static List<LocalTime> getUnionHoursWithout(List<LocalTime> operationHours,
+    private static List<LocalTime> getUnionHoursWithout(LocalDate reserveDate, List<LocalTime> operationHours,
         List<LocalTime> overLappingTimes) {
         Set<LocalTime> hours = new HashSet<>(operationHours);
 
         Set<LocalTime> intersection = new HashSet<>(operationHours);
         intersection.retainAll(overLappingTimes);
 
-        hours.removeAll(intersection); // 합집합에서 교집합 제거
+        if (reserveDate.equals(LocalDate.now())) {
+            hours.removeIf(time -> time.isBefore(LocalTime.now()));
+        } else {
+            hours.removeAll(intersection); // 합집합에서 교집합 제거
+        }
 
         return hours.stream().sorted().toList();
     }
