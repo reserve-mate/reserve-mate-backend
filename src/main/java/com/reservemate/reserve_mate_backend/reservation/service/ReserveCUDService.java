@@ -7,7 +7,6 @@ import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.reservemate.reserve_mate_backend.common.auth.JwtUtil;
 import com.reservemate.reserve_mate_backend.common.exception.ApiException;
 import com.reservemate.reserve_mate_backend.common.exception.ErrorCode;
 import com.reservemate.reserve_mate_backend.common.util.Utils;
@@ -23,7 +22,6 @@ import com.reservemate.reserve_mate_backend.reservation.validator.Validator;
 import com.reservemate.reserve_mate_backend.user.domain.User;
 import com.reservemate.reserve_mate_backend.user.repository.UserRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -36,8 +34,6 @@ public class ReserveCUDService {
     private final UserRepository userRepository;
     private final Validator validator;
     private final ApplicationEventPublisher eventPublisher;
-
-    private final JwtUtil jwtUtil;
 
     private static final int BATCH_TIMES = 1000;
 
@@ -122,13 +118,7 @@ public class ReserveCUDService {
 
     /* 예약(대기) 생성 */
     @Transactional
-    public void createReservation(HttpServletRequest request, CreateReservation createReservation) {
-        String accessToken = request.getHeader("access");
-        if (accessToken == null) {
-            throw new ApiException(ErrorCode.UNAUTHORIZED_CODE);
-        }
-        Long userId = jwtUtil.getId(accessToken);
-
+    public Long createReservation(Long userId, CreateReservation createReservation) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         Court court = courtRepository.findById(createReservation.getCourtId()).orElseThrow(() -> new ApiException(
@@ -137,7 +127,8 @@ public class ReserveCUDService {
         validator.createReservationValid(createReservation, user, court);    // 예약 생성 시 데이터 검증
 
         Reservation reservation = createReservation.toEntity(user, court);
-        reserveRepository.save(reservation);
+        Reservation saveReservation = reserveRepository.save(reservation);
+        return saveReservation.getId();
     }
 
 }
