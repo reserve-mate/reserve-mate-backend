@@ -69,11 +69,10 @@
 - 리뷰 수정
 - 내가 쓴 리뷰 조회
 
-
 ## 2. 데이터베이스 설계
 
 ### 2.1 엔티티 관계도 (ERD)
-![erd](./erd.png)
+![erd](./erd2.html)
 
 ### 2.2 주요 엔티티 및 속성
 
@@ -91,23 +90,32 @@
 
 #### 2.2.2 시설(FACILITIES)
 - id (PK)
+- city
+- district
+- street_address
+- detail_address
+- zipcode
 - name
 - description
 - address
 - contact_phone
+- conventient
+- sport_type
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
 
 #### 2.2.3 코트(COURTS)
-- id (PK)
+- court_id (PK)
 - facility_id (FK)
 - name
-- sport_type
-- description
-- capacity
+- court_type (ARTIFICIAL_TURF_BASE, ARTIFICIAL_TURF_FB, ARTIFICIAL_TURF_FUTSAL, CLAY_BASE, CLAY_TENNIS, DIRT_BASE, DIRT_FB, GRASS, HARD, NATURE_GRASS_BASE, NATURE_GRASS_FB, RUBBER_BM, RUBBER_FUTSAL, SYNTHETIC_BASKET, SYNTHETIC_BM, SYNTHETIC_FUTSAL, SYNTHETIC_TENNIS, SYNTHETIC_VOLLEY, WOODEN_BASKET, WOODEN_BM, WOODEN_VOLLEY
+)
 - indoor
 - active
+- fee
+- width
+- height
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
@@ -188,11 +196,19 @@
 - updated_at
 - deleted (소프트 삭제 플래그)
 
+#### 2.2.9 리뷰(REVIEW_IMAGES)
+- review_image_id
+- review_id (FK)
+- image_url
+- image_order
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
+
 #### 2.2.10 시설 이미지(FACILITY_IMAGES)
-- id (PK)
+- facility_image_id (PK)
 - facility_id (FK)
 - image_url
-- description
 - is_main
 - display_order
 - uploaded_at
@@ -227,10 +243,10 @@
 - deleted (소프트 삭제 플래그)
 
 #### 2.2.13 시설 관리자(FACILITY_MANAGERS)
-- id (PK)
+- facility_manager_id (PK)
 - facility_id (FK)
 - user_id (FK)
-- role
+- manager_role (MANAGER, OWNER, STAFF)
 - assigned_at
 - created_at
 - updated_at
@@ -298,32 +314,53 @@
 - DELETE /api/courts/{id} - 코트 삭제
 
 ### 5.4 예약 관리 API
-- POST /api/reservations - 예약 생성
-- GET /api/reservations - 내 예약 목록 조회
-- GET /api/reservations/{id} - 예약 상세 조회
-- PUT /api/reservations/{id} - 예약 정보 수정
-- DELETE /api/reservations/{id} - 예약 취소
-- GET /api/courts/{courtId}/available-slots - 예약 가능 시간 조회
+- GET /reserve/{id} - 예약 상세 조회
+- GET /reserve/reservations - 예약 목록 조회
+- GET /reserve/verifyReservation - 예약 결제 전 검증
+- PUT /reserve/cancel/{id} - 예약 취소
+- GET /reserve/reserveHours - 예약 가능 시간 조회
+- POST /reserve/saveReservation - 예약 대기 생성
+- GET /admin/reservation/dashboardReservations - 관리자 대시보드 최근 예약
+- GET /admin/reservation/reservations - 관리자 예약 현황
+- GET /admin/reservation/{id} - 관리자 예약 상세
+- PUT /admin/reservation/status/{id} - 관리자 예약 상태 변경
+- GET /admin/reservation/getAdminTotalReservation - 관리자 총 예약 수
 
 ### 5.5 결제 API
-- POST /api/payments/prepare - 결제 준비
-- POST /api/payments/complete - 결제 완료
-- GET /api/payments/{id} - 결제 정보 조회
-- POST /api/payments/{id}/cancel - 결제 취소
+- GET /admin/payment/getTotalRevenues - 관리자 대시보드 총 매출
+- GET /payment/getPaymentHistCnt - 결제 내역 카운트
+- GET /payment/paymentHist - 결제 내역 조회
+- POST /payment/reservationApprove - 예약 결제 승인
+- GET /payment/reservationCancelChk - 예약 결제 취소 상태 확인
+- GET /payment/cancelStatus - 결제 취소 상태 확인
+- GET /payment/approve - 결제 최종 승인
 
 ### 5.6 리뷰 API
-- POST /api/facilities/{facilityId}/reviews - 리뷰 작성
-- GET /api/facilities/{facilityId}/reviews - 시설 리뷰 목록 조회
-- PUT /api/reviews/{id} - 리뷰 수정
-- DELETE /api/reviews/{id} - 리뷰 삭제
+- GET /review/rentInfo/{id} - 리뷰 정보 조회
+- GET /review/myReviews - 내가 쓴 리뷰 목록 조회
+- GET /review/myReviewCnt - 내가 쓴 리뷰 카운트
+- GET /review/{id} - 리뷰 상세 조회
+- POST /review/registReview - 리뷰 작성
+- GET /review/${id}/reviews - 시설 리뷰 목록 조회
+- PUT /review/modify/{id} - 리뷰 수정
+- DELETE /review/delete/{id} - 리뷰 삭제
+- GET /review/{id}/reviewInfo - 시설 리뷰 정보
 
 ### 5.7 매치 API
-- POST /api/match/registMatch - 매치 등록
-- POST /api/match/requestMatch - 매치 신청
-- GET  /api/match/matches - 매치 목록 조회
-- GET  /api/match/{id} - 매치 정보 조회
-- PUT  /api/match/{id}/status - 매치 상태 변경
-- DELETE  /api/match/{id} - 매치 취소
+- POST /admin/match/getMatches - 관리자 매치 조회
+- GET /admin/player/getAdminMatchPlayerCount - 관리자 대시보드 매치 총 이용자 수
+- PUT /admin/player/eject/{id} - 참가자 퇴장
+- POST /admin/match/registMatch - 관리자 매치 등록
+- PUT /admin/match/status/{id} - 관리자 매치 상태 변경
+- GET /admin/match/{id} - 관리자 매치 상세 조회
+- PUT /admin/match/edit/{id} 관리자 매치 수정
+- GET /admin/facilities/{id}/managers - 관리자 매니저 목록 조회
+- GET /match/matchHistory - 매치 이용 내역 조회
+- POST /match/matches - 매치 목록 조회
+- POST /match/matcheDates - 날짜별 매치 카운트 조회
+- GET /match/matches/{id} - 매치 상세 조회
+- GET /player/verifyMatch - 매치 참가 요청(검증)
+- PUT /player/cancelMatch - 매치 신청 취소
 
 ## 6. 보안 설계
 
@@ -356,91 +393,3 @@
 
 ### 5.1 코드 포맷팅
 Google Java Format을 사용하여 코드 스타일을 통일
-
-# 6. 프로젝트 구조
-```
-└── src
-    ├── main
-    │   ├── java
-    │   │   └── com
-    │   │       └── reservemate
-    │   │           └── reserve_mate_backend
-    │   │               ├── ReserveMateBackendApplication.java
-    │   │               ├── common
-    │   │               │   ├── entity
-    │   │               │   │   └── BaseEntity.java
-    │   │               │   ├── exception
-    │   │               │   │   └── GlobalExceptionHandler.java
-    │   │               │   └── util
-    │   │               ├── config
-    │   │               │   ├── AuditingConfig.java
-    │   │               │   ├── SecurityConfig.java
-    │   │               │   └── SwaggerConfig.java
-    │   │               ├── user
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   └── User.java
-    │   │               │   ├── dto
-    │   │               │   │   ├── request
-    │   │               │   │   └── response
-    │   │               │   ├── repository
-    │   │               │   │   └── UserRepository.java
-    │   │               │   └── service
-    │   │               ├── facility
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   ├── Facility.java
-    │   │               │   │   ├── FacilityImage.java
-    │   │               │   │   ├── FacilityManager.java
-    │   │               │   │   └── OperatingHour.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               ├── court
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   ├── Court.java
-    │   │               │   │   └── PricePolicy.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               ├── reservation
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   ├── Reservation.java
-    │   │               │   │   └── WaitingList.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               ├── payment
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   └── Payment.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               ├── notification
-    │   │               │   ├── domain
-    │   │               │   │   └── Notification.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               ├── review
-    │   │               │   ├── controller
-    │   │               │   ├── domain
-    │   │               │   │   └── Review.java
-    │   │               │   ├── dto
-    │   │               │   ├── repository
-    │   │               │   └── service
-    │   │               └── team
-    │   │                   ├── controller
-    │   │                   ├── domain
-    │   │                   │   ├── Team.java
-    │   │                   │   ├── TeamMember.java
-    │   │                   │   └── MatchingRequest.java
-    │   │                   ├── dto
-    │   │                   ├── repository
-    │   │                   └── service
-    │   └── resources
-    │       └── application.yml
-```
