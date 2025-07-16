@@ -23,41 +23,57 @@
 - 가격 정책 설정 (평일/주말, 시간대별 가격 차등)
 
 #### 1.1.3 예약 시스템
+- 사용 가능 시간 조회
 - 날짜/시간 선택, 예약 생성 및 취소
 - 중복 예약 방지
 - 예약 상태 관리 (대기, 확정, 취소, 완료 등)
-- 반복 예약 기능
+- 예약 내역 조회
+- 예약 상세 조회
 
 #### 1.1.4 결제 시스템
 - 온라인 결제, 환불 처리
 - 결제 상태 관리
 - 결제 내역 조회
 
-#### 1.1.5 알림 기능
-- 예약 확인, 변경 알림(이메일, SMS, 푸시 알림)
-- 결제 관련 알림
-
 #### 1.1.6 관리자 대시보드
 - 예약 현황, 통계, 시설 관리
 - 매출 통계
 - 회원 관리
+- 총 예약 수 조회
+- 매치 이용자 수 조회
+- 총 매출 조회
 
-#### 1.1.7 소셜 매치
+#### 1.1.7 관리자 소셜 매치
+- 관리자와 관련된 시설 조회 및 관련 코트, 매니저 조회
+- 매치 목록 조회
+- 매치 상세 조회
+- 매치 등록
+- 매치 수정
+- 매치 취소
+- 참가자 목록 조회
+- 참가자 퇴장
+
+#### 1.1.8 소셜 매치
 - 매치 등록
 - 매치 신청
 - 매치 목록 조회
 - 매치 상세 조회
+- 매치 내역 조회
+- 참가자 목록 조회
 
-#### 1.1.7 추가 기능
-- 소셜 기능(팀 구성, 매칭)
-- 리뷰/평점 시스템
-- 대기 예약 시스템
+#### 1.1.9 리뷰 시스템
+- 시설 리뷰 평점
+- 시설별 리뷰 조회
+- 리뷰 등록
+- 리뷰 삭제
+- 리뷰 수정
+- 내가 쓴 리뷰 조회
+
 
 ## 2. 데이터베이스 설계
 
 ### 2.1 엔티티 관계도 (ERD)
-```
-```
+![erd](./erd.png)
 
 ### 2.2 주요 엔티티 및 속성
 
@@ -124,13 +140,14 @@
 - deleted (소프트 삭제 플래그)
 
 #### 2.2.6 예약(RESERVATIONS)
-- id (PK)
+- reservation_id (PK)
 - user_id (FK)
 - court_id (FK)
-- waiting_list_id (FK, nullable)
+- reserve_date
 - start_time
 - end_time
 - status (PENDING, CONFIRMED, CANCELED, COMPLETED)
+- reservation_number
 - cancel_reason
 - canceled_at
 - total_price
@@ -139,8 +156,10 @@
 - deleted (소프트 삭제 플래그)
 
 #### 2.2.7 결제(PAYMENTS)
-- id (PK)
+- payment_id (PK)
 - reservation_id (FK)
+- match_id (FK)
+- user_id (FK)
 - imp_uid (결제 서비스 고유번호)
 - merchant_uid (주문번호)
 - amount
@@ -149,31 +168,22 @@
 - paid_at
 - canceled_at
 - cancel_reason
-- created_at
-- updated_at
-- deleted (소프트 삭제 플래그)
-
-#### 2.2.8 알림(NOTIFICATIONS)
-- id (PK)
-- user_id (FK)
-- reservation_id (FK, nullable)
-- payment_id (FK, nullable)
-- type
-- content
-- method (EMAIL, SMS, PUSH)
-- is_read
-- sent_at
-- read_at
+- refund_amount
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
 
 #### 2.2.9 리뷰(REVIEWS)
-- id (PK)
+- review_id (PK)
 - user_id (FK)
 - facility_id (FK)
+- match_id (FK)
+- reservation_id
+- review_type
+- title
 - rating
 - content
+- is_visible
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
@@ -190,51 +200,33 @@
 - updated_at
 - deleted (소프트 삭제 플래그)
 
-#### 2.2.11 대기 목록(WAITING_LIST)
-- id (PK)
-- user_id (FK)
-- court_id (FK)
-- date
-- start_time
-- end_time
-- status (WAITING, NOTIFIED, RESERVED, CANCELED, EXPIRED)
-- created_at
-- updated_at
-- deleted (소프트 삭제 플래그)
-
-#### 2.2.12 팀(TEAMS)
-- id (PK)
-- name
-- description
-- created_at
-- updated_at
-- deleted (소프트 삭제 플래그)
-
-#### 2.2.13 팀원(TEAM_MEMBERS)
-- id (PK)
-- team_id (FK)
-- user_id (FK)
-- role (OWNER, ADMIN, MEMBER)
-- joined_at
-- created_at
-- updated_at
-- deleted (소프트 삭제 플래그)
-
-#### 2.2.14 소셜 매치(MATCHES)
+#### 2.2.11 소셜 매치(MATCHES)
 - match_id (PK)
 - court_id (FK)
+- facility_manager_id(FK)
+- match_name
 - match_status
 - description
-- manager
 - team_capacity
 - match_date
 - match_time
+- end_time
 - match_price
 - created_at
 - updated_at
 - deleted (소프트 삭제 플래그)
 
-#### 2.2.15 시설 관리자(FACILITY_MANAGERS)
+#### 2.2.12 매치 참가자(MATCHPLAYERS)
+- player_id
+- match_id (FK)
+- user_id (FK)
+- removal_reason (ABUSIVE_BEHAVIOR, LATE, SERIOUS_RULE_VIOLATION)
+- status (CANCEL, COMPLETED, KICKED, MATCH_CANCELLED, ONGOING, READY)
+- created_at
+- updated_at
+- deleted (소프트 삭제 플래그)
+
+#### 2.2.13 시설 관리자(FACILITY_MANAGERS)
 - id (PK)
 - facility_id (FK)
 - user_id (FK)
@@ -251,14 +243,9 @@
 [USERS] --- [FACILITY_MANAGERS] --- [FACILITIES]
 ```
 
-### 3.2 User와 Team 간의 관계 (N:M)
+### 3.2 User와 Match 간의 참가자 관계 (N:M)
 ```
-[USERS] --- [TEAM_MEMBERS] --- [TEAMS]
-```
-
-### 3.3 User와 Court 간의 대기 예약 관계 (N:M)
-```
-[USERS] --- [WAITING_LIST] --- [COURTS]
+[USERS] --- [MATCHPLAYERS] --- [MATCHES]
 ```
 
 ## 4. JPA 엔티티 설계 주요 고려사항
@@ -363,7 +350,7 @@
 ### 7.2 배포 환경
 - Docker 컨테이너화
 - CI/CD 파이프라인 구성 (GitHub Actions)
-- AWS EC2, S3
+- AWS EC2
 
 ## 5. 개발 환경 설정
 
