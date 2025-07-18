@@ -1,0 +1,41 @@
+name: CD
+
+on:
+    pull_request: 
+        types: [closed]
+        branches: ['dev']
+
+permissions: 
+    pull-requests: read
+
+jobs:
+    deploy:
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the code
+              uses: actions/checkout@v3
+            
+            - name: Set up Jdk
+              uses: actions/setup-java@v3
+              with:
+                  distribution: temurin
+                  java-version: 17
+            - name: deploy
+              uses: appleboy/ssh-action@v1
+              env: 
+               APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+              with:
+               host: ${{ secrets.EC2_HOST }}
+               username: ${{ secrets.EC2_USERNAME }}
+               key: ${{ secrets.EC2_PRIVATE_KEY }}
+               envs: APPLICATION_PROPERTIES
+               script_stop: true
+               script: | 
+                cd /home/ubuntu/project/reserve-mate-backend
+                rm -rf src/main/resources/application.properties
+                git pull origin dev
+                echo "$APPLICATION_PROPERTIES" > src/main/resources/application.properties
+                ./gradlew build -x test
+                sudo fuser -k -n tcp 8080 || true
+                nohup java -jar build/libs/*SNAPSHOT.jar > ./output.log 2>&1 &
