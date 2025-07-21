@@ -170,7 +170,7 @@ public class MatchCustomRepositoryImpl implements MatchCustomRepository {
 
     // 검색어로 조회
     private BooleanExpression searchValueLike(String searchValue) {
-        String likeSearch = "%" + searchValue + "%";
+        String likeSearch = searchValue + "%";
         return (searchValue != null) ? match.matchName.like(likeSearch).or(
             facility.name.like(likeSearch))
             : null;
