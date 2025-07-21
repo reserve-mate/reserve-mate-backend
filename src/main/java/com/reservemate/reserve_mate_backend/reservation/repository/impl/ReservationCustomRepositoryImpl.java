@@ -128,8 +128,8 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
 
     // 검색어 조건(고객명, 시설명)
     private BooleanExpression whereSearchTerm(String searchTerm) {
-        return (searchTerm != null) ? (reservation.user.name.like("%" + searchTerm + "%").or(facility.name.like("%"
-            + searchTerm + "%"))) : null;
+        return (searchTerm != null) ? (reservation.user.name.startsWith(searchTerm).or(facility.name.startsWith(
+            searchTerm))) : null;
     }
 
     // 해당 월 조건
