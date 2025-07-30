@@ -13,12 +13,14 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reservemate.reserve_mate_backend.facility.domain.QFacility;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import com.reservemate.reserve_mate_backend.review.domain.QReviewImage;
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.PopularityReviewResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewImageResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
@@ -34,6 +36,25 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
     private QReview review = QReview.review;
     private QReviewImage reviewImage = QReviewImage.reviewImage;
+
+    /* 가장 높은  */
+    @Override
+    public List<PopularityReviewResponse> getHighRate() {
+
+        NumberExpression<Double> avgRating = review.rating.avg();
+
+        List<PopularityReviewResponse> responses = queryFactory
+            .select(Projections.fields(PopularityReviewResponse.class,
+                review.facility.id.as("facilityId"), avgRating.as("rating")
+            )
+            ).from(review)
+            .groupBy(review.facility)
+            .orderBy(avgRating.desc(), review.facility.id.asc())
+            .limit(3)
+            .fetch();
+
+        return responses;
+    }
 
     /* 내가 쓴 리뷰 목록 */
     @Override

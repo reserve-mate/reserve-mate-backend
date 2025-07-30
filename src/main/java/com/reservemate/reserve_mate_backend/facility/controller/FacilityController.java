@@ -1,5 +1,6 @@
 package com.reservemate.reserve_mate_backend.facility.controller;
 
+import com.reservemate.reserve_mate_backend.facility.dto.response.PopularFacilityResponse;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitySportTypeDto;
@@ -21,6 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class FacilityController {
 
     private final FacilityService facilityService;
+
+    /* 인기 시설 목록 조회 */
+    @GetMapping("/popularFacility")
+    public ResponseEntity<List<PopularFacilityResponse>> getPopularFacility() {
+        return ResponseEntity.ok(facilityService.getPopularityFacility());
+    }
 
     @GetMapping("/review/{facilityId}")
     public ResponseEntity<ReviewFacilitResponse> getReviewFacility(@PathVariable("facilityId") Long facilityId) {

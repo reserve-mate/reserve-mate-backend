@@ -6,6 +6,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.Court;
 import com.reservemate.reserve_mate_backend.facility.domain.Facility;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.PopularFacilityResponse;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
@@ -13,6 +14,8 @@ import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacili
 import com.reservemate.reserve_mate_backend.facility.dto.response.ReviewFacilitResponse;
 import com.reservemate.reserve_mate_backend.facility.repository.CourtRepository;
 import com.reservemate.reserve_mate_backend.facility.repository.FacilityRepository;
+import com.reservemate.reserve_mate_backend.review.validator.ReviewValidator;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +29,13 @@ public class FacilityService {
 
     private final FacilityRepository facilityRepository;
     private final CourtRepository courtRepository;
+    private final ReviewValidator reviewValidator;
+
+    // 인기 시설 가져오기
+    public List<PopularFacilityResponse> getPopularityFacility() {
+        List<Long> facilityIds = reviewValidator.getHighRate();
+        return facilityRepository.findPopularFacility(facilityIds);
+    }
 
     /* 리뷰 작성 시 시설 정보 가져오기 */
     public ReviewFacilitResponse getReviewFacility(Long facilityId) {

@@ -7,10 +7,13 @@ import org.springframework.data.domain.Slice;
 
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewCntResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.MyReviewListResponse;
+import com.reservemate.reserve_mate_backend.review.dto.response.PopularityReviewResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewCountResponse;
 import com.reservemate.reserve_mate_backend.review.dto.response.ReviewListResponse;
 
 public interface ReviewCustomRepository {
+
+    List<PopularityReviewResponse> getHighRate();
 
     /* 내가 쓴 리뷰 목록 */
     Slice<MyReviewListResponse> getMyReviewList(Long userId, Pageable pageable);

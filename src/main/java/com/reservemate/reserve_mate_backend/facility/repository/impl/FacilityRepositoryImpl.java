@@ -14,6 +14,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.QOperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.PopularFacilityResponse;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilitiesDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseFacilityDetailDto;
@@ -35,6 +36,26 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
 
     public FacilityRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
+    }
+
+    /* 인기 시설목록 가져오기 */
+    @Override
+    public List<PopularFacilityResponse> findPopularFacility(List<Long> facilityIds) {
+        QFacility facility = QFacility.facility;
+        QFacilityImage image = QFacilityImage.facilityImage;
+
+        List<PopularFacilityResponse> responses = jpaQueryFactory.select(
+            Projections.fields(PopularFacilityResponse.class,
+                facility.id.as("facilityId"), facility.name.as("name"), facility.description.as("description"),
+                image.imageUrl.as("imageUrl")
+            )
+        ).from(facility)
+            .leftJoin(image).on(facility.id.eq(image.facility.id), image.main.isTrue())
+            .where(facility.id.in(facilityIds))
+            .orderBy(facility.id.desc())
+            .fetch();
+
+        return responses;
     }
 
     public Slice<ResponseFacilitiesDto> findAllCourtsByCursor(RequestFacilitySearchDto facilitySearchDto,
