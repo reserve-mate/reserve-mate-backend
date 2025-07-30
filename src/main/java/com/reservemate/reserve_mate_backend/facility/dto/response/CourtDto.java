@@ -1,7 +1,5 @@
 package com.reservemate.reserve_mate_backend.facility.dto.response;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,12 +11,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PopularFacilityResponse {
+public class CourtDto {
 
-    private Long facilityId;
+    private Long courtId;
     private String name;
-    private String description;
-    private String imageUrl;
-    private List<CourtDto> courts;
+    private Long facilityId;
 
 }

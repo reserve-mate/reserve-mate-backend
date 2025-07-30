@@ -13,6 +13,7 @@ import com.reservemate.reserve_mate_backend.facility.domain.QFacilityManager;
 import com.reservemate.reserve_mate_backend.facility.domain.QOperatingHour;
 import com.reservemate.reserve_mate_backend.facility.domain.SportType;
 import com.reservemate.reserve_mate_backend.facility.dto.request.RequestFacilitySearchDto;
+import com.reservemate.reserve_mate_backend.facility.dto.response.CourtDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.FacilityDto;
 import com.reservemate.reserve_mate_backend.facility.dto.response.PopularFacilityResponse;
 import com.reservemate.reserve_mate_backend.facility.dto.response.ResponseCourtDto;
@@ -24,7 +25,12 @@ import com.reservemate.reserve_mate_backend.facility.repository.CustomFacilityRe
 import com.reservemate.reserve_mate_backend.reservation.domain.QReservation;
 import com.reservemate.reserve_mate_backend.review.domain.QReview;
 import jakarta.persistence.EntityNotFoundException;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -55,7 +61,32 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
             .orderBy(facility.id.desc())
             .fetch();
 
+        List<CourtDto> courts = findCourts(facilityIds);    // 코트 조회
+
+        Map<Long, List<CourtDto>> courtMap = courts.stream()
+            .collect(Collectors.groupingBy(CourtDto::getFacilityId));
+
+        for (PopularFacilityResponse response : responses) {
+            response.setCourts(courtMap.getOrDefault(response.getFacilityId(), new ArrayList<>()));
+        }
+
         return responses;
+    }
+
+    /* 인기 시설의 코트 조회 */
+    private List<CourtDto> findCourts(List<Long> facilityIds) {
+
+        QCourt court = QCourt.court;
+
+        List<CourtDto> response = jpaQueryFactory.select(
+            Projections.fields(CourtDto.class,
+                court.id.as("courtId"), court.name.as("name"), court.facility.id.as("facilityId")
+            )
+        ).from(court)
+            .where(court.facility.id.in(facilityIds))
+            .fetch();
+
+        return response;
     }
 
     public Slice<ResponseFacilitiesDto> findAllCourtsByCursor(RequestFacilitySearchDto facilitySearchDto,
