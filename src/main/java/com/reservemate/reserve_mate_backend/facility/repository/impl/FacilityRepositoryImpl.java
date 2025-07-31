@@ -44,6 +44,57 @@ public class FacilityRepositoryImpl implements CustomFacilityRepository {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
+    /* 대시보드 시설 목록 가져오기 */
+    @Override
+    public List<FacilityDto> findDashboardFacilities(List<Long> facilityIds) {
+
+        QFacility facility = QFacility.facility;
+        QCourt court = QCourt.court;
+        QReservation reservation = QReservation.reservation;
+        QFacilityImage image = QFacilityImage.facilityImage;
+
+        List<FacilityDto> results = jpaQueryFactory
+            .select(Projections.constructor(FacilityDto.class,
+                facility.id,
+                facility.name,
+                facility.sportType.stringValue(),
+                facility.address.city
+                    .concat(" ")
+                    .concat(facility.address.district.stringValue())
+                    .concat(" ")
+                    .concat(facility.address.streetAddress.stringValue())
+                    .concat(" ")
+                    .concat(facility.address.detailAddress.stringValue())
+                    .as("address"),
+                JPAExpressions
+                    .select(court.countDistinct())
+                    .from(court)
+                    .where(court.facility.eq(facility)),
+                JPAExpressions
+                    .select(reservation.countDistinct())
+                    .from(reservation)
+                    .join(reservation.court, court)
+                    .where(court.facility.eq(facility)),
+                JPAExpressions
+                    .select(image.imageUrl)
+                    .from(image)
+                    .where(
+                        image.facility.eq(facility),
+                        image.main.isTrue()
+                    )
+                    .limit(1)
+            ))
+            .from(facility)
+            .where(
+                facility.id.in(facilityIds)
+            )
+            .orderBy(facility.id.desc())
+            .limit(4)  //불러올 글 갯수보다 1개 더 가져온다.
+            .fetch();
+
+        return results;
+    }
+
     /* 인기 시설목록 가져오기 */
     @Override
     public List<PopularFacilityResponse> findPopularFacility(List<Long> facilityIds) {

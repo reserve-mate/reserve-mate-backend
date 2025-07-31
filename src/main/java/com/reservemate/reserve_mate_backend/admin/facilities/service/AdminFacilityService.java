@@ -61,6 +61,18 @@ public class AdminFacilityService {
 
     private final UserRepository userRepository;
 
+    /* 대시보드 시설 목록 */
+    public List<FacilityDto> getDashboardFacilities(Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        List<FacilityManager> facilities = facilityManagerRepository.findByUser(user);
+        List<Long> facilityIds  = FacilityManager.getFacilityIds(facilities);
+
+        List<FacilityDto> response = facilityRepository.findDashboardFacilities(facilityIds);
+
+        return response;
+    }
+
     // 매치 등록 시 시설명 조회
     public List<FacilityNameResponseDto> getMatchFacilityNames(HttpServletRequest request, SportType sportType) {
 
