@@ -42,6 +42,12 @@ public class AdminFacilityController {
     private final FacilityManagerService facilityManagerService;
     private final AdminCourtService adminCourtService;
 
+    @GetMapping("/dashboardFacilities")
+    public ResponseEntity<List<FacilityDto>> getDashboardFacilities(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(adminFacilityService.getDashboardFacilities(customUserDetails.getId()));
+    }
+
     /* 매치 등록 시 매니저 조회 */
     @GetMapping("/getManagerNames")
     public ResponseEntity<List<FacilityManagerNamesDto>> getFacilityManagers(

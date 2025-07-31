@@ -13,6 +13,9 @@ import org.springframework.data.domain.Slice;
 
 public interface CustomFacilityRepository {
 
+    /* 대시보드 시설 목록 가져오기 */
+    List<FacilityDto> findDashboardFacilities(List<Long> facilityIds);
+
     /* 인기 시설 목록 가져오기 */
     List<PopularFacilityResponse> findPopularFacility(List<Long> facilityIds);
 
