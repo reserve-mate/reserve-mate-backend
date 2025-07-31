@@ -66,7 +66,7 @@ public class AdminFacilityService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         List<FacilityManager> facilities = facilityManagerRepository.findByUser(user);
-        List<Long> facilityIds  = FacilityManager.getFacilityIds(facilities);
+        List<Long> facilityIds = FacilityManager.getFacilityIds(facilities);
 
         List<FacilityDto> response = facilityRepository.findDashboardFacilities(facilityIds);
 

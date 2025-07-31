@@ -43,7 +43,8 @@ public class AdminFacilityController {
     private final AdminCourtService adminCourtService;
 
     @GetMapping("/dashboardFacilities")
-    public ResponseEntity<List<FacilityDto>> getDashboardFacilities(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<List<FacilityDto>> getDashboardFacilities(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok(adminFacilityService.getDashboardFacilities(customUserDetails.getId()));
     }
 
