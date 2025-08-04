@@ -61,6 +61,16 @@ public class AdminFacilityService {
 
     private final UserRepository userRepository;
 
+    /* 대시보드 시설 카운트 */
+    public Long getDashFacilityCnt(Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        List<FacilityManager> facilities = facilityManagerRepository.findByUser(user);
+        List<Long> facilityIds = FacilityManager.getFacilityIds(facilities);
+
+        return facilityRepository.countByFacilityId(facilityIds);
+    }
+
     /* 대시보드 시설 목록 */
     public List<FacilityDto> getDashboardFacilities(Long userId) {
 
