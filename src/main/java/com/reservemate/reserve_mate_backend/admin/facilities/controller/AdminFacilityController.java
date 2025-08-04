@@ -42,6 +42,13 @@ public class AdminFacilityController {
     private final FacilityManagerService facilityManagerService;
     private final AdminCourtService adminCourtService;
 
+    /* 대시보드 시설 개수 가져오기 */
+    @GetMapping("/facilityCnt")
+    public ResponseEntity<Long> getDashFacilityCnt(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(adminFacilityService.getDashFacilityCnt(customUserDetails.getId()));
+    }
+
+    /* 대시보드 시설 목록 가져오기 */
     @GetMapping("/dashboardFacilities")
     public ResponseEntity<List<FacilityDto>> getDashboardFacilities(
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
